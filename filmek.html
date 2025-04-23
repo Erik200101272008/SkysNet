@@ -60,7 +60,65 @@
     }
 
 
+.slider-container {
+    position: relative;
+    max-width: 900px;
+    margin: 20px auto;
+    overflow: hidden;
+    border-radius: 10px;
+}
 
+.slider {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+    min-width: 100%;
+    position: relative;
+}
+
+.slide img {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+}
+
+.slide-caption {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 18px;
+}
+
+.prev, .next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 5px;
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
+}
+
+.prev:hover, .next:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
 
 	    
 
@@ -75,7 +133,35 @@
         <img src="https://i.pinimg.com/736x/a8/49/43/a84943743ca1edecca8f6a9cc953f66c.jpg" alt="SkyShowtime">
     </div>
 	
-           
+     <div class="slider-container">
+    <div class="slider">
+        <div class="slide">
+            <img src="https://i.pinimg.com/736x/75/37/1d/75371d2f644ef4af3f0eaaea10cbabcc.jpg" alt="Slide 1">
+            <div class="slide-caption"> Nézd meg most!</div>
+			 <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239207&hd=1&autoplay=1" class="slide-caption">Nézd meg most!</a>
+        </div>
+        <div class="slide">
+            <img src="https://videa.hu/static/custom_image/1.13.8.3106267.2493730.1?md5=YHEf2PpoM4hWMMnOoFFEyA&expires=1773462767" alt="Slide 2">
+            <div class="slide-caption">Nézd meg most!</div>
+			<a href="https://vk.com/video_ext.php?oid=1037217102&id=456239165&hd=2&autoplay=1" class="slide-caption">Nézd meg most!</a>
+        </div>
+        <div class="slide">
+            <img src="deadpool3.jpg" alt="Slide 3">
+            <div class="slide-caption">Nézd meg most!</div>
+			<a href="https://vk.com/video_ext.php?oid=1037217102&id=456239112&hd=2&autoplay=1" class="slide-caption">Nézd meg most!</a>
+
+	<a href="https://vk.com/video_ext.php?oid=1037217102&id=456239112&hd=2&autoplay=1" class="movie-container">
+			<img src="deadpool3.jpg" alt="Deadpool és Rozsomák">	
+        </div>
+    </div>
+    <button class="prev" onclick="moveSlide(-1)">&#10094;</button>
+    <button class="next" onclick="moveSlide(1)">&#10095;</button>
+</div>
+
+
+
+
+	 
  <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Írd be a film címét...">
 
    
@@ -2035,9 +2121,32 @@ Elektronikus állam
 			
 	
 			
-
+<script>
 	
-			
+	let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+
+function moveSlide(direction) {
+    currentSlide += direction;
+    if (currentSlide >= totalSlides) {
+        currentSlide = 0;
+    } else if (currentSlide < 0) {
+        currentSlide = totalSlides - 1;
+    }
+    updateSlider();
+}
+
+function updateSlider() {
+    const slider = document.querySelector('.slider');
+    slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+
+// Automatikus váltás (opcionális, ha szeretnéd)
+setInterval(() => {
+    moveSlide(1);
+}, 5000); // 5 másodpercenként vált	
+</script	
 			
 			
 			
@@ -2086,4 +2195,3 @@ Elektronikus állam
     </script>
 </body>
 </html>
-
