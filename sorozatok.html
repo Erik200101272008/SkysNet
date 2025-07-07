@@ -2,338 +2,565 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-	<link rel="shortcut icon" type="x-icon" href="skysnet.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkysNet</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #000000;
-            color: #ffffff;
-            text-align: left;
-            font-family: Arial, sans-serif;
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
         }
 
         .logo img {
-            width: 200px;
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
         }
 
         .movie-container {
             display: inline-block;
             position: relative;
-            margin-top: 20px;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
         }
 
         .movie-container img {
             width: 200px;
-            height: 100px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-radius: 10px;
         }
 
         .movie-container:hover img {
-            transform: scale(1.1);
-            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         }
-		 #kereso {
-            width: 50%;
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
             padding: 10px;
-            margin: 20px auto;
-            font-size: 18px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            display: block;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
         }
     </style>
 </head>
 <body>
-
-    <!-- SkyShowtime logó -->
+    <!-- SkyShowtime logo -->
     <div class="logo">
-	    <a href="filmek.html">
-        <img src="skysnet.png" alt="SkyShowtime">
-	    </a>
+        <a href="filmek.html">
+            <img src="SkysNet.png" alt="SkyShowtime">
+        </a>
     </div>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        
+        <a href="filmek.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Slider -->
+     <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://image.tmdb.org/t/p/original/5aE1kxWg6RhgQxJTXTxifv4uq7P.jpg " alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://erik200101272008.github.io/SkysNet/nyerdmeg.html">Squid Game: Nyerd meg az életed</a>
+                </div>
+            </div>
+			
+			
+			
+            <div class="slide">
+                <img src="https://image.tmdb.org/t/p/original/ccaZ3yyyC6rcMAQrlLZ51FpahNO.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://erik200101272008.github.io/SkysNet/lucifer.html">Lucifer</a>
+                </div>
+            </div>
+			
+			
+			
+            <div class="slide">
+                <img src="https://image.tmdb.org/t/p/original/h6JF8zcQRui8bt1As1q4orfxsHc.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://erik200101272008.github.io/SkysNet/daredevil.html">Daredevil: Újjászületés</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <!-- Search input -->
     <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Írd be a sorozat címét...">
 
     <h2>Sorozatok</h2>
-	
-	 <!-- Kattintható képek -->
-	 <div class="movie-container">
-	 <a href="amerikai gigolo.html" class="movie-container">
-	 <img src="am.jpg" alt="Amerikai Gigolo">
-	 </a>
-	 <br>
-	 Amerikai gigolo
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="szornyetegek Lyle és Erik Menendez.html" class="movie-container">
-	 <img src="monster.jpg" alt="Monsters">
-	 </a>
-	 <br>
-	 Szörnyetegek:Lyle és Erik <br>Menendez story
-	 </div>
-	 
-	 <div class="movie-container">
-     <a href="ted.html" class="movie-container">
-     <img src="teds.jpeg" alt="ted">
-     </a>
-	 <br>
-	 Ted
-	 </div>
-	 
-	 <div class="movie-container">
-     <a href="tulsa king.html" class="movie-container">
-     <img src="tking.jpg" alt="Tulsa king">
-     </a>
-	 <br>
-	 Tulsa király
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="dextereredendobun.html" class="movie-container">
-	 <img src="dered.jpg" alt="Dexter Eredendő bűn">
-	 </a>
-	 <br>
-	 Dexter:Eredendő bűn
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="aliceinborderlands.html" class="movie-container">
-	 <img src="aib.jpg" alt="Alice in Borderlands">
-	 </a>
-	 <br>
-	 Alice határországban
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="titans.html" class="movie-container">
-	 <img src="titans.jpg" alt="Titánok">
-	 </a>
-	 <br>
-	 Titánok
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="wu assassin.html" class="movie-container">
-	 <img src="wu.jpg" alt="Wu Wei:Az öt elem küzdelme">
-	 </a>
-	 <br>
-	 Wu Wei:Az öt elem küzdelme
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="piedone.html" class="movie-container">
-     <img src="pied.png" alt="Piedone a nápolyi zsaru">	 
-	 </a>
-	 <br>
-	 Piedone a nápolyi zsaru
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="daredevil.html" class="movie-container">
-	 <img src="daredevilposter1.jpg" alt="Daredevil">  
-     </a>	 
-	 <br>
-	 Daredevil:Újjászületés
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="alkonyattol.html" class="movie-container">
-	 <img src="alk2.jpg" alt="Alkonyattól pirkadatig">
-	 </a>
-	 <br>
-	 Alkonyattól pirkadatig
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="megtorlo.html" class="movie-container">
-	 <img src="megt01.jpg" alt="Megtorló">
-	 </a>
-	 <br>
-	 Megtorló
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="keménymotorosok.html" class="movie-container">
-	 <img src="keménym.jpg" alt="Kemény motorosok">
-	 </a>
-	 <br>
-	 Kemény motorosok
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="solyomszem.html" class="movie-container">
-	 <img src="solyomszem.jpg" alt="Sólyomszem">
-	 </a>
-	 <br>
-	 Sólyomszem
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="echo.html" class="movie-container">
-     <img src="echo1.jpg" alt="Echo">
-     </a>	 
-	 <br>
-	 Echo
-	 </div>
-	 
-	 <div class="movie-container">
-	 <a href="feketeho.html" class="movie-container">
-	 <img src="fh2.jpg" alt="Fekete hó">
-	 </a>
-	 <br>
-	 Fekete hó
-	 </div>
 
-	 <div class="movie-container">
-	 <a href="theboys.html" class="movie-container">
-	 <img src="theboys.jpg" alt="The Boys">
-	 </a>
-	 <br>
-	 The Boys
-	 </div>
+    <!-- Movie list container -->
+    <div id="movie-list"></div>
 
-	<div class="movie-container">
-	 <a href="genv.html" class="movie-container">
-	 <img src="genv.jpg" alt="V generáció">
-	 </a>
-	 <br>
-	 V generáció
-	 </div>
+    <script>
+        // Slider control
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
 
-	<div class="movie-container">
-	 <a href="avatar.html" class="movie-container">
-	 <img src="avatar.jpg" alt="Avatar">
-	 </a>
-	 <br>
-	 Avatar
-	 </div>
-
-	<div class="movie-container">
-	 <a href="miénkaváros.html" class="movie-container">
-	 <img src="miénk1.jpg" alt="Miénk a város">
-	 </a>
-	 <br>
-	 Miénk a város
-	 </div>
-
-	<div class="movie-container">
-	 <a href="little.html" class="movie-container">
-	 <img src="little.jpg" alt="Kettős szerepben">
-	 </a>
-	 <br>
-	 Kettős szerepben
-	 </div>
-
-	<div class="movie-container">
-	 <a href="sikolysorozat.html" class="movie-container">
-	 <img src="sikolys.jpg" alt="Sikoly">
-	 </a>
-	 <br>
-	 Sikoly
-	 </div>
-
-	<div class="movie-container">
-	 <a href="citadel.html" class="movie-container">
-	 <img src="citadel1.jpg" alt="Citadel">
-	 </a>
-	 <br>
-	 Citadel
-	 </div>
-
-	<div class="movie-container">
-	 <a href="citadelhoneybunny.html" class="movie-container">
-	 <img src="citadelhb.jpg" alt="Citadel Honey Bunny">
-	 </a>
-	 <br>
-	 Citadel Honey Bunny
-	 </div>
-
-	 <div class="movie-container">
-	 <a href="reacher.html" class="movie-container">
-	 <img src="reacher.jpg" alt="Reacher">
-	 </a>
-	 <br>
-	 Reacher
-	 </div>
-
-	<div class="movie-container">
-	 <a href="Banshee.html" class="movie-container">
-	 <img src="Banshee.jpg" alt="Banshee">
-	 </a>
-	 <br>
-	 Banshee
-	 </div>
-
-	<div class="movie-container">
-	 <a href="you.html" class="movie-container">
-	 <img src="you12345.jpg" alt="Te">
-	 </a>
-	 <br>
-	 Te
-	</div>
-
-	<div class="movie-container">
-	 <a href="nyerdmeg.html" class="movie-container">
-	 <img src="nyerdmeg.jpg" alt="Squid Game:Nyerd meg az életed">
-	 </a>
-	 <br>
-	 Squid Game:Nyerd meg az életed
-	 </div>
-
-	<div class="movie-container">
-	 <a href="lacage.html" class="movie-container">
-	 <img src="lacage.png" alt="Harcos a ketrecben">
-	 </a>
-	 <br>
-	 Harcos a ketrecben
-	 </div>
-
-	<div class="movie-container">
-	 <a href="megzs.html" class="movie-container">
-	 <img src="megzs.jpg" alt="Megzsarolva">
-	 </a>
-	 <br>
-	 Megzsarolva
-	 </div>
-
-	<div class="movie-container">
-	 <a href="lucifer.html" class="movie-container">
-	 <img src="https://www.joblo.com/wp-content/uploads/2021/05/luciferseason52.jpg" alt="Lucifer">
-	 </a>
-	 <br>
-	 Lucifer
-	 </div>
-	 
-	
-	 
-
-
-<script>
-(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-</script>
-	
-
-	 
-	 <script>
-        function filmKereses() {
-            let input = document.getElementById("kereso").value.toLowerCase();
-            let filmek = document.getElementsByClassName("movie-container");
-
-            for (let i = 0; i < filmek.length; i++) {
-                let cim = filmek[i].getElementsByTagName("img")[0].alt.toLowerCase();
-                if (cim.includes(input)) {
-                    filmek[i].style.display = "inline-block";
-                } else {
-                    filmek[i].style.display = "none";
-                }
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
             }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
+
+        // Automatic slide change every 5 seconds
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Movie database
+        const movies = [
+            {
+                title: "Alkonyattól pirkadatig",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zfwaTgJ7uQ9PM4qMQG1vOyxRHBQ.jpg",
+                previewImage: "https://static.wikia.nocookie.net/dusktilldawn/images/5/5d/Season_One_promo.png/revision/latest?cb=20140504022706",
+                description: "A sorozat Seth Gecko (D.J. Cotrona) és erőszakos, kiszámíthatatlan testvére, Richard Richie Gecko (Zane Holtz) történetét meséli el, akiket nem csak az FBI, hanem két texas ranger, Earl McGraw (Don Johnson) és Freddie Gonzalez (Jesse Garcia) is üldöz, miután kiraboltak néhány bankot és hátrahagytak néhány hullát. A fivérek Mexikó felé veszi az irányt, ám útközben belebotlanak egy korábbi miniszterbe, Jacob Fullerbe, akit családjával együtt túszul ejtenek. Az ő hathatós közreműködésükkel szeretnének átjutni a határon, ám előtte még megállnak egy sztriptízbárban, amely nem várt meglepetéseket tartogat számukra.",
+                link: "https://erik200101272008.github.io/SkysNet/alkonyattol.html"
+            },
+			{
+			    title: "A Megtorló",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7S1uFDj5AK6TaaxexXpoFspvARW.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/4ovzHULGd6tZhHjGuffblsrtDny.jpg",
+				description: "Frank Castle után hajtóvadászatot indítanak, miután egész családjával végeznek. Az alvilág úgy kezdi emlegetni őt, mint a Megtorló, aki nem válogat az eszközökben.",
+				link: "https://erik200101272008.github.io/SkysNet/megtorlo.html"
+			},
+			{
+			    title: "Ted",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cPn71YFDENH0JkWUezlsLyWmLfN.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/cFyp7F8qiBSuSj1qhUnu8MDvubl.jpg",
+				description: "1993-ban járunk, és Ted, a medve hírességének pillanata már elmúlt. Otthon él legjobb barátjával, John Bennett-tel és családjával. Bár Ted rossz hatással van Johnra, hűséges cimborája, aki a barátságért akár a végsőkig is elmegy.",
+				link: "https://erik200101272008.github.io/SkysNet/ted.html"
+			},
+			{
+			    title: "Reacher",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/31GlRQMiDunO8cl3NxTz34U64rf.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/8QFcFUhBUxlxwsPsuaN9PztWFub.jpg",
+				description: "Amikor a volt katonai rendőrt, Jack Reachert letartóztatják egy gyilkosságért, amit el sem követett, egy korrupt zsarukkal, gyanús üzletemberekkel és cselszövő politikusokkal teli halálos összeesküvés közepébe csöppen. Muszáj neki kiderítenie, mi folyik Margrave-ben.",
+				link: "https://erik200101272008.github.io/SkysNet/reacher.html"
+			},
+			{
+			    title: "Banshee",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nQOrt4oe2akSJczGTx0aTMt9YRq.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/mo9bfYdewzmHxnaeURB2jRPvGuX.jpg",
+				description: "A volt fegyenc és mestertolvaj Lucas Hood felveszi Banshee meggyilkolt seriffjének személyazonosságát, és folytatja bűnös tevékenységét még akkor is, amikor régi bűntársai, akiket tizenöt évvel korábban elárult, vadászni kezdenek rá. A városban él régi szerelme, akit tizenöt évvel ezelőtt látott utoljára. Carrie azóta újból férjhez ment.Ez a volt fegyenc a saját igazságszolgáltatását alkalmazza, ezért a pennsylvaniai Banshee nem túl csendes amish városkájában minden sarkon kitör az erőszak.",
+				link: "https://erik200101272008.github.io/SkysNet/Banshee.html"
+			},
+			{
+			    title: "A fiúk",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/V2UjGqe24QJJHyEChd4D1AxmOB.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/n6vVs6z8obNbExdD3QHTr4Utu1Z.jpg",
+				description: "A sorozat egy olyan korban játszódik, ahol a szuperhősök többsége el van telve celeb státuszával, és ez gyakran felelőtlen viselkedéssel párosul, ami a világ biztonságát is veszélybe sodorja. A középpontban egy renegát csapat áll, amely ezekkel a korrupt, elkanászodott hősökkel foglalkozik, s ha kell, likvidálja őket.",
+				link: "https://erik200101272008.github.io/SkysNet/theboys.html"
+			},
+			{
+			    title: "V Generáció",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/95C6G2hSSc5QUvHsA5ddhNs7ShI.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/rgjfGaI3mCmTcVm0X0AIfClKJmC.jpg",
+				description: "A V generáció visszarepít A fiúk világába. Az új sorozat Amerika egyetlen szuperhős-egyetemén játszódik. A tehetséges hallgatók feszegetik az erkölcsi határaikat, versengenek azért, hogy az egyetem ranglistáján emelkedjenek, és csatlakozhassanak a Hetekhez, a Vought International elit szuperhőscsapatához. Amikor az iskola sötét titkaira fény derül, el kell dönteniük, milyen hősök lesznek.",
+				link: "https://erik200101272008.github.io/SkysNet/genv.html"
+			},
+			{
+			    title: "Tulsa királya",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wJsdLZFUNe4qP3EHLJE02YKGkq2.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/wlfXCsdiNRRo1ek3pRAytQuYBgy.jpg",
+				description: "Dwight Manfredit 25 év után kiengedik a börtönből, maffiájának főnöke viszont nemes egyszerűséggel száműzi őt: Tulsába küldi, hogy ott alapítson új üzletet. Dwight felismerve, hogy „családjára” innentől nem számíthat, új birodalom építésébe kezd, egy számára teljesen ismeretlen helyen.",
+				link: "https://erik200101272008.github.io/SkysNet/tulsa%20king.html"
+			},
+			{
+			     title: "Fekete hó",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5ZCD1hK7vPUy1s7kBKMkduAoQha.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/zqkqT0JGAz1x5cRhyOB069bV6ap.jpg",
+				 description: "1994-ben brutális bűncselekmény sokkolta Ashford városát, amikor meggyilkolták a 17 éves Isabel Bakert. Az ügyet nem sikerült megoldani, nem kapták el a gyilkost, azonban huszonöt évvel később egy időkapszula felnyitásakor olyan titok lát napvilágot, ami által James Cormack nyomozó újra a gyilkos nyomába eredhet. A városlakók által felépített idilli hangulatot egy csapásra romba dönti a mindenkire rávetülő gyanú. A sorozat a karakterközpontú történetmesélést ötvözi a klasszikus felnövéstörténettel, megfűszerezve egy érdekfeszítő gyilkossági rejtéllyel, aminek egyedülálló helyszínt biztosít Észak-Ausztrália.",
+				 link: "https://erik200101272008.github.io/SkysNet/feketeho.html"
+			},
+			{
+			     title: "Szörnyetegek: Lyle és Erik Menendez story",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/x9YC2rpXHUFMqI1hCekKDm9UE4w.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/qCwwDtel7IavzeZ8r7AWC9LgSGi.jpg",
+				 description: "Megtörtént bűnesetet feldolgozó lebilincselő dráma a Menendez fivérek életéről, akiket börtönbüntetésre ítéltek szüleik brutális 1989-es Beverly Hills-i meggyilkolásáért.",
+				 link: "https://erik200101272008.github.io/SkysNet/szornyetegek%20Lyle%20és%20Erik%20Menendez.html"
+			},
+			{
+			     title: "Sólyomszem",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nPJhedYlpqZGwV4PRc5FxdLkGeD.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/iXCuYBDEMX22Wpwx3whhOidLfJI.jpg",
+				 description: "A sorozat története Kate Bishopra, arra a fiatal lányra koncentrál, aki átvette Clint Bartontól Sólyomszem szerepét.",
+				 link: "https://erik200101272008.github.io/SkysNet/solyomszem.html"
+			},
+			{
+			     title: "Echo",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4m2kop1q6OLnOz7MWZmdzZbSNkh.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/gLhIOXqplNLKQbSaX39yi8LTnQ7.jpg",
+				 description: "A Marvel Studios bemutatja az „Echo” című sorozatot, amelynek főhősét, Maya Lopezt Wilson Fisk bűnszervezete üldözi. Amikor Maya útja hazavezet, szembe kell néznie a családjával és a múltjával.",
+				 link: "https://erik200101272008.github.io/SkysNet/echo.html"
+			},
+			{
+			    title: "Daredevil: Újjászületés",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tCIp6MemHKBeDwskcFJFFUODUMh.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/h6JF8zcQRui8bt1As1q4orfxsHc.jpg",
+				description: "Matt Murdock, a különleges képességekkel rendelkező vak ügyvéd folyton az igazság oldalán harcol az ügyvédi irodájában, miközben Wilson Fisk, a volt maffiafőnök politikai karrierbe kezd New Yorkban. Amikor újra a felszínre tör a korábbi énjük, rá kell jönniük, hogy muszáj lesz megküzdeniük egymással.",
+				link: "https://erik200101272008.github.io/SkysNet/daredevil.html"
+			},
+			{
+			    title: "Alice határországban",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cjWju9BjElQ7K3ObpPylOpkFkSj.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/bKxiLRPVWe2nZXCzt6JPr5HNWYm.jpg",
+				description: "A céltalan gamer két barátjával együtt egy alternatív Tokióban találja magát, ahol az életben maradásért kénytelenek egy sor szadista játékban részt venni.",
+				link: "https://erik200101272008.github.io/SkysNet/aliceinborderlands.html"
+			},
+			{
+			     title: "Squid Game: Nyerd meg az életed",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bPfRo3aKQ69VGb4j6J2p1BI3lOE.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/5aE1kxWg6RhgQxJTXTxifv4uq7P.jpg",
+				 description: "Több száz pénztelen játékos elfogad egy különös meghívást, hogy gyerekeknek való játékokban mérjék össze a tudásukat. Csábító díj – és halálos veszedelem – vár rájuk.",
+				 link: "https://erik200101272008.github.io/SkysNet/nyerdmeg.html"
+			},
+			{
+			     title: "Miénk a város",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h2bbL597GXyth8rYG6b3FEK3G8z.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/vpYWIFS0hBNWCv0U6apvtkOIZRa.jpg",
+				 description: "A Miénk a város 2015-ben játszódik Baltimore-ban. A városban zavargások törnek ki, mivel a polgárok igazságot követelnek Freddie Gray, a 25 éves fekete férfi miatt, aki gyanús körülmények között halt meg, miközben a rendőrség őrizetében volt. A drogok és az erőszakos bűncselekmények gyakorisága növekszik, és a városban több mint két évtizede a legmagasabb a gyilkosságok száma: egyetlen év alatt 342 gyilkosság történt a mindössze 600 000 lakosú városban. A polgármesteri hivatal nyomására - valamint a Gray halála miatt a rendőrség ellen indított szövetségi vizsgálat miatt - a baltimore-i rendőrparancsnokok egy egyszerű hőshöz, Wayne Jenkins őrmesterhez és elit civil ruhás egységéhez, a Gun Trace Task Force-hoz fordulnak, hogy segítsenek eltüntetni a fegyvereket és a drogokat az utcákról.",
+				 link: "https://erik200101272008.github.io/SkysNet/miénkaváros.html"
+			},
+			{
+			      title: "Amerikai Gigoló",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/m0nRFOLYUju4XHG7v2jZZf3n6vs.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/2qr7smlDfzAIIJ12anzceFhi830.jpg",
+				  description: "Julian Kaye 15 évvel azután, hogy gyilkosságért letartóztatták, visszatér Los Angelesbe és a szexiparban próbálja megtalálni a helyét. Igyekszik felgöngyölíteni annak a bűncselekménynek a szálait, ami miatt évekkel ezelőtt börtönbe került. Reméli, hogy újra kapcsolatba kerülhet egyetlen igaz szerelmével, Michelle-lel.",
+				  link: "https://erik200101272008.github.io/SkysNet/amerikai%20gigolo.html"
+			},
+			{
+			      title: "Kettős szerepben",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8Y137iEKnlBtfBWHRi7aAODdD9Z.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/qJ8s45eO9tEgBAtLYnTBkI0pBx9.jpg",
+				  description: "Az izraeli titkosszolgálat tudomást szerez arról, hogy merényletre készül az arab terroristák egyik csoportja. Hogy ezt megakadályozzák, az amerikai színésznő segítségét kérik. Különös és roppant veszélyes feladat vár Charlie-ra, be kell épülnie a csoportba. El kell játszania a palesztinok ügyének tántoríthatatlan képviselőjét, csak így juthatnak el a terroristák vezetőjéhez. Ám ebben a játékban minden összekeveredik: a jó és a rossz, az élet és a halál, a szerep és a valóságos személyiség.",
+				  link: "https://erik200101272008.github.io/SkysNet/little.html"
+			},
+			{
+			      title: "Sikoly",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gJLQcK4U7b03yFkLhdwwsHwUBzK.jpg",
+				  previewImage: "https://resizing.flixster.com/PfBqMJu8OWyRlvbQMI62syMg8yk=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p17113352_b_h9_aa.jpg",
+				  description: "A Sikoly-filmek tévés folytatása, amelyben a gyilkos hajlamú fiatalok ismét magukra öltik az ijesztő Szellempofa-hacukát, hogy a diáktársaik közül is elsősorban ártatlan fiatal lányokat tegyenek el láb alól.",
+				  link: "https://erik200101272008.github.io/SkysNet/sikolysorozat.html"
+			},
+			{
+			      title: "Citadel",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/AcrDB32TqpAGwvQFbICALGxSzn3.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/ogYqBqJqrOfKQgNItianpmgOvzU.jpg",
+				  description: "A Citadel globális kémügynökség elbukott, és ügynökeinek törölték az emlékeit. Most a Manticore nevű hatalmas szindikátus kerül hatalomra. Vajon a Citadel ügynökei fel tudják-e idézni a múltjukat, és össze tudják-e gyűjteni az erőt a visszavágáshoz?",
+				  link: "https://erik200101272008.github.io/SkysNet/citadel.html"
+			},
+			{
+			      title: "Citadel Honey Bunny",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/Rhem15UJMVxBngtcZXwdP7R90w.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/c1zX0L9X2UXeOemCg8FSDReMO6G.jpg",
+				  description: "A kaszkadőr Bunny felveszi a küszködő színésznőt, Honey-t egy munkára, ám az akciók, a kémkedés és az árulás világába csöppennek. Évek múlva, amikor utoléri őket veszélyes múltjuk, az elidegenedett Honey-nak és Bunnynak újra össze kell jönnie, és meg kell küzdeniük kislányuk, Nadia védelméért.",
+				  link: "https://erik200101272008.github.io/SkysNet/citadelhoneybunny.html"
+			},
+			{
+			      title: "Avatar: Az utolsó léghajlító",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gvS8NkxCje7YKPl8nlCTB7melz.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/u62XtaV8Iski2CgAUM8Yp0ZgKxD.jpg",
+				  description: "Az Avatár néven ismert fiatal fiúnak el kell sajátítania a négy elemi erőt, hogy megmentsen egy háborúban álló világot és megküzdjön a könyörtelen ellenséggel.",
+				  link: "https://erik200101272008.github.io/SkysNet/avatar.html"
+			},
+			{
+			      title: "Dexter: Eredendő bűn",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/coES4J1bgswelJbnWj7OvE6BhpP.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/uKiqi5Ms0ve475gC7za51l7ksz2.jpg",
+				  description: "Az 1991-ben, Miamiban játszódó Dexter: Original Sin azt mutatja be, hogyan válik a diák Dexterből (Gibson) bosszúálló sorozatgyilkos. Amikor vérszomjas vágyait már nem veheti félvállról, Dexternek meg kell tanulnia uralkodni sötét belső késztetésein. Az apja, Harry (Slater) útmutatásai alapján az lesz a célja, hogy megtalálja és megölje azokat az embereket, akik rászolgáltak a társadalomból való kiiktatásra, mindezt anélkül, hogy a hatóságok célkeresztjébe kerülne. Ez komoly kihívást jelent a fiatal Dexter számára, amikor a miami rendőrségnél törvényszéki gyakornokként kezd dolgozni.   ",
+				  link: "https://erik200101272008.github.io/SkysNet/dextereredendobun.html"
+			},
+			{
+			      title: "Titánok",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2ARDMSxt67dstW3reaYKjSKLGu9.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/uRIiWJ0MrdNjykxl4mp8mXEi308.jpg",
+				  description: "Fiatal szuperhősök csapata Éjszárny vezetésével néz szembe a város alávaló gonosztevőivel és azok szövetségeseivel.",
+				  link: "https://erik200101272008.github.io/SkysNet/titans.html"
+			},
+			{
+			      title: "Wu Wei: Az öt elem küzdelme",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nGW3ssPXvLI8ACN7swZcbklwrEq.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/cUfAQQPUINNzOdEGjtJoz2TETy4.jpg",
+				  description: "A történet San Francisco kínai negyedében játszódik. A főhősből lesz az utolsó Wu bérgyilkos, akinek a feladata, hogy gyűjtse össze egy ősi triád erejét és állítsa helyre a világ egyensúlyát.",
+				  link: "https://erik200101272008.github.io/SkysNet/wu%20assassin.html"
+			},
+			{
+			      title: "Piedone, a nápolyi zsaru",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kghRTBchmpYPlhidkcwqHvqVfe1.jpg",
+				  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_bestv2/sIE9fqOtxCImHPdNiP4CWHheLd1.jpg",
+				  description: "A főhős egy, fegyvereket nem szívesen használó nyomozó, aki pár év távollét után visszatér Nápolyba, hogy leszámoljon a múltjával. De ehhez el kell nyernie új csapatának bizalmát, és megmutatnia, hogy nem szokványos módszerei nem hogy gondot nem jelentenek, de még előnyt is kovácsolhat belőlük.",
+				  link: "https://erik200101272008.github.io/SkysNet/piedone.html"
+			},
+			{
+			      title: "Te",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/j5tN7MThee266zvH2Qzz0y3foyI.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/gzOIymABxmetAECXtazEYCpMmfb.jpg",
+				  description: "A sorozat a főszereplője egy rendkívül intelligens könyvesboltvezető. A srácnak nagyon megtetszik az egyik vásárló, így minden eszközt bevet, hogy megszerezze és magába bolondítsa a lányt.",
+				  link: "https://erik200101272008.github.io/SkysNet/you.html"
+			},
+			{
+			      title: "Harcos a ketrecben",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4qoqqvKbugSYYE2rfpOmLb0I5kP.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/5jjjX3oo5tY9woSGwRvFG8N8W1l.jpg",
+				  description: "A profivá válásról álmodozó fiatal harcos küszködik a rivaldafénybe kerüléssel, mígnem egy váratlan összecsapás révén kitörhet – és szembenézhet egy brutális riválissal.",
+				  link: "https://erik200101272008.github.io/SkysNet/lacage.html"
+			},
+			{
+			      title: "Megzsarolva",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mLbFg0u2DPYuB5CILzwWk3kdI8b.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/lUCzwRZE401Qj8TYeK1ZqhAK7wq.jpg",
+				  description: "A jogi egyetemről egyenesen a CIA-hoz kerülő vakmerő fiatal ügyvéd felkészületlenül beleveti magát a nemzetközi kémkedés veszélyes világába.",
+				  link: "https://erik200101272008.github.io/SkysNet/megzs.html",
+			},
+			{
+			       title: "Lucifer",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/lUUlUIArb0mN0dK3WrIrZbJcxF5.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/ccaZ3yyyC6rcMAQrlLZ51FpahNO.jpg",
+				   description: "Az ördög megunta, hogy a pokol ura legyen, ezért Los Angelesbe költözik, ahol egy éjszakai klubbot nyit, és kapcsolatot alakít ki egy gyilkossági nyomozóval.",
+				   link: "https://erik200101272008.github.io/SkysNet/lucifer.html"
+			}
+		
+			
+        ];
+
+        // Search function with preview support
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Initial movie load
+        filmKereses();
     </script>
 
-	 
-	 
-	
-	 </body> 
+    <!-- Chatbase integration -->
+    <script>
+        (function(){
+            if(!window.chatbase||window.chatbase("getState")!=="initialized"){
+                window.chatbase=(...arguments)=>{
+                    if(!window.chatbase.q){window.chatbase.q=[]}
+                    window.chatbase.q.push(arguments)
+                };
+                window.chatbase=new Proxy(window.chatbase,{
+                    get(target,prop){
+                        if(prop==="q"){return target.q}
+                        return(...args)=>target(prop,...args)
+                    }
+                })
+            }
+            const onLoad=function(){
+                const script=document.createElement("script");
+                script.src="https://www.chatbase.co/embed.min.js";
+                script.id="S0pkPYf7JDaXKq4OO8uqu";
+                script.domain="www.chatbase.co";
+                document.body.appendChild(script)
+            };
+            if(document.readyState==="complete"){
+                onLoad()
+            }else{
+                window.addEventListener("load",onLoad)
+            }
+        })();
+    </script>
+</body>
 </html>
