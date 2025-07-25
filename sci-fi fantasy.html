@@ -1,0 +1,478 @@
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
+        }
+
+        .logo img {
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
+        }
+
+        .movie-container {
+            display: inline-block;
+            position: relative;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .movie-container img {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		
+		
+		
+		{
+			        title: "Harry Potter és a bölcsek köve",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wMDusCZWznEZGU92VSfVRz1LEcg.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/4b990c5d-38ab-4daf-8092-2617cbc6d062/940c4be7-92d8-451d-b8e1-1fa21c41933f?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Szülei halála után Harry Potter mostohaszülőknél nevelkedik. Sanyarú a sorsa, a lépcső alatti kuckóban lakik és elviselhetetlen az unokatestvére. Ám hamarosan kiderül, hogy Harry nem közönséges kisfiú, hanem egy varázsló házaspár árvája, aki csak átmenetileg keveredett a lényegről mit sem sejtő muglik közé. Most viszont végigsétál az Abszol úton, hogy beiratkozzék a titokzatos Roxfort Boszorkány- és Varázslóképző Szakiskolába. Néhány jó barát, néhány nagy kaland és néhány ősi ellenség vár itt rá, de mi ez egy elsőéves varázslótanoncnak?",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239426&hd=2&autoplay=1"
+			},
+			{
+			        title: "Harry Potter és a titkok kamrája",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5NnT3YSoOiJ4QU56fANSeMoJgfc.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/48674b82-9076-4080-a40c-379efad5eb89/b6d0f2d1-5ba4-4302-8c20-0cb4b7cd31db?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Harry Potter nyári vakációja nem a legjobban sikerült. Mindezt tetézi, hogy megjelenik nála Dobby, a házimanó, hogy figyelmeztesse, nagy veszély leselkedik rá a Roxfort Boszorkány- és Varázslóképző Szakiskola falai között. Harry és Ron lekési a Roxfort Expresszt, amely visszavinné őket az iskolába, így a repülő autóval indulnak útnak, nehogy elkéssenek az új tanév kezdetéről. Harry csakhamar megint az érdeklődés középpontjában találja magát, ugyanis az iskolában új rajongói akadnak, köztük a Feketemágia-ellenes Liga professzora, Gilderoy Lockhart. Lockhart különös módon egyre gyakrabban mutatkozik Harry társaságában. De még Lockhart sem képes megállítani az új és minden eddiginél gonoszabb hatalmat, amely az iskolát fenyegeti.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239427&hd=2&autoplay=1"
+			},
+			{
+			        title: "Harry Potter és az Azkabani fogoly",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ppId4f3xhGDOSno96WVXLKb78O0.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/73553a76-1658-45f6-9e26-1b9c4443b0d6/07869858-8b8f-4e5e-ab88-2f3dfef04a0e?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Harry Potter csak vonakodva hajlandó még egy nyarat rémes rokonainál, a Dursley családnál tölteni. Minden igyekezetével megpróbál viselkedni, ám Vernon bácsi testvére, Marge néni annyira kiborítja, hogy a hölgyet elvarázsolja. Ám megmagyarázhatatlan módon Harryt nem büntetik meg a tiltott varázslatért. Kiderül, azért nem csapták ki a Boszorkány- és Varázslóképző Szakiskolából, mert a veszélyes és titokzatos varázsló, Sirius Black megszökött az azkabani börtönből, és most Roxfort felé tart, hogy leszámoljon Harry Potterrel.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239428&hd=2&autoplay=1"
+			},
+			{
+			        title: "Harry Potter és a Tűz serlege",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6A8ahaJdRP2j6rrXxyFmyG9uPrs.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/d2e9ff29-e71d-4eae-9a4b-7cd0e00236ea/0cbd466e-0116-4051-aa2c-7bd126bf68c7?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Harry Potter visszatér a Roxfort Boszorkány- és Varázslóképző Szakiskolába, hogy folytassa a tanulmányait. Nem sejti, hogy élete legnehezebb kihívása vár rá. A tizennégy éves Harrynek akaratán kívül és nála idősebb, tapasztaltabb diákokkal együtt kell részt vennie a nemzetközi Trimágus Tusán, amelyre megmagyarázhatatlan módon egy ismeretlen nevezte be. Ám az iskolai verseny veszélyei elhalványulnak az immár bizonyossá váló tény mellett: Voldemort, a Sötét Nagyúr ismét színre lépett és nemcsak hatalmát nyerte vissza, hanem emberi alakját is.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239429&hd=2&autoplay=1"
+			},
+			{
+			        title: "Harry Potter és a Főnix rendje",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cW3e9Gh6HlGzrR8j0I8XVz1NL8v.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/25768909-39b8-4cb2-a39f-e059460f7add/a177d95f-abd0-44b7-8f69-a2b88b6d9a92?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "A kalandosra sikeredett nyári vakáció után Harry Potter visszatér Roxfortba. A Sötét Varázslatok Kivédése tárgyat új tanár tanítja, akinek legfőbb feladata Dumbledore professzor és a diákok szemmel tartása. Miközben a diákok a Rendes Bűbájos Fokozat vizsgára készülnek, az új oktatási rendeletek felbolygatják az iskola életét. Talán ezért éri őket váratlanul a sötét varázslat, amely ellenük fordul. Harry a barátai, Ron és Hermione sürgetésére maga veszi kezébe az ügyet: néhány diáktársukkal kiegészülve felkészülnek, hogy megvédjék otthonukat.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239430&hd=2&autoplay=1"
+			},
+			{
+			        title: "Harry Potter és a Félvér herceg",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8Um32CeaN2PK8TgF07WY38jUqen.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/cba1d85a-5ef4-4ba3-b537-1d24554fe85c/bc164020-c6af-4c98-82b1-8b3068a50bb0?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Roxfort körül egyre szaporodnak az árnyak. Pedig a hatodik osztályba lépő Harry Potter és barátai számára a Boszorkány- és Varázslóképző Szakiskola mindennapjai is bőven elég izgalmat jelentenek nekik: Harry különleges titkokat hordozó bájital tankönyve, Ron barátnője és Hermione szerelme is épp elég titokzatos és ijesztő. De Harrynek egyre több oka van a félelemre. A halálfalók már mindenütt ott vannak, a dementor-támadások szaporodnak, és az iskola fölött megjelenik a Sötét Jegy. Dumbledore abban reménykedik, hogy védence megerősödhet, ha jobban megismeri az ellenfele múltját. De van veszély, amelyre ő sem készülhet fel.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456240041&hd=2&autoplay=1" 
+			},
+			{
+			        title: "Harry Potter és a Halál ereklyéi 1.rész",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/s6ct06I2OOxbTWPOecrmKkECktU.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/2c394a2d-7d1d-481d-a420-76ee1bee01a7/82f36a7c-dc23-4056-aa8b-00a170a6a74b?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Magukra maradtak: Harry, Ron és Hermione tanárai és legfőképpen Dumbledore segítsége nélkül vág neki a nagy feladatnak. Voldemort halhatatlanságának titka nyomába erednek, fel akarják kutatni és meg akarják semmisíteni a rejtélyes horcruxokat. A sötét erő nem kíméli őket, de az egész varázsvilágot sem. Bekövetkezik a legrosszabb, kitör a háború, a halálfalók Roxfortot és a Mágiaügyi Minisztériumot is az uralmuk alá hajtják. Bármerre járnak, a borzalom követi őket. És mindenütt Harry Pottert keresik, hogy a Nagyúr elé vigyék a fiút élve.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239432&hd=2&autoplay=1"
+			},
+			{
+			        title: "Harry Potter és a Halál ereklyéi 2.rész",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3WpUZg4FkxYgETRGLnv1T6tbPsK.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/1890c8c5-2f40-4140-a363-064428201826/d4cbe7a7-6d52-4398-9abc-a3edacb2c4b2?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Nincs tovább: Harry, Ron és Hermione immár nem kerülheti el a végső összecsapást. Mindannyian tudják, hogy ez az utolsó felvonás. A három jóbarát visszatér a Roxfortba, hogy felkutassa és elpusztítsa az utolsó horcruxot. Voldemort, aki egyre erősebb, uralma alá vonta a Mágiaügyi Minisztériumot és már Roxfort fölött is egyre nagyobb hatalma van, tudomást szerez a tervükről. A tét hatalmas, így nem is csoda, hogy mindent bevet a siker érdekében. Megkezdődik a Roxfort ostroma - és már soha többé, semmi nem lesz ugyanolyan, mint volt.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239433&hd=2&autoplay=1"
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>

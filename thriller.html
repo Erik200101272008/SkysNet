@@ -1,72 +1,761 @@
-<!DOCTYPE html>
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #000000;
-            color: #ffffff;
-            text-align: left;
-            font-family: Arial, sans-serif;
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
         }
 
         .logo img {
-            width: 200px;
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
         }
 
         .movie-container {
             display: inline-block;
             position: relative;
-            margin-top: 20px;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
         }
 
         .movie-container img {
             width: 200px;
-            height: 100px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-radius: 10px;
         }
 
         .movie-container:hover img {
-            transform: scale(1.1);
-            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         }
-		    </style>
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
 </head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
 <body>
-
-    <!-- SkyShowtime logó -->
-    <div class="logo">
-        <img src="skysnet.png" alt="SkyShowtime">
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
     </div>
-	<br>
-	<b>Thriller filmek</b>
-	<br>
-	<br>
-	<a href="https://videa.hu/videok/film-animacio/kezipoggyasz-akciofilm-2ZFHResEMDh3cIxT" class="movie-container">
-<img src="kezipoggyasz.jpg" alt="Carry on">
-</a>
 
-<a href="https://videa.hu/videok/film-animacio/torbe-ejtve-anadearmas-danielcraig-Z3jbHnIMkU18PPhd" class="movie-container">
-<img src="torbeejtve.jpg">
-</a>
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/torbe-ejtve-az-uveghagyms-thriller-TSQUoLyu1y1mKcmH" class="movie-container">
-<img src="tbejtve2.jpg">
-</a>
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/harcosok-klubja-thriller-da6FmT2ZulSXwjia" class="movie-container">
-<img src="fightclub.jpeg">
-</a>
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
 
-<a href="https://videa.hu/videok/film-animacio/a-gengszter-zsaru-es-az-copmovie-koreanmovie-IunbXF1lpdxjrUCa" class="movie-container">
-<img src="gzso.jpg">
-</a>
 
-<a href="https://videa.hu/videok/film-animacio/szadra-ne-vedd-thriller-kShpCrdLXPrYoOFM" class="movie-container">
-<img src="sznv.jpg">
-</a>
-</body> 
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+	
+	
+	
+
+    
+		
+		{
+                title: "Meg ne mozdulj",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/a5c0dP7qVrLuHOIh3RpLgvKLtak.jpg",
+                previewImage: "https://hype.my/wp-content/uploads/2024/10/Dont-Move-Poster.webp",
+                description: "Egy tapasztalt sorozatgyilkos bénító szerrel injekcióz egy gyászoló nőt, miközben elszigetelődnek az erdő mélyén. Ahogy a szer fokozatosan átveszi az uralmat a nő teste felett, a nőnek menekülnie, bujkálnia és harcolnia kell, mielőtt az idegrendszere leállna.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239534&hd=2&autoplay=1"
+            },
+			{
+                title: "Kézipoggyász",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7lXkvAUDEqIojdtwvYKZTZp8Mo9.jpg",
+                previewImage: "https://occ-0-8407-90.1.nflxso.net/dnm/api/v6/Qs00mKCpRvrkl3HZAN5KwEL1kpE/AAAABWPFxuMUWI2NFPdv46zqaTVJxqnJeAo2MQWuBnf-dnTqseW8VIEYRV1_I9jJthpOhbOIYPYp6Uw01-t4_4jPG1erSMTjpqy4x_kdM1pwmjE3nueQ1fn66RVKLur_yAtXXfXfrw.jpg?r=09a",
+                description: "Egy titokzatos utazó megzsarolta Ethan Kopeket, a fiatal TSA-ügynököt, hogy engedjen át egy veszélyes csomagot a biztonsági ellenőrzésen, és juttasson fel egy karácsonyi járatra.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239543&hd=2&autoplay=1"
+            },
+			{
+                title: "Szádra ne vedd!",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/c5pJC3KptSPQaj0A13WsrTLUrSa.jpg",
+                previewImage: "https://images-2.rakuten.tv/storage/global-movie/translation/artwork/e448b7b0-f243-43b8-858f-a4d51e2f4219-width317-quality60.jpeg",
+                description: "Az igazi borzalom családi ügy. A Blumhouse, a M3GAN, A fekete telefon és A láthatatlan ember gyártója ezúttal egy elismert dán horrorszenzáció, a 11 dán filmdíjra jelölt Gæsterne (A látogatás) új adaptációjával kedveskedik a mozinézőknek. A film egy hétvégéről szól, amikor egy család vendégségbe megy egy idilli vidéki házba, ám az álomnyaralás hamarosan pszichológiai rémálomba fordul…",
+                link: "https://videa.hu/player?v=kShpCrdLXPrYoOFM"
+            },
+			{
+                title: "Társ",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h0yuII1rviKxEUvYsNusoq6ziqR.jpg",
+                previewImage: "https://i.pinimg.com/736x/75/37/1d/75371d2f644ef4af3f0eaaea10cbabcc.jpg",
+                description: "Változnak az idők, változnak a szerelmes történetek is. Ebben például néhány fiatal pár együtt lazul egy hétvégét az egyikük házában. Azután fokozatosan kiderül, hogy mindenki másért van ott, mást akar, másra vágyik. Van, aki a házban elrejtett rengeteg pénzt szemelte ki magának. Van, aki sokkal több szabadságot szeretne. Van, aki egyikük halálát kívánja. És van, aki a modern technikának köszönheti a létezését…",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239207&hd=1&autoplay=1"
+            },
+			{
+			   title: "Fedőneve: Donnie Brasco",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kMXXqrGGCiPdxtwEsHveiSvaDRL.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p19088_v_h10_af.jpg?w=1280&h=720",
+			   description: "Az amerikai Szövetségi Nyomozó Iroda munkatársai 1978-ban kiterjedt akciót indítottak az alvilág ellen. A siker érdekében minden lehetséges eszközt bevetettek. Köztük egy beépített ügynököt, akit a frontvonal mögött magára hagytak. Környezete Joe Pistone-ként ismeri a férfit, veszélyes új családja pedig Donnie Brasco néven fogadja be az ékszeres fenegyereket. Váratlan és felkavaró barátság szövődik közte, és kiszemelt áldozata, Lefty Ruggiero között, ami mindkettejük számára végzetes lehet. A film megtörtént esetet dolgoz fel.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239060"
+			},
+			{
+			    title: "Legenda",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oFHVn4o42w1cPBVNqmaAAhSFoqk.jpg",
+				previewImage: "https://images.justwatch.com/backdrop/318684244/s640/legend-2015",
+				description: "A 60-as évek Londonjában mindenkinek volt egy története a hírhedt Kray testvérekről. Ron és Reggie Kray mindig is elválaszthatatlanok voltak. A sármos és népszerű Reggie, aki az East-End hercegeként a fényűző londoni éjszakában filmsztárokkal, és bűnözőkkel múlatja az idejét, gyerekkora óta vigyáz a kiszámíthatatlan és erőszakos Ronra. Hűségesen óvja fivérét a bajtól. Miután elintézi, hogy az elmegyógyintézetből kiengedjék őrültnek nyilvánított testvérét, már semmi nem áll az útjukba: együtt söprik le a színről nagy riválisaikat, a Richardsonokat, és egy csapásra átveszik az uralmat a londoni alvilág felett.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239610&hd=1&autoplay=1"
+			},
+			{
+                title: "Nagymenők",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/eEMTzNny4jFlhqQm86ixeyTnn6b.jpg",
+                previewImage: "https://i.ytimg.com/vi/CyutDr3X5Bk/hqdefault.jpg",
+                description: "Henry Hill gyerekkora óta nagymenő szeretett volna lenni. Vágyakozva bámulta a szemközt lakó maffiózót, aki mindig nagy kocsikon érkezett haza, akit mindig a legjobb nők kísértek, és akit soha nem zaklatott a rendőrség, ha túl hangos bulit csapott az éjszaka közepén. Henry egy napon nagy elhatározásra jut: önként jelentkezik a maffiózónál kisegítőnek. Néhány nap múlva már ő árulja a lopott cigarettát a gyárkapuban, néhány hónap múlva már név szerint ismeri őt a legjobb bár ajtónállója, és nem telik el sok idő, mire az utcán előre köszönnek neki a tőle rettegő emberek? Martin Scorsese maffiafilmje a műfaj egyik alapműve! 1990-ben hat Oscar-díjra jelölték, amelyből egyet meg is nyert.",
+                link: "https://videa.hu/player?v=5WKdganiPyi3MMZs"
+            },
+            {
+                title: "Sebhelyesarcú",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zFGH3oY6O9IUcBW3lLPUnT3YsRg.jpg",
+                previewImage: "https://images.photowall.com/products/59640/scarface-1.jpg?h=699&q=85",
+                description: "Kubából emigrált az Egyesült Államokba Tony Montana, a Sebhelyesarcú. A bűnözőnek sikerült megtévesztenie a Bevándorlási Hivatalt és megkapja a letelepedési engedélyt. Esze ágában sincs tisztességes életet élni. Az első adandó alkalommal elszegődik Miami legnagyobb drogbárójához, Frank Lopezhez. Tony gyorsan kapaszkodik felfelé a ranglétrán, a kitartásának, hűségének és kíméletlenségének köszönhetően a drogbáró egyik bizalmasa lesz. A Sebhelyesarcú azonban ennél többre vágyik, Lopez barátnőjét felhasználva át akarja venni a hatalmat.",
+                link: "https://videa.hu/player?v=qwA9LXSNfsjzYe2b"
+            },
+			
+			{
+			   title: "Oldboy",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5ArcFdLrYZMFgQmRA2BdTYq9CPy.jpg",
+			   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/7ecfa524dbbef48f8a3e1cd51f5c6ff61caeffaafbc3603df3f9b318a9e3a649.png",
+			   description: "Két éve derült ki, hogy Spike Lee-t választották a dél-koreai Park Chan-Wook 2003-as Oldboy című thrillerének remake-jére. A dél-koreai thriller közel tíz éve hódította meg a világot. A trailer alapján Spike Lee verziója sem szűkölködik erőszakos jelenetekben, a kérdés már csak az, hogy ez cél vagy eszköz lesz-e a megrázó történethez...",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239066"
+			},
+			{
+			   title: "Gyilkos ösztön",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/aku092JhcrOigZJplCSfXlIpYm9.jpg",
+			   previewImage: "https://resizing.flixster.com/BrPxc-KaOhFEOX_hqcbMYou9-NA=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p10680396_v_h9_al.jpg",
+			   description: "Egy médium az FBI nyomózóival együttműködve ered egy rendkívül veszélyes sorozatgyilkos után.",
+			   link: "https://videa.hu/player?v=CNiJP5nRx2ZPKnAx"
+			},
+			{
+			    title: "Fogságban",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4JP1RM7qNNLosY1uT5T3xNroE0X.jpg",
+				previewImage: "https://img.nowrunning.com/content/movie/2013/Prisoners/bg7.jpg",
+				description: "Keller Dover minden szülő rémálmával néz szembe, mikor 6 éves kislánya, Anna, barátnőjével együtt eltűnik. A kétségbeesés óráiban teljesen eluralkodik a családon a pánik. Az egyetlen nyom egy rozzant lakókocsi, amit az utcájukban láttak parkolni. A nyomozást vezető detektív letartóztatja a sofőrt, Alex Jonest, de bizonyítékok hiányában mégis szabadon kell engednie. Az őrjöngő apa tudva, hogy gyermeke élete forog kockán, és a rendőrség egyetlen nyomot követve nem bukkant a kislányokra, úgy dönt, nincs más esélye: kezébe veszi az irányítást, kerüljön bármibe.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239082&autoplay=1"
+			},
+			{
+			   title: "A Wall Street farkasa",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oQ72zesUJCCICtYoFgJiGyHtFlY.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p9991602_v_h8_af.jpg?w=1280&h=720",
+			   description: "Jordan Belfort becsületes tőzsdeügynökként kezdte pályafutását, de az amerikai álom őt is utolérte. A 80-as évek végére az egyik legnagyobb brókercég tulajdonosa lett, 26 évesen heti 1 millió dollárt keresett. Az idáig vezető út azonban korrupcióval és tisztességtelen üzletekkel kikövezett csábító hullámvasútnak bizonyult. Mert minél nagyobb volt a kísértés ő annál többet akart, mit sem törődve az illegális üzelmekkel és a nyomában loholó FBI ügynökökkel. Még több pénz, még több hatalom, még több nő és megint még több pénz: ez Jordan életfilozófiája. És hogy a szerénység egy túlértékelt erény. Jordan és falkája azt sem tudták mit kezdjenek az illegálisan megszerzett milliárdokkal, de vajon a jéghegy csúcsáról merre vezet az út?",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239131&hd=1&autoplay=1"
+			},
+			{
+			   title: "Az árva",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/szwhkHGQIzQKwRyZZGXZxJWtjLk.jpg",
+			   previewImage: "https://musicart.xboxlive.com/7/c5865100-0000-0000-0000-000000000002/504/image.jpg",
+			   description: "Amikor először találkoznak Estherrel egyből megkedvelik. A legújabb családtag azonban tartogat számukra néhány különös meglepetést, s lassanként ki is derül, hogy a fogadott kislány nem annyira angyali, mint azt elsőre gondolták. Kate nyomozni kezd Esther múltja után, és sem a figyelmeztetésekre, sem a fenyegetésekre nem hallgat. Ez pedig végzetes lehet... valamennyiükre.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239217&hd=1&autoplay=1"
+			},
+			{
+			      title: "Veszélyes külváros",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2jU6kQzIo9IiT1NJMtp9aKTj8I9.jpg",
+				  previewImage: "https://is1-ssl.mzstatic.com/image/thumb/YiA98hZUlN9OJVgXX2xzCQ/1200x675.jpg",
+				  description: "Egy külvárosban élő, egyedülálló anya eszeveszett módon keresi elrabolt lányát, mielőtt még minden késő lenne és az embercsempészek eladnák őt az internacionális piacon.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239408&hd=1&autoplay=1"
+			},
+			{
+			       title: "Pokoli lecke",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/34X3wW4MrFibL2VUiaYbEwCPVUX.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p18414_v_h8_af.jpg?w=1280&h=720",
+				   description: "Négy vagány New York-i srác ostoba csínyével egy ember halálát okozza. A fiúk javítóintézetbe kerülnek, ahol aztán nap mint nap a poklok poklát élik át: őreik szadista parancsnokuk vezetésével megalázzák, megkínozzák, sőt megbecstelenítik őket. Aztán évek hosszú sora telik el, de az egykori srácok érett, komoly férfiként még mindig nem tudnak szabadulni a történtektől. Furcsa ügy kapcsán találkoznak: kettőjük bíróság elé kerül, mert felismerték és megölték egykori fő kínzójukat. A másik két barát - az egyik újságíró, a másik ügyész - komoly problémával néz farkasszemet: hogyan tudnák úgy csűrni-csavarni a történteket, hogy túljárjanak az igazsággépezet eszén és két társuk megmeneküljön. Ezzel talán ők is túljuthatnak lelkileg a történteken.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239439&hd=1&autoplay=1"
+			},
+			{
+			        title: "Eretnek",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6R1T2QvgGp28PG157PSkQ8LHnxI.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p27717807_v_h10_ab.jpg?w=960&h=540",
+					description: "Két fiatal hittérítőnek be kell bizonyítania a hitét, amikor egy nap rossz ajtón kopogtatnak. Az ördögi Mr. Reed (Hugh Grant) köszönti őket és csalja kelepcébe, rémséges és halálos macska-egér játékával.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239462&hd=2&autoplay=1"
+			},
+			{
+			       title: "Alto knights",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6ymuN8CqpnW6JmHohyM7hE5lZXI.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p25167207_v_h8_ae.jpg?w=1280&h=720",
+				   description: "A 20. századi alvilágban az olasz-amerikai bűnöző nagyurak, Vito Genovese és Frank Costello irányítják befolyásos családjaikat. 1957-re halálos hatalmi játszma bontakozik ki, amikor Genovese célja Costello likvidálása lesz.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239465&hd=2&autoplay=1"
+			},
+			{
+			       title: "Gran Torino",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/fe4rdglx9fwZ50hM7ZtqamULHFj.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p183329_v_h10_aa.jpg?w=1280&h=720",
+				   description: "Walt Kowalski, az egykori koreai veterán és nyugdíjas autószerelő felesége halála után egyedül él. A régi szomszédok is kihaltak vagy elköltöztek, a helyükre délkelet-ázsiai bevándorlók jöttek. Kowalski rossz szemmel nézi őket, nem rejti véka alá a velük kapcsolatos ellenérzését. Mindez csak fokozódik, amikor egyik éjjel a szomszéd fiú el akarja lopni a féri féltve őrzött autóját, a gyönyörű 1972-es Gran Torinót. Kiderül, hogy a környéket uraló banda kényszerítette erre. Miután a srácot megmenti a bandától, a hálás szomszédok ragaszkodnak hozzá, hogy Thao neki dolgozzon. Különös kapcsolat veszi kezdetét.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239469&hd=1&autoplay=1"
+			},
+			{
+			     title: "Kéjlak",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mHbcANWCj7c72mHTWtBCaoNOKhu.jpg",
+				 previewImage: "https://res.cloudinary.com/jerrick/image/upload/v1722757327/66af30cfda2172001d647b9c.jpg",
+				 description: "Öt nős férfi osztozkodik egy pazar penthouse lakáson, amit titkos randevúkra és egyéjszakás kalandokra használnak. Amikor egy reggel Vincent (Karl Urban) kinyitja az ajtót, és az ágyban egy gyönyörű szőke, meztelen de halott lányt talál, felhívja legjobb barátait, Chris-t (James Marsden), Marty-t (Eric Stonestreet), Luke-ot (Wentworth Miller) és Philip-et (Matthias Shoenhaerts), hogy együtt megpróbálják összerakni mi történhetett. Míg mindenki a másikat gyanúsítja a gyilkossággal, életük szépen lassan összeomlik. Vajon a gyilkos köztük van, vagy valaki csőbe húzta őket? Ahogy a rendőrség lassan sarokba szorítja az első számú gyanúsítottat, barátságok és házasságok fura szövevénye rajzolódik ki egy árulással, féltékenységgel és erőszakkal teli örvényként felfedve a sötét titkokat és a szereplők valódi természetét.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239586&hd=1&autoplay=1"
+			},
+			{
+			     title: "Rettegés",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/w5NbAEonPiMR57V8Eyn6s9UnaR7.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p17926_v_h8_ae.jpg?w=960&h=540",
+				 description: "Nicole (Reese Witherspoon) mindig arról álmodott, hogy jön majd egyszer egy fiú, aki erős, szexis, érzékeny és mindennél jobban szereti őt. És most itt van! Davidben (Mark Wahlberg) mindezt megtalálta, sőt többet is. Egy modern lovag, aki elbűvölte és elcsábította a testét és a lelkét. De a tökéletes férfi nem az, akinek látszik. A kedves, udvarias felszín vad és fékezhetetlen erőt takar, ami Nicole álmait hamarosan rémálommá változtatja.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239587&hd=1&autoplay=1"
+			},
+			{
+			       title: "Gyilkos randi",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/z4vVKHVEsNlgGQrevxO5QwGF3nD.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p28805392_v_h8_ab.jpg?w=1280&h=720",
+				   description: "Egy megözvegyült anya évek óta az első randevúján vesz részt. Egy előkelő étterembe érkezik, ahol megkönnyebbülve tapasztalja, hogy a partnere, Henry sokkal sármosabb és jóképűbb, mint amire számított. Kettejük között azonban kezd megromlani a kémia, amikor Violet-et előbb irritálni, majd terrorizálni kezdi a telefonjára érkező névtelen hívások sorozata. (szarka84)",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239635&hd=2&autoplay=1"
+			},
+			{
+			      title: "Védd magad!",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/qtJkcAzrgEIaEt9qF3hlbUu9LjA.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/8795e066aaf7a7dd742286378a8a48ee5899436d584d77d14f32be168f32b8bc.jpg",
+				  description: "Sidney Lumet filmje az amerikai bíróság történetének leghosszabb maffiaperéről szól, amelynek érdekessége, hogy a vádlott ügyvéd nélkül védte magát. Jack DiNorsciónak lehetősége nyílik arra, hogy enyhítsen saját büntetésén, amennyiben hajlandó feladni a maffia többi tagját. Különleges élményt nyújt, ahogy a szokásosan egyhangú és fárasztó pert DiNorscio (Vin Diesel mesteri alakításában) saját képére formálja, és egyéni beszédmódján szólal meg a hivatalos törvényszéki nyelvezet helyett. A nagy arcú DiNorscio a valóságban is végigpoénkodta a több évig húzódó tárgyalást, és a tévéközvetítések kedvence lett.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239672&hd=1&autoplay=1"
+			},
+			{
+			      title: "Pillangó-hatás",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/9ELbqIOGVdeDGXiB2fujTXVDHNS.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/89e76011947df08ed914dd4fab05940bc9c007e5bc56ab0328384c1869b9c984.jpg",
+				  description: "A pillangó-effektus elmélet szerint, ha egy pillangó megrebbenti a szárnyát Pekingben, az akár tornádót is gerjeszthet Amerikában. Világunkban minden mindennel összefügg, minden cselekedetünk alapjában változtathatja meg a jövőt. Még elképzelni is rémes, hogy mi lenne, ha valaki képes lenne a múltunkat megváltoztatni - ez kiszámíthatatlan következménnyel járna jelenünkre nézve. Evan Treborn gyerekkorában számtalanszor elvesztette az öntudatát, élete egyes szakaszai sötét foltok csupán az emlékezetében. Amikor tudatánál volt, naplót vezetett és most, hogy felnőttként megpróbál visszaemlékezni a múltra, a naplója segít neki ebben. Miközben Evan lassan feltérképezi saját múltját, rájön, hogy egy különös adottság birtokában van: képes az időutazásra! Így visszatér a múltba, hogy helyrehozzon néhány baklövést, amelyek zsákutcába juttatták szeretett barátait.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239681&hd=1&autoplay=1"
+			},
+			{
+			      title: "Kegyetlen játékok",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ofMMXSWdvPqhwUbYJ9B4pAehQ6A.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/9aca3cff73b6836cb6140aad7dfa80af3309a34c4d657e3ad748b36c6391ca70.jpg",
+				  description: "Nincs édesebb a bosszúnál, nincs boldogítóbb mások bajánál - Sebastian és mostohatestvére, Katherine e régi igazság jegyében él. Gazdagok, szépek, és túlcsordul bennük az erotika: New York naiv fiataljai mind a lábuk előtt hevernek, ők pedig ördögi csínyeikkel alaposan felforgatják, aztán pokollá teszik mindük életét. A nagy dobás azonban még várat magára - míg fel nem tűnik a színen új iskolaigazgatójuk lánya, aki elhatározta: mindaddig megőrzi szüzességét, míg férjhez nem megy. Katherine fogadást ajánl: ha Sebastiannek sikerül elcsábítania a jégkirálynőt, az ő teste a ráadás. Ellenkező esetben viszont bátyja vadonatúj Jaguárja a tét.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239682&hd=1&autoplay=1"
+			},
+			{
+			      title: "Behatolás",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/76apNK6lMbVxSZI3C3YvYVp8pzi.jpg",
+				  previewImage: "https://images.plex.tv/photo?size=large-1280&url=https%3A%2F%2Fmetadata-static.plex.tv%2F3%2Fgracenote%2F3d1d2759fb51866dc7cf6fe80f13b0db.jpg",
+				  description: "Miután egy házaspár elköltözik egy kisvárosba, az új házukban történt betörés után a trauma hatása alatt álló feleségben feltámad a gyanú, hogy a körülötte lévők nem azok, akiknek látszanak. Válaszokat keres és közben rájön, hogy az igazi veszedelem csak most kezdődik.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239710&hd=2&autoplay=1"
+			},
+			{
+			       title: "Lejtőn",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5eCJg2hU84n5qXi8HBDexbUZFCv.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/7407ceee886803dc1152ff97e36a4673990124d5b8e45193b6a84110ec2f24f4._SX1080_FMjpg_.jpg",
+				   description: "Gavin viszonyba keveredik a szomszédja feleségével. Amikor kiderül, a felszarvazott férj választás elé állítja: vagy önként leugrik a tetőről, vagy szerelme fog meghalni. Gavin ateista és hit nélkül nagyon nehéz meghoznia a döntést. A tető peremén állva egy segítségre számíthat: a hívő rendőrre, aki megpróbálja lebeszélni az ugrásról.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239716&hd=1&autoplay=1"
+			},
+			{
+			       title: "Időzavarban",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3ou1y6uyvIx67A3d1GFEp9oZIEa.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/97859144aabedd2599b3baeadf1ec1500b302627c8b7172e7dfaac0c1317bbf9.jpg",
+				   description: "Matt az egyik floridai kisváros rendőrfőnöke. A fekete bőrű zsaru keményen dolgozik, a munkatársai és barátai tisztelik, a városka közössége szereti. Banyan Keyt valósággal sokkolja a brutális, kettős emberölés híre, melynek egyik áldozata a seriff szeretője. Ahogy egyre több részletére derül fény a gyilkossági ügynek, minden bizonyíték Mattra tereli a figyelmet. A zsaru versenyt fut az idővel: meg kell oldania ügyet, hogy tisztázni tudja a nevét, visszaszerezze becsületét és kiderítse a szörnyű igazságot. A helyzetet bonyolítja, hogy Matt elhidegült felesége szakértőként érdekelt az ügyben.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239721&hd=2&autoplay=1"
+			},
+			{
+			       title: "Titkos megszállottság",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3ZqigHrIixTFbXLlqf10aFhUO5L.jpg",
+				   previewImage: "https://images.justwatch.com/backdrop/136982664/s640/secret-obsession",
+				   description: "A friss házas Jennifer brutális támadás áldozata lesz. Gyógyulása során semmit nem tud felidézni a múltjából, a szörnyű nap eseményeit sem. Russell örül, hogy felesége él és minél előbb haza szeretné vinni. Miközben Jennifer ismerkedik elszigetelt hegyi házukkal, Page nyomozó a támadó nyomába ered.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239725&hd=1&autoplay=1"
+			},
+			{
+			      title: "Wind River:Gyilkos nyomon",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sSh7WtUD4GVRxng9Z9dudjmm9pg.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/db780a96c7ec56bfdf05275add80f6caf31376784ea2b140ed11eb4f39934a59.jpg",
+				  description: "Holttestet találnak a Wind River indiánrezervátumban. A világtól elzárt térségbe hamarosan egy FBI ügynök érkezik, aki megállapítja, hogy a tinédzser lány gyilkosság áldozata lett. A holttestre rátaláló tapasztalt nyomkövető és az ügynök együtt próbál a bűnügy végére járni, ám a zárkózott, bizalmatlan helyiek nem segítik az ügy felgöngyölítését. Ráadásul az Egyesült Államok egyik legelszigeteltebb térségében a legtöbb gyilkossági ügyet sosem oldják meg, a legtöbb bűnözőt sosem fogják el.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239760&hd=2&autoplay=1"
+			},
+			{
+			       title: "Igaz történet",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h6DTUJ1HEgjD38Io9tI1G2lGC5d.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/bb4ba23f5799578ce0976797e9ea8db359a48070dc6eb021a5a301ed6cd6eb07.jpg",
+				   description: "A New York Times kegyvesztett riportere, Michael Finkel találkozik a gyilkossággal vádolt Christian Longgal, aki elrabolta az ő személyazonosságát. Miközben Finkel nyomozni kezd a férfi után, megpróbál minél több információt összegyűjteni róla, rájön, hogy nem ez az első eset, hogy Longo felveszi más identitását. Kettejük különös macska-egér párviadala, sajátos összecsapása számos veszélyt hordoz magában: gyilkosságot, szerelmet, hazugságot és a megváltást.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239779&hd=1&autoplay=1"
+			},
+			{
+			      title: "Amerikai psycho",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h0Qgq8WZKBRwDzrOYXuoMonc5VP.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/0083e2b6fbdc272e546b0e0e7e5388dd132c7104a938fc860cd45c5188164656.jpg",
+				  description: "Patrick Bateman egy gazdag és befolyásos Wall Street-i befektető fia, igazi aranyifjú. Könnyen halad előre az apja által kitaposott úton, megszállottja a pénznek, a sikernek, a divatnak és a stílusnak. Igazi társasági ember, központi figura, amolyan kétlábon járó sikersztori. Bateman emellett minden idők legkegyetlenebb és leggátlástalanabb sorozatgyilkosa is. Ismerősöket és ismeretleneket mészárol le különös kegyetlenséggel, nem válogatva az eszközökben - kés, láncfűrész, fegyver, nála egyre megy. Indítéka nincs - hacsak az ölés gyönyöre nem számít annak. A rendőrség sötétben tapogatózik, eleinte senki nem gondol arra, hogy a legbefolyásosabb körökben kellene keresni az egyes számú közellenséget.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239799&hd=1&autoplay=1"
+			},
+			{
+			      title: "Amerikai psycho 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5hR83oQU11ekSX2wDFtI4viTHfM.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/e926b83d529a35fa0aa5d1f86840698001d1918d2285d0c04d1ca93ff8519df9.jpg",
+				  description: "Patrick Bateman jóképű, sikeres és ifjú kora ellenére mindent megszerzett már az élettől. Miért lesz valakiből mégis szörnyeteg? Bateman a jólét homályába burkolózva a módszeres gyilkolásban találja meg az unalom ellenszerét. Felfoghatatlan tettei szinte epikussá növekednek, ahogy meg akarja érteni önmaga indítékait és mi is őt...",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239800&hd=1&autoplay=1"
+			},
+			{
+			      title: "A bosszú",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5D1Y4HVGLY70Gv4wj33sgrAl90a.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/a2cb51719f9d23663fab41a765a111f26016e774c7d776023d782ae38cb9324b.jpg",
+				  description: "Három jómódú családfő a vadászatot választotta a hétköznapi stressz levezetésére. Éves találkozójukra érkeznek a sivatagba, de szokásuktól eltérően egyikük szívdöglesztő fiatal szeretőjével érkezik. A lány hamarosan nem csak a férfiak vágyálmainak középpontjába kerül, hanem a célkeresztjükbe is.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239801&hd=1&autoplay=1"
+			},
+			{
+			      title: "Ördögi csapda",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/1XabaJCLKPC0ZQclXByel2Oj9Zl.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/bd326540dc7ce50ec01b026b05937149c7f99f8eed4d907fa649c7924450bc7a.jpg",
+				  description: "A fiatal Frances (Chloë Grace Moretz) és Erica (Maika Monroe) lakótársként élnek New Yorkban. Frances egy nap talál egy női táskát a metrón, és visszaviszi a tulajdonosának, egy idős hölgynek, Greta Hidegnek (Isabelle Huppert). Összebarátkoznak, majd Frances később megpróbál eltávolodni Gretától, de már későn. Ördögi csapdába kerül, amikor Greta elkábítja, fogságban tartja és kínozza a fiatal lányt.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239832&hd=2&autoplay=1"
+			},
+			{
+			       title: "Éberség",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cQPWPsppWkRn66iTUMXvWeK5VGi.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/f0be4ac4bbf182ddf34247412c7ac7002d61ecd55ee0d515730bdc9db1a24451.jpg",
+				   description: "A film egy zavarba ejtően valóságos orvosi jelenséggel indít. A ritka és ijesztő altatási éberség állapotában a műtét előtt elaltatott beteg éber marad és bár fizikailag lebénul, érzékel mindent, ami körülötte és vele történik, még a fájdalmat is. Miközben a félresikerült anesztézia során az ifjú és gazdag mágnás, Clay Beresford éber marad a szívműtétje közben és tehetetlenül hallgatja az őt körülvevő orvosokat, az elhangzó mondatokból lassan összerakja a képet: vagyis azt, hogy egész egyszerűen meg akarják gyilkolni.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239837&hd=1&autoplay=1"
+			},
+			{
+			       title: "Paranoia",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yhSYpNJYFjd7IZdN1jwysZcjpxd.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/e71aca1cf656c841789498bf92c5646db25f64e9ef236bd50f3f1e0ef36a15bb.png",
+				   description: "Egy nagy hatalmú vállalat belépő szintű alkalmazottja egy sarki irodában találja magát, de veszélyes áron – főnöke régi mentoránál kell kémkednie, hogy több milliárd dolláros előnyt szerezzen.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239844&hd=1&autoplay=1"
+			},
+			{
+			      title: "A kukkolók",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/p5gaThQq2Nv5RMQ8HvyzrmrSh4X.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/4378974f141d1ae11b9b6d06873f8ca3cd6fb5d6bbd095db0d3d58b7da0c6873.png",
+				  description: "Egy fiatal pár (Sydney Sweeney és Justice Smith) azon kapja magát, hogy érdeklődni kezd a szemközti szomszédok (Ben Hardy és Natasha Liu Bordizzo) szexuális élete iránt. Ami ártatlan kíváncsiságnak indul, beteges megszállottsággá válik, miután rájönnek, hogy az egyikük félrelép. A kísértés és a vágy hatására életük összekuszálódik, ami halálos következményekkel jár.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239861&hd=2&autoplay=1"
+			},
+			{
+			      title: "A másik lány",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/16KYr5PHbnjrDiReeAuj2xbJIrX.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/94be434432c9d938e006f96cfa34a44db3b754b4e353bd1205d3ae2616e646ab.jpg",
+				  description: "Kate és Joe arra vágynak, hogy végre szülővé válhassanak és a mesterséges megtermékenyítésen gondolkoznak. Ekkor jelenik meg Danica, Kate 17 évvel ezelőtt szült, de elhagyott gyermeke. Ő azonban csak egy szélhámos, aki bármit megtenne az anyai szeretetért, mert még sosem volt benne része az életben.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239862&hd=2&autoplay=1"
+			},
+			{
+			      title: "Angyalok gyilkosa",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/eA3tnpsFqoXEbrTrfPzyafBdMNE.jpg",
+				  previewImage: "https://canvas-lb.tubitv.com/opts/WOjIJpWvlCekww==/04ba72da-547b-424d-bbc1-eaa3ac0c0753/CJ4GEMADOgUxLjEuNw==",
+				  description: "Egy sorozatgyilkos tartja rettegésben a várost, a rendőrség pedig tehetetlen. A hatóságok jobb híján segítséget kérnek egy bebörtönzött sorozatgyilkostól, akit mindenki csak úgy hív, „A művész”. A briliáns elme segít közelebb jutni az újabb áldozatokat szedő gyilkos pszichéjéhez. Az ügyre ráállított nyomozópáros egyre jobban „A művész” hatása alá kerül, s a macska-egér játékban egyre inkább úgy tűnik, nem a nyomozók irányítják az eseményeket.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239894&hd=2&autoplay=1"
+			},
+			{
+			       title: "Kutyaszorítóban",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/uVLrsW0HpEwqWZngBGeTSe18Z0O.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/112a0b0f230d6435d1f1890bc71926c7751ef45948aad6af75505cf996aa4c4a.jpg",
+				   description: "Egy gyakorlott tolvajbanda fegyveres rablást követ el egy gyémántraktárban. A rendőrség meglepően hamar a helyszínre ér, ezért felmerül a gyanú, hogy valaki a banda tagjai közül besúgó. A cselekmény a rablás elkövetése után indul, és egy-egy visszatekintő jelenetben idéződik fel az azt megelőző időszak, a bűntett kitervelésének fázisa, illetve ily módon ismerjük meg magukat a szereplőket is.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239965&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Piszkos pénz",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7yIPrWpBTjg6PXbYpEPrHbkOiuk.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/469eaaaeb6feb8fa736e3b88662ef46deaf5bb97aadd43628853b947e5ee11fb.jpg",
+				   description: "Bob régen bunyózott, most Marv brooklyni kocsmájában dolgozik. Magányosan él, próbál jó útra térni, de nem megy könnyen - a kocsma ugyanis a maffia lerakóhelye: pénzt, kábítószert, más rejtegetnivalót őriznek meg itt igény szerint. Egy nap azonban Bob másfajta rakományra talál: egy beteg kutyakölyökre, akit hazavisz magához - emiatt ismerkedik meg Nadiával, a sebhelyes nyakú, titokzatos nővel, és emiatt keveredik bele a csecsen bandák közti háborúba - ahonnan nincs kiút.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239966&hd=1&autoplay=1" 
+			},
+			{
+                title: "Tőrbe ejtve",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bHDFv3BhiER7l6jChyQAuGhlsdE.jpg",
+                previewImage: "https://m.blog.hu/dv/dvdnews/image/.external/.thumbs/0110b7d6fe8cc5e3f15ea59a7e2f371d_d49afe6e3b4eb7cadfe308837303ec67.jpg",
+                description: "A milliárdos krimiírót 85. születésnapján holtan találják vidéki villájában. A partit követő napon a tett helyszínére érkezik a híres magándetektív, Benoit Blanc (Daniel Craig), akit egy titokzatos személy bérelt fel a szenzációs bűncselekmény felderítésével. Ahogy a nyomozó elkezdi felgöngyölíteni az ügyet, egyre különösebb tiktokra derít fényt. És bár az ünnepségen résztvevő családtagoknak, és a személyzetnek is megdönthetetlen alibije van, mindenkinek alapos indítéka volt a szörnyű tett elkövetésére... Rian Johnson (Looper – A jövő gyilkosa, Star Wars: Az utolsó Jedik) forgatókönyvíró-rendező feszült krimiije egy modern köntösbe öltöztetett klasszikus Agatha Christie-történet, ahol az utolsó pillanatig izgatottan várja a néző a mindent leleplező, és döbbent fordulatot hozó végkifejletet. A milliárdos krimiírót az Oscar-díjas Christopher Plummer alakítja, díszes családját olyan sztárok keltik életre, mint Chris Evans, az Oscar-jelölt Toni Collette, a kétszeres Golden Globe-díjas Jamie Lee Curtis, az Oscar-jelölt Michael Shannon, a Golden Globe-díjas Don Johnson, a személyzet egyik tagját Ana de Armas játssza, a neves detektív szerepében pedig Daniel Craig remekel.",
+                link: "https://videa.hu/player?v=Z3jbHnIMkU18PPhd"
+            },
+            {
+                title: "Tőrbe ejtve: Üveghagyma",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/1NnNIFy9vnqnRXfLXMsWQmbCkRM.jpg",
+                previewImage: "https://m.blog.hu/dv/dvdnews/image/knives_out_2_pic03.png",
+                description: "Benoit Blanc ismét egy kibogozhatatlan rejtély előtt találja magát, de nincs olyan ügy, amelyre a világ legjobb nyomozója ne tudna fényt deríteni. A 2019-ben megjelent nagysikerű Tőrbe ejtve után érkezik a folytatás.Netflix-premier: 2022. december 23.",
+                link: "https://videa.hu/player?v=TSQUoLyu1y1mKcmH"
+            },
+			{
+			        title: "Amitől félsz",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/lokCn3g5fNqOv9VexVWE6VGTUCf.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/e82a4a2e47ccf4fd38490275948b573c4d78ca14f32dfd2cb71c797db484523b._SX1080_FMjpg_.jpg",
+					description: "Ez olyan, mintha megütötték volna a főnyereményt! Curtist (John Cho) az a szerencse éri, hogy egy családoknak segítő mesterséges szuperintelligencia kissé bolondos kifejlesztője neki ajánlja fel a nagy lehetőséget: az ő családjánál próbálják ki, milyen az, ha a szokásos unalmas, kellemetlen, zavaros családi ügyeket egy gépre bízzák, és ő mindent elintéz – pontosabban, gyorsabban, készségesebben, mint a szülők és a három gyerek. De az MI túl jól dolgozik. Mindent elkövet, hogy pontosan végrehajtsa, amire programozták; megvédi a gazdáit, nem törődik vele, hogy milyen eszközöket kell hozzá bevetnie, és kin kell átgázolnia hozzá. Ráadásul úgy tűnik, kikapcsolhatatlan. Ha viszont lázadó családtagot sejt valahol, akkor nem ismer kegyelmet.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239852&hd=2&autoplay=1"
+			},
+			{
+			       title: "A pokolból",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/steiOwIHz8xYzGOtkxg1KR9h7Nc.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/bf3098c5f733535b7a3a66016d36f28724e5be360fae7ee14b668677352cc87a.jpg",
+				   description: "A tizenkilencedik század utolsó és legnagyobb rejtélye volt ő. Az első bűnöző, aki sztár lett, az első nagy megoldatlan titok, mely máig újabb és újabb kalandvágyókat sarkall vadabbnál vadabb megoldásokra: Hasfelmetsző Jack. 1888 őszén tíz hét alatt öt kegyetlen, rituális gyilkosságot követett el, és ezzel sosem tapasztalt pánikot keltett Londonban. Abberline felügyelő, a Scotland Yard magányos nyomozója a rém nyomába ered. A különös rendőrről azt beszélik, sikereit az álmainak köszönheti; éjszaka meglátja, ki a tettes. Ezúttal azonban olyan akadályba ütközik, amit ő sem láthatott előre: beleszeret abba, akiről tudja, ő lesz a következő áldozat.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240027&hd=1&autoplay=1" 
+			},
+			{
+			      title: "A bűnös",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/AvKkinYwfAHzpT7GvvdKAdoVFWL.jpg",
+				  previewImage: "https://www.quotidiano.net/image-service/version/c:YTEyYjczNTktZTg2OC00:MjJkNTI5/dettaglio-del-poster-foto-netflix.webp?f=16%3A9&q=1&w=1280",
+				  description: "A bűnös egyetlen reggel történéseit mutatja be egy segélyhívó központban. Joe Bayler telefonos ügyintéző (Gyllenhaal) igyekszik megmenteni egy veszélyben lévő betelefonálót, de hamarosan rádöbben, hogy semmi sem az, aminek látszik, és kénytelen szembenézni az igazsággal, ha meg akarja találni a kiutat.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239761&hd=2&autoplay=1"
+			},
+			{
+			       title: "A gonosz markában",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tEeMpLA8swlxsK20lYP5bQf2eSM.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/659762b7acae433e5822a5d5fc7a13bff5b64a340e4e17115f25aea6a9e43eed._SX1080_FMjpg_.jpg",
+				   description: "John Feltonnak balszerencsés napja van. Kirúgják állásából, de ez még csak a kezdet. Otthon szomorkodna, mikor csengetnek, a küszöbön egy ismeretlen fickó álldogál, aki Richieként mutatkozik be és segítséget kér, mert autójából kifogyott a benzin. Felton segít az idegennek, vesztére. Hamarosan kiderül, hogy Richie maga a megtestesült Gonosz.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239792&hd=1&autoplay=1"
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
 </html>
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		

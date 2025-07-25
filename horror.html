@@ -1,107 +1,921 @@
-<!DOCTYPE html>
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #000000;
-            color: #ffffff;
-            text-align: left;
-            font-family: Arial, sans-serif;
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
         }
 
         .logo img {
-            width: 200px;
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
         }
 
         .movie-container {
             display: inline-block;
             position: relative;
-            margin-top: 20px;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
         }
 
         .movie-container img {
             width: 200px;
-            height: 100px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-radius: 10px;
         }
 
         .movie-container:hover img {
-            transform: scale(1.1);
-            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.8); 
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         }
-		    </style>
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
 </head>
-<body>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-    <!-- SkyShowtime logó -->
-    <div class="logo">
-        <img src="skysnet.png" alt="SkyShowtime">
-    </div>
-	<br>
-	<b>Horror filmek</b>
-	<br>
-	<a href="https://videa.hu/videok/film-animacio/sikoly-1-sidney-dsq5fVEfT7Gxkwaa" class="movie-container">
-	<img src="sikoly1.jpg" alt="Scream">
-	</a>
+  gtag('config', 'G-BLN73N32GS');
+</script>
 	
-	<a href="https://videa.hu/videok/film-animacio/sikoly-2-sidney-F6TvIHatTTPXfJTC" class="movie-container">
-<img src="sikoly2.jpg" alt="Scream 2">
-</a>
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/sikoly-3-sidney-otRy13qqgFu2QBi6" class="movie-container">
-<img src="sikoly3.jpg" alt="Scream 3">
-</a>
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/sikoly-4-sidney-K6M3wVvWqIEeEXmg" class="movie-container">
-<img src="sikoly4.jpg" alt="Scream 4">
-</a>
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/sikoly-5-sidney-DvPHT6WPbRhL9nzW" class="movie-container">
-<img src="sikoly5.jpg" alt="Scream 5">
-</a>
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
 
-<a href="https://videa.hu/videok/film-animacio/sikoly-6-sidney-LIdJutOmw8P8FAai" class="movie-container">
-<img src="sikoly6.jpg" alt="Scream 6">
-</a>
 
-<a href="https://videa.hu/videok/film-animacio/a-fiu-horror-Xh7czF8ZlUxFTGFh" class="movie-container">
-<img src="fiu.jpg" alt="The Boy">
-</a>
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
 
-<a href="https://videa.hu/videok/film-animacio/a-fiu-2-horror-Q3hEWlfLzcxCqoHS" class="movie-container">
-<img src="fiu2.jpg" alt="The Boy 2">
-</a>
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
 
-<a href="https://videa.hu/videok/film-animacio/babysitter-horror-vigjatek-fiF9YKeJvfzP9TRE" class="movie-container">
-<img src="babysitter1.jpg" alt="The Babysitter">
-</a>
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
 
-<a href="https://videa.hu/videok/film-animacio/az-ejszaka-fogai-meganfox-t4rGVAAw1aJGhvNw" class="movie-container">
-<img src="babysitter2.jpg">   
-</a>
+        // Film adatbázis
+        const movies = [
+		
+		
+		
+		{
+                title: "Sikoly",
+                image: "https://m.media-amazon.com/images/I/7114ViRptyL._AC_SL1500_.jpg",
+                previewImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKw424gLi50s4MIESznxVoriDBsAsHWSqEcH-kNWq80FRfgGKXclX2d23VtdPQdWF-9ro&usqp=CAU",
+                description: "Sidney (Neve Campbell) tinédzserként száll szembe szorongásaival. Anyját csupán néhány hónappal ezelőtt gyilkolták meg, apja csak az üzletnek él, mit sem törődik lányával; sőt még barátja is örökös feszültségben tartja a magányos lányt. És még mintha ez sem lenne elég, brutális sorozatgyilkos kezdi el terrorizálni a csendes kisvárost, de főként Sidney iskolatársát, Casey Beckert (Drew Barrymore). A gyilkos kedvenc horrorfilmjeiből merít ihletet, hogy felforgassa a várost és kollégiumát. Mindent felhasznál, amivel rászedheti áldozatait. Mindenki gyanús és senki sincs biztonságban. Sidneyn múlik, véget ér-e a rettegés. Az egyetlen bizonyíték egy félelmetes maszk.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239535&hd=2&autoplay=1"
+            },
+            {
+                title: "Sikoly 2",
+                image: "https://www.mafab.hu/static/profiles/2014/293/11/44757_47.jpg",
+                previewImage: "https://hollywoodsuite.ca/wp-content/uploads/poster/HS902795_poster_1920_1080.jpg",
+                description: "Sidney és Randy a Windsor Egyetemen tanul tovább. A városban filmbemutató lesz. A film A woodsborói gyilkosságok bestsellerből készült, szerzője Gale, a rámenős riporternő, aki részese volt az eseményeknek. A premier vérfürdőbe torkollik.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239536&hd=2&autoplay=1"
+            },
+            {
+                title: "Sikoly 3",
+                image: "https://image.tmdb.org/t/p/original/qwaV5aVS6Uux5bySOKZbkLmp4uS.jpg",
+                previewImage: "https://material.asset.catchplay.com/NIK-ID-001-A1098/artworks/posters/NIK-ID-001-A1098-P448.jpg?hash=1741462866",
+                description: "A Sikoly 3, a színhely Hollywood, a Döfés 3 - Visszatérés Woodsboróba című film forgatása. Sidney a Windsor egyetemen történtek óta visszavonultan él Észak-Kalifornia egy eldugott erdejében, de halott anyja képe még mindig kísérti. Egy napon őt is felhívja a gyilkos, aki a woodsborói borzalmakról szóló film forgatásán újból szedi áldozatait, otthagyva mellettük Sidney anyjának képét. Sidney Hollywoodba utazik, de feltűnik Gale Weathers, a sikeres tévériporter, mint a Woodsboro-ügy szakértője és régi szerelme Dewey Riley is, aki a készülő film technikai tanácsadója. A Döfés 3 színhelyén mindannyian szembesülnek az őket játszó színészekkel, és a kérdéssel, hogy a gyilkos forgatókönyve alapján vajon ki lesz a következő áldozat.....",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239537&hd=1&autoplay=1"
+            },
+            {
+                title: "Sikoly 4",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2do2WnYVSQi13lnm68YEtRehO6Z.jpg",
+                previewImage: "https://c4.wallpaperflare.com/wallpaper/453/971/749/movie-scream-4-scream-movie-wallpaper-preview.jpg",
+                description: "10 éve semmi híre Ghostface-nek, a szellemálarcos ruházatba öltözött pszichopata gyilkosnak, így már éppen kezdi elfelejteni a szörnyűségeket az amerikai kisváros, Woodsboro. Az előző részekben megismert Sidney Prescott (Neve Campbell) ma már sikeres író, író-olvasó találkozó turnéjának utolsó állomásaként tér vissza szülővárosába, s vele együtt a titokzatos telefonhívások is újra elkezdődnek, Ghostface újra színre lép. Woodsboro egész lakossága megint veszélyben van, a rettegés visszatér a kisvárosba, de úgy tűnik, a szabályok ezúttal megváltoztak.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239538&hd=1&autoplay=1"
+            },
+            {
+                title: "Sikoly 5",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4CsSlG5h1Ju71dZSxkpDxGzkC6K.jpg",
+                previewImage: "https://material.asset.catchplay.com/PAR-IN-001-A1095/artworks/posters/PAR-IN-001-A1095-P704.jpg?hash=1645593684",
+                description: "A Sikoly 5 történetének főszereplője egy fiatal nő, aki visszatér szülővárosába, azonban a hazatérését szörnyű gyilkossági esetek árnyékolják be. A hírhedt álarcos sorozatgyilkos újra szedi az áldozatait.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239540&hd=1&autoplay=1"
+            },
+            {
+                title: "Sikoly 6",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pvuIIzhycVvs8ytWMsgvRjQZT2H.jpg",
+                previewImage: "https://pixel.disco.skyshowtime.com/uuid/2250dd8d-d1a9-3051-89f0-9e50a2df41c2/COVER_TITLE_WIDE?language=hu-HU&proposition=SKYSHOWTIME&version=909fcbb8-c9d8-33d4-8971-95d3716ea552",
+                description: "A két testvérpár, Samantha és Tara Carpenter, illetve Chad és Mindy Meeks elköltöztek Woodsboróból, miután túlélték a legutóbbi Ghostface-gyilkosságokat. Új életükre New York Cityben azonban árnyékot vet egy vadonatúj sikolyálarcos gyilkos felbukkanása. Megjelenés dátuma: 2023. március 9.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239541&hd=2&autoplay=1"
+            },
+			{
+                title: "A bébiszitter",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/atTV9wW73sRErPXcYw0Ve2rxXyr.jpg",
+                previewImage: "https://www.acmodasi.in/amdb/images/movie/8/3/the-babysitter-2017-70105.jpg",
+                description: "Egy átlagosnak induló este nem várt meglepetéseket tartogat, a kisfiú ugyanis úgy dönt, hogy kémkedni kezd a bébicsősze után.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239563&hd=1&autoplay=1"
+            },
+            {
+                title: "A bébiszitter 2: A kárhozat királynője",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3BcHEwfCJQpkUQEdCnTP3pzSbLQ.jpg",
+                previewImage: "https://hauntedmtl.com/wp-content/uploads/2020/09/the-babysitter-killer-queen-review-netflix.jpg",
+                description: "Két év telt el azóta, hogy Cole megmenekült a Bee által vezetett sátánista szekta karmai közül, de most egy újabb rémálom, a középiskola vár rá. Ha pedig mindez nem lenne elég, újra feltűnnek az egykori ellenségei is.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239564&hd=2&autoplay=1"
+            },
+			{
+                title: "Fear Street 1994",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yK3vbuZNDgrzhuk3XGaKK13FZH9.jpg",
+                previewImage: "https://occ-0-8407-90.1.nflxso.net/dnm/api/v6/Qs00mKCpRvrkl3HZAN5KwEL1kpE/AAAABfUUyqKQBuE9S4wy2PKDjIt-ZSpSYw8Wi3Rkx87x79jiNfx02C1sFEggoVLj_5fn3M_CEj2imoIBnEQWppzHIy-9894FdIW6Bc0HsBGp_Q1HnqlTzxtLUOrU4f8huZbGDDzPwA.jpg?r=39e",
+                description: "A közelben történő számos brutális kaszabolások után egy tini és barátai szembeszállnak a városukat évszázadok óta megmérgező gonosz erőkkel....Egy rejtélyes haláleset rázza meg a ohiói Shadyside városka lakóit. Senki sem érzi magá biztonságban, hiszen a gyilkos köztük járhat. A Fear Street R.L. Stine könyvsorozatának adaptációja.",
+                link: "https://videa.hu/player?v=2TzSNx3PuhkgYYvz"
+            },
+            {
+                title: "Fear Street 1978",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/srUYywrHCzpk8YGBa8I7cXkHoIN.jpg",
+                previewImage: "https://occ-0-8407-90.1.nflxso.net/dnm/api/v6/Qs00mKCpRvrkl3HZAN5KwEL1kpE/AAAABed28CITECKzJGSv3XnjWYIAFJZ5ETYNASq9fn8NSRYvDCFzaYhLu477t_34r7hfrJT1YYBOqBL4TxfuEurrg0XaVU88vYXLhq_nkbbbZJcDTxzYJWuYcjuJ9zGH9LTjPpcUjw.jpg?r=619",
+                description: "Shadyside, 1978. Nyári szünet van a suliban, és hamarosan kezdődnek a foglalkozások a Nightwing Táborban. De amikor újabb shadyside-i lakoson uralkodik el a gyilkos vágy, a nyári vakációból a túlélésért vívott harc lesz.",
+                link: "https://videa.hu/player?v=Y2zidieLobgkN9dr"
+            },
+            {
+                title: "Fear Street 1666",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ofEqKZ2U4iMs6SRWuC2g5kQrURY.jpg",
+                previewImage: "https://occ-0-8407-90.1.nflxso.net/dnm/api/v6/Qs00mKCpRvrkl3HZAN5KwEL1kpE/AAAABS_b8tzvuPUjA1H8Vnw6aj1AOwVg86uxjnWTLewS4nYXFdVfbgiB4UW5Qr32SoaNG6lJQQZSEhE4QAA3X6Y4Zee_RMGMXbTnY1aEv5GhRULB17gbmds_Aa4vY5_uBw5lsrw26g.jpg?r=cc4",
+                description: "Az 1666-ba visszataszított Deena megtudja az igazságot Sarah Fierről. 1994-ben a barátok az életükért és Shadyside jövőjéért harcolnak.",
+                link: "https://videa.hu/player?v=AXNdeghHvS2FpQdg"
+            },
+			{
+			   title: "Végső állomás",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jPdTJo6z9Y9j5GBZ7Sz8rRpyubb.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p25022_v_h10_aa.jpg?w=1280&h=720",
+			   description: "Alex Browning (Devon Sawa) érzi, hogy valami nincs rendben, pedig még fel sem szállt a Párizsba tartó 180-as járatra. A gépen ülve, a felszállás előtti pillanatokban víziója támad, és tisztán lejátszódik előtte, ahogyan a repülőgép felrobban. Ekkor már biztosan tudja, hogy valami szörnyűség fog történni. Pánikba esve próbálja osztálytársait leterelni a repülőről. A teljes káosz elkerülése érdekében, Alexet és hat társát leszállítják a gépről. A csalódott és dühös csoport elkeseredetten nézi, ahogy a gép felszáll, majd hirtelen hatalmas tűzgolyóvá változva felrobban.",
+			   link: "https://videa.hu/player?v=nYiIlKfWeRA6pJrb"
+			},
+			{
+			   title: "Végső állomás 2",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/q2moln9boRnuZWNPIXA8bqPiRbx.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p31359_v_h10_aa.jpg?w=1280&h=720",
+			   description: "A halál szigorú terv szerint dolgozik. Akit kiszemel magának, az nem bújhat ki és nem bújhat el: búcsúznia kell az életétől. A tizenkilenc éves Kimberly különös véletlenek sorának köszönhetően megúszott egy borzasztó autószerencsétlenséget. Útitársai engedelmesen meghaltak, ő azonban túljárt a halál eszén. Sőt, ha ez nem volna elég, misztikus megérzései segítségével újabb életeket ment meg. De a halál nem szereti, ha játszanak vele. És a túlélők egymás után válnak különös, megmagyarázhatatlan balesetek áldozatává. A 180-as repülőjárat egykori utasai és Kimberly összefognak, hogy segítsenek másokon és megmentsék saját magukat De nem volt még ember, aki legyőzte volna, akit ők akarnak",
+			   link: "https://videa.hu/player?v=voG1dKhdvu3KGgTj"
+			},
+			{
+			   title: "Végső állomás 3",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jt3KoPsTPIZl2SBfskcQTH9ZOnX.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p159765_v_h10_ab.jpg?w=1280&h=720",
+			   description: "A középiskolás Wendy (Mary Elizabeth Winstead) rémálma valósággá válik. Egy apró, véletlen baleset következtében kisiklik a hullámvasút, melyen a barátaival ül, a kocsik a mélybe zuhannak és senki sem éli túl a balesetet. Wendy közbelépésének köszönhetően azonban megússzák, hogy a valóban bekövetkező baleset áldozataivá váljanak. De a Halált nem lehet kijátszani, a Halál nem mond le kiszemelt áldozatairól.",
+			   link: "https://videa.hu/player?v=ygtxxvoMqjYv6MFW"
+			},
+			{
+			   title: "Végső állomás 4",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tljoTbUWZdsJNLV79RxhCZ4P0Bi.jpg",
+			   previewImage: "https://static0.gamerantimages.com/wordpress/wp-content/uploads/2021/04/final-destination-.jpg",
+			   description: "Nick autóversenyre megy néhány barátjával. A versenyen szörnyű baleset történik, egy karambolt követően az egyik autó a nézők közé repül, és borzalmas mészárlást végez. Szerencsére mindez csak Nick képzeletében játszódott le. A fiút azonban nem hagyja nyugodni a látomás, és igyekszik meggyőzni a barátait, hogy azonnal lépjenek le. A katasztrófa tényleg bekövetkezik, ám Nick és még néhány ember megmenekül. A rendőrség vizsgálódni kezd az ügyben. A halál persze nem szereti, ha kifognak rajta. A túlélők nem kerülhetik el a végzetüket. Sorban, egymás után szörnyű halált halnak.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239252&hd=1&autoplay=1"
+			},
+			{
+			   title: "Végső állomás 5",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7nkOzUMIwbliBvBSmdPFMMhYdjL.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p8609535_v_h10_ak.jpg?w=1280&h=720",
+			   description: "Minden hiába. A sors kérlelhetetlen, a halál bosszúvágyó. Egy férfi különös megérzése megmenti néhány munkás életét, akik egy függőhíd javításán dolgoznak, de a szerencsés menekülés nem a happy end - hanem egy borzasztó, kilátástalan küzdelem kezdete. A halál ugyanis nem szeret veszíteni, és akiket áldozatul nézett ki magának, azokat mindenképpen magával viszi. Hiába menekülnek az életben maradtak, hiába próbálják megúszni az elkerülhetetlent. A mindenütt jelen lévő halál egyenként, borzalmasabbnál borzalmasabb módon vadássza le őket.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239253&hd=1&autoplay=1"
+			},
+			{
+			      title: "Végső állomás:Vérvonalak",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/f1wKMCxHitq2YMsa1HKapnOxCYT.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/d7461833fe0e8c76a45dc0206d429677ba1db9334af9262099f90b4b51fd9647.jpg",
+				  description: "A halál igazságos. Aki véletlenül elkerüli a neki rendelt sorsot, és megússza a rég megírt véget, annak utánamegy. A halál szorgalmas: hiába hajol el valaki sokszor a kasza éle elől, ő addig ügyeskedik, míg el nem kapja azt, akinek meg kell halnia. A halál rafinált: akit egyszerűen nem sikerül megölnie, azt egyre furcsább, vadabb, meghökkentőbb módszerekkel végzi ki. Stefanie-t egy makacsul visszatérő rémálom gyötri. Így hát hazamegy az egyetemi kollégiumból, hogy megkeresse azt az egyetlen embert, aki megtörheti a gyilkos spirált, és megmentheti a családját a szörnyű végtől – ami elkerülhetetlenül leselkedik rájuk.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239823&hd=2&autoplay=1"
+			},
+			{
+			   title: "Rémálom az Elm utcában",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ryZL6J67xVoQia4VvKfZ8MyLppw.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p7868920_v_h8_as.jpg?w=1280&h=720",
+			   description: "Freddy Krueger csíkos pulóvere, négykarmú kesztyűje, dermesztő mosolya a műfaj elsőszámú klasszikusává tette az Elm utcát. Freddy most a modern kor filmes technikájának köszönhetően még ijesztőbben tér vissza egy békés kertváros tinédzsereinek életébe. Amíg ébren maradnak, nem eshet bántódásuk, de aki elalszik, nem menekülhet.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239254&hd=1&autoplay=1"
+			},
+			{
+			   title: "Farkasember",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/y2X5bQIarGWcVFaHnDqjmZeIXIW.jpg",
+			   previewImage: "https://i0.wp.com/cedars.cedarville.edu/wp/wp-content/uploads/2025/02/unnamed-67.jpg?fit=1080%2C745&ssl=1",
+			   description: "Lawrence Talbot tragikus körülmények között veszítette el az anyját. Hatására hátat fordított a szülői háznak, és évtizedeken át próbálta elfelejteni a történteket. Egy nap felkeresi őt a fivére menyasszonya. Gwen arra kéri, segítsen neki megtalálni eltűnt szerelmét. Nehéz szívvel bár, de Lawrence visszatér Blackmoorba. Megtudja, hogy a környéken egy vérszomjas szörny garázdálkodik, ami után már a Scotland Yard is nyomoz. Miközben próbálja kideríteni az igazságot, tudomást szerez az ősi átokról, miszerint akit a szörny megharap, teliholdkor vérfarkassá változik.",
+			   link: "https://videa.hu/player?v=hE02rrvhfjZvbPs9"
+			},
+			{
+			   title: "Nosferatu",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5qGIxdEO841C0tdY8vOdLoRVrr0.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p24233281_v_h8_ah.jpg?w=1280&h=720",
+			   description: "Robert Eggers új NOSFERATU feldolgozása hamisítatlan rémmese a megszállottságról. Egy űzött fiatal nő és az ő megszállottjává váló szörnyűséges vámpír kapcsolata kimondhatatlan borzalmak okozója lesz… Az Északi, A világítótorony és A boszorkány rendezője ezúttal sem a szokványos utat választotta a rémisztgetésre, Murnau – és Herzog - klasszikusát egyedi megközelítésben álmodta vászonra.",
+			   link: "https://videa.hu/player?v=4pSnZ0kGAzU6SkW0"
+			},
+			{
+			   title: "Abigail",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bPOYM4xBCgjambeAXUjHxBhlR2W.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p26505537_v_h8_aa.jpg?w=1280&h=720",
+			   description: "A gyerekek néha olyan rémesek. Miután egy csapat botcsinálta bűnöző elrabolja egy nagyhatalmú alvilági figura 12 éves balerina lányát, csak annyit kell tenniük az 50 millió dolláros váltságdíj begyűjtéséhez, hogy egy éjszakán át vigyáznak a kislányra. Ám az elhagyatott villában a gyerekrablók egymás után kezdenek eltünedezni, és rémületük egyre fokozódik, amikor rájönnek, hogy nem egy átlagos gyerekkel vannak összezárva…",
+			   link: "https://videa.hu/player?v=KxgGJZDkKj0gBQko"
+			},
+			{
+			    title: "A pápa ördögűzője",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/1HU2qyNzdUWKH02fG5gvROKU0eU.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p22981719_v_h8_ad.jpg?w=1280&h=720",
+				description: "A filmben Amorth felhatalmazást kap a pápától, hogy ördögűzést hajtson végre, és feltár egy jelentős összeesküvést a Vatikánon belül.Ahogy Amorth a vizsgálata során halad előre, felfedez egy évszázados összeesküvést, amelyben ugyanaz a démon vesz részt, akivel korábban a katolikus egyház is találkozott.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239166&hd=2&autoplay=1"
+			},
+			{
+			    title: "Ördögűzés",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bMULoVGRBy1lVCgCoXNRbUoX5Wq.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p27305600_v_h8_af.jpg?w=1280&h=720",
+				description: "Egy problémás múltú színész egy horrorfilm forgatása közben kezdi helyrehozni az életét. Mindeközben elidegenedett lánya azon tűnődik, hogy apja vajon visszacsúszik-e korábbi függőségeihez, vagy valami sokkal baljósabb dolog áll a háttérben.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239167&hd=2&autoplay=1"
+			},
+			{
+			    title: "Freaky",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wEtWrNIEsAmrCzrFTDu2TtL8we7.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p18785508_v_h10_ao.jpg?w=1280&h=720",
+				description: "A 17 éves Millie Kessler nem szeretne mást, csak túlélni a Blissfield gimi folyosóin a menő csajok és srácok kegyetlenkedéseit. Ám amikor a város hírhedt sorozatgyilkosa őt szemeli ki új áldozatának, akkor egyből elfelejti a gimi utolsó évének minden nyűgét. A Böllér misztikus tőre az oka, hogy egymás bőrében kötnek ki. Ha Millie 24 órán belül nem szerzi vissza a testét, akkor a csere véglegessé válik és a lány örökre egy középkorú elmebetegben ragad.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239245&hd=1&autoplay=1"
+			},
+			{
+			    title: "A kaptár",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rXxO6bKoBWVEDE9p11Ul8tAjyG1.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p29625_v_h8_aa.jpg?w=1280&h=720",
+				description: "Valami szörnyűség lappang a Kaptárban, egy óriási, földalatti genetikai kísérleti üzemben, ahol halálos vírus üti fel a fejét. Válaszlépésként a Vörös Királynő - azaz a Kaptárt irányító óriási szuperkomputer - szigorú zárlatot rendel el, nehogy a vírus kiszabaduljon. Ezzel az intézkedéssel egyúttal az összes bent rekedt dolgozót is halálra ítéli. Alice és Rain feladata, hogy kommandós társaik élén izolálják a vírust, a team azonban hamarosan érdekes felfedezést tesz: a dolgozók valójában igazán nem is halottak. Ők most a kielégíthetetlen étvágyú, ragadozó Nem-Holtak, akik a Kaptárban ólálkodnak.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239289&hd=2&autoplay=1"
+			},
+			{
+			   title: "A kaptár 2:Apokalipszis",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ppXg2dIc3GCivzi57b5O87OBV6f.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p34790_v_h10_ab.jpg?w=1280&h=720",
+			   description: "A feldúlt Raccoon City szívében még meg nem fertőzött emberek egy kis csoportja, köztük Jill Valentine és Carlos Oliveira, a csapat vezetője az életükért küzdenek. Ám egy másik halálos fenyegetéssel is szembe kell nézniük: az egyik kísérlet eredményeként létrejött genetikai mutáció, a lickerek, gyorsabbak és gonoszabbak mindennél. Úgy tűnik, elhagyta őket a szerencse, készleteik kimerültek, amikor Alice ismét felbukkan.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239290&hd=2&autoplay=1"
+			},
+			{
+			   title: "A kaptár 3:Teljes pusztulás",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nMSul09fvP2HvsSr8ZOS4CpB1nE.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p168193_v_h10_ab.jpg?w=960&h=540",
+			   description: "Miután a kísérleti stádiumban lévő T-vírus kiszabadult a Védernyő Vállalat titkos földalatti laboratóriumból, először Racoon City városát, majd az egész világot megfertőzte és a népesség nagy részét zombivá változtatta. Alice egykor maga is kísérleti alany volt, akinek a kutatók megváltoztatták a génjeit. Ennek köszönhetően emberfeletti képességekre tett szert, amelyeket a gátlástalan tudósok, illetve a cég ellen fordított. Egyetlen dolog élteti és hajtja, hogy bosszút álljon a szenvedéseiért és segítsen az életben maradottaknak. Régi és új társaival az elnéptelenedett Las Vegasban portyázik.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239291&hd=2&autoplay=1"
+			},
+			{
+			    title: "A kaptár 4:Túlvilág",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/xXQ9rzhfd2tlWRVPsdwlnb2lGRs.jpg",
+				previewImage: "https://m.media-amazon.com/images/S/pv-target-images/8d6c932c8a5f303dc660d18f022f16ec3458090d3d145b64273a542cccb286b9.jpg",
+				description: "A titkos, föld alatti laboratóriumból elszabadult T-vírus elpusztította a világot, és zombivá változtatta az emberiség nagy részét. Alice folytatja a túlélők utáni kutatást, hogy biztonságba helyezze őket. Egy rejtélyes rádióadást követve Alaszkába indul, ahol egy régi barátjával, Claire-rel találkozik. Együtt mennek Los Angelesbe, ahol talán létezik egy biztonságosnak hitt körzet. Hamarosan kiderül, hogy valójában csapdáról van szó, a metropoliszban zombik garázdálkodnak. Alice és társai a néhány túlélővel együtt az egykori fegyház területén barikádozzák el magukat. A kikötőben horgonyzó hajóról rádióadást fognak. Elhatározzák, hogy megpróbálnak feljutni a hajóra.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239524&hd=2&autoplay=1"
+			},
+			{
+			    title: "A kaptár 5:Megtorlás",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yGNioH4qBS38pdSmHWrOwAzUeV7.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p9128231_v_h8_ae.jpg?w=960&h=540",
+				description: "A zombik a világ urai. Az emberek elszigetelt, kis csapatokban, átmeneti nyugalmat kínáló erődvárosokban próbálják túlélni a túlélhetetlent. Alice egykor maga is kísérleti alanya volt annak a cégnek, amelynek laboratóriumából kiszabadult a világ elpusztításáért felelős T-vírus. Most a cég legtitkosabb műveleti bázisán tér magához: miközben a hatalmas bunkerlaboratóriumból próbál kijutni, a saját múltja néhány titkát is leleplezi - és újult erővel keresi azokat, akik felelősek a fertőzés elterjedéséért. Tokióból New Yorkba, Washingtonba és Moszkvába vezet az üldözés, és az út végén olyan meglepetés várja, ami megváltoztat mindent, amit eddig igaznak hitt. Néhány új baráttal és rég szövetségessel az oldalán Alice mégis tovább harcol a túlélésért, hiszen már egyértelmű: a világ megmenekülése és az ő élete szorosan összekapcsolódik. És a visszaszámlálás megkezdődött.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239525&hd=1&autoplay=1"
+			},
+			{
+			    title: "A kaptár 6:Útolsó fejezet",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/i7umRqiJANVR1epGfx9WDbfklBM.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p11968979_v_h10_ah.jpg?w=1280&h=720",
+				description: "A világ már sosem lesz jobb hely. Az élőhalottak hordái mindent elpusztítanak, és fogalmuk sincs róla, hogy őket meg azt a keveset, ami megmaradt a civilizációból, egyetlen óriásvállalat, az Umbrella irányítja. Már csak Washingtonban tart ki az emberi ellenállás utolsó, egyre gyengülő fészke. De van egy titkos fegyverük. Egy nő bőrruhában, motoron, gyötrő lelkiismeret-furdalással és gyilkos ösztönökkel. Ő Alice. Kénytelen visszatérni oda, ahonnan mindez elindult: Racoon Citybe, az Umbrella központjába, hogy megmentse, ami még megmenthető. Útja során zombikkal harcol, az idővel versenyez, találkozik néhány régi baráttal és szerez egy meglepő szövetségest. De nincs olyan szörny, ami eltántoríthatja bosszútervétől. Ő Alice. És ez az ő története. Az utolsó.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239294&hd=1&autoplay=1"
+			},
+			{
+			    title: "Doom",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/y50lH061yWOvEstoZRn7lYs0huk.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p89656_v_h10_aj.jpg?w=1280&h=720",
+				description: "A Mars egyik távoli kutatóállomásán valami baj történt, az odluvai állomással megszakadt az összeköttetés. Ötös szintű karantén lép érvénybe, és bevetik a Gyorsreagálású Harci Osztagot. A Főtörzs vezette osztagnak sikerül lezárnia a Föld felé vezető átjárót, majd elindulnak felderíteni az állomást. A tengerészgyalogosok ismeretlen eredetű, rémséges szörnyekkel találják magukat szembe, amelyek lesben állnak minden fal mögött, és a telep termeiben és alagútjaiban ólálkodnak, hogy legyilkolják a még életben lévő embereket.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239295&hd=2&autoplay=1"
+			},
+			{
+			       title: "Vaksötét",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gwtw81yGNYK6PC92I53Eqyt0aUB.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p12721193_v_h10_aa.jpg?w=1280&h=720",
+				   description: "Egy csoport tinédzser betör egy vak férfi otthonába, azt gondolván, hogy megússzák, mert ez maga a tökéletes bűntény. Tévednek.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239411&hd=1&autoplay=1"
+			},
+			{
+			       title: "Vaksötét 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nS9QlRLLg85kcteFH7e8UM68wbr.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p19634584_v_h10_ai.jpg?w=1280&h=720",
+				   description: "A vak veterán évek óta bujkált egy elszigetelt házban, ahol befogadott és felnevelt egy fiatal lányt, aki egy pusztító háztűz miatt árván maradt. Csendes közös életük összeomlik, amikor egy csoport bűnöző elrabolja a lányt, és arra kényszeríti a Vak Embert, hogy elhagyja biztonságos menedékét, hogy megmentse őt.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239412&hd=1&autoplay=1"
+			},
+			{
+			       title: "A bárányok hallgatnak",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5ifE0Q6SQvMpmbc6lb3rteMI4P.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p13013_v_h8_ak.jpg?w=1280&h=720",
+				   description: "Dr. Hannibal Kannibál Lecter az egyik legveszedelmesebb pszichopata gyilkos. Évek óta szigorúan őrzött börtönben ül, de az FBI-nak most a segítségére van szüksége. Valaki ugyanis a módszereit utánozza, és remélik, hogy az őrült orvos segítségükre tud lenni. Clarice Starling különleges ügynök kapja a feladatot, hogy férkőzzön Dr. Lecter bizalmába, és próbálja meg rávenni a segítségre. Ám a dolog nem ilyen egyszerű: Dr. Lecter nem csak őrült, de hihetetlenül intelligens is, így Clarice-nek nincs könnyű dolga.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239435&hd=2&autoplay=1"
+			},
+			{
+			       title: "Carrie",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4TF6bGBZh5ZVoJjzskr3eHLjZNj.jpg",
+				   previewImage: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgnwXw9MMfD2VVHekxW6grZb6-GrOYDwFIA3OqwI5fbHfidtLOmTRNKh8Lh-eNLUDaNkKzlwWUpR8Qd-JAZkU79gnxcCt_o-rti9e32JBQIAgSuL-anKxdQjVfKiBIRC7sCQSTV5o97SN_1/s1600/movie_621_thumbforvideopanel.jpg",
+				   description: "Carrie White egy szégyenlős fiatal lány, akinek nem megy könnyen a barátkozás. Osztálytársai is folyton ugratják, általában ő az élcelődés középpontja. Ráadásul otthon sem túl rózsás a helyzet, hiszen Carrie személyiségét nagyban befolyásolta bigott vallásos anyja, aki drákói szigorral neveli és minden külvilági hatás elől gondosan elzárja gyermekét. Közeledik a szalagavató bál, Carrie egyik osztálytársnője pedig gonosz tervet eszel ki, mellyel ismét (sőt, minden eddiginél jobban) megalázhatja a visszafogott lányt. Arról azonban fogalma sincs, hogy Carrie különleges képességek birtokában van. Telekinetikus erejének poklát pedig épp azok számára tartogatja, akik ártani akarnak neki.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239436&hd=1&autoplay=1"
+			},
+			{
+			        title: "Tűzgyújtó",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h2gj2Tk0uTvYmX2dbf3ZIHqO9sX.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p21617162_v_h8_ae.jpg?w=1280&h=720",
+					description: "Andy és Vicky évek óta menekülnek, hogy elrejtsék lányukat egy titokzatos ügynökség elől, akik Charlie képességét fegyverként akarják használni.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239440&hd=1&autoplay=1"
+			},
+			{
+			      title: "Boldog halálnapot!",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wXhxgiXPewb2EKZ48AMTQMR5uCq.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p14065333_v_h8_aa.jpg?w=1280&h=720",
+				  description: "Tree csodálatosan beképzelt teremtés, aki egyetlen embert szeret feltétel nélkül: saját magát. Miután a születésnapján felébred aktuális egyéjszakás kalandja, Carter mellett, kénytelen rájönni, hogy élete gyökeres fordulatot vesz. Visszaszambázik a kolesz épületébe, ahol meghallgatja a szobatársa Lori és a dikákkör elnöke, Danielle epés megjegyzéseit, aztán beleveti magát a diákok megszokott életébe. Látszólag minden kerek, kerülgeti a szokásos aktivistákat az udvaron, flörtölget a tanárával, Gregoryval, mégis az a furcsa érzés vesz erőt rajta, hogy ezt a napot már átélte egyszer. Éppen lezárná a bizarr születésnapot, amikor brutálisan meggyilkolja egy álarcos idegen... aztán másnap újra ott ébred az egyetlen ember mellett, aki szintén hisz abban, hogy különös erők játékszerévé vált.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239494&hd=1&autoplay=1"
+			},
+			{ 
+			      title: "Boldog halálnapot 2!",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yVVHiVS2fKPux1oWco7vVudBKLx.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p16062014_v_h8_ae.jpg?w=960&h=540",
+				  description: "Tree felfedezi, hogy újra és újra meghalni meglepően könnyebb volt, mint a veszélyek, melyek ezek után következnek. Az első részben megismert Ryan azon kapja magát, hogy ugyanaz a rémálom kezdett el ismétlődni körülötte, melynek végén egy babamaszkos alak akar végezni vele, aztán mikor a játékba az eseményeket már jól ismerő Tree is beszáll, hamar kiderül, hogy valami megváltozott: immáron nem csak egy szimpla időhurokba kerültek, hanem egy alternatív univerzumba is. Ryan és két kockabarátjának kísérlete idézte elő az egész balhét, és amikor a készüléküket újra bekapcsolják, azzal visszaküldik Tree-t az első rész időhurkába. Tree-nek kell segítenie a kockáknak abban, hogy a gépet megjavítva visszaröpítsék őt saját világába, csakhogy ott van Bébiarc, aki immáron nem az első rész gyilkosát takarja!",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239495&hd=1&autoplay=1"
+			},
+			{
+			      title: "Tűnj el!",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zMuU3UIF3AE2gvGrqQMZGAhHJ6X.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p13365032_v_h10_ak.jpg?w=1280&h=720",
+				  description: "Az afroamerikai Chris és fehér barátnője, Rose kapcsolata elérkezett ahhoz a mérföldkőhöz, hogy a fiú végre megismerkedhet a lány szüleivel, Missy-vel és Dean-nel. Erre egy hétvégi kiruccanás keretein belül kerül sor. Eleinte Chris úgy látja, a lány családja nem nézi jó szemmel a rasszok közti kapcsolatot, de a hétvége előrehaladtával rájön, olyan információk húzódnak a háttérben, melyet korábban elképzeni sem tudott.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239513&hd=1&autoplay=1"
+			},
+			{
+			      title: "Fehér éjszakák",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/xWI89ILpXDjhed31EL5NIxfyhyV.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p16580609_v_h8_aq.jpg?w=960&h=540",
+				  description: "Dani és Christian egy fiatal amerikai pár, akik a szakítás szélén állnak. Egy családi tragédia azonban összetartja a fiatalokat, a gyászoló Dani pedig csatlakozik Christianhoz és barátaihoz, hogy együtt vegyenek részt egy varázslatosnak ígérkező fesztiválon egy elhagyatott svéd faluban. Azonban a gondatlannak ígérkező kikapcsolódás a végtelen napsütés földjén baljós fordulatot vesz, amikor a helyiek meghívják őket egy ünnepségre.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239514&hd=1&autoplay=1"
+			},
+			{
+			      title: "Underworld",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zsnQ41UZ3jo1wEeemF0eA9cAIU0.jpg",
+				  previewImage: "https://erik200101272008.github.io/SkysNet/under1.jpg",
+				  description: "Vámpírok és vérfarkasok évszázadok óta vívnak éjszakai háborút egymás ellen. De minden megváltozik, amikor a vámpír harcos Selene, aki híres az erejéről és a vérfarkasvadász képességeiről, és Michael a békeszerető vérfarkas, aki véget akar vetni a háborúnak, találkoznak.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239527&hd=1&autoplay=1"
+			},
+			{
+			      title: "Underworld: Evolúció",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ypvbNUdYlwUw3HGEaJ91zAj7BXU.jpg",
+				  previewImage: "https://erik200101272008.github.io/SkysNet/under2.jpg",
+				  description: "Selene (Kate Beckinsale), az üldözött vámpír fel akarja kutatni Marcust (Tony Curran), a vámpírok királyát, hogy alkut kössön vele az életéért cserébe. Michael (Scott Speedman), a hibrid csatlakozni akar Selene-hez a keresésben, de képtelen az énje egyik felében dühöngő farkasemberben bízni és Selene visszautasítja az ajánlatot. Szerelmük azonban erősebbnek bizonyul a genetikánál, amikor Marcus rajtaüt Selene-en, hogy megsemmisítse a vámpír-lányt. Selene felfedezi, hogy a saját családja árulta el őt és elhatározza, hogy bosszút áll.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239528&hd=1&autoplay=1"
+			},
+			{
+			      title: "Underworld: A vérfarkasok lázadása",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mwljWR3R8G6Yi2s2bR2zjHk2mJV.jpg",
+				  previewImage: "https://erik200101272008.github.io/SkysNet/under3.jpg",
+				  description: "A vámpírok és a farkasemberek egyaránt az éjszaka teremtményei. Évszázadokkal korábban a farkasemberek a sötét világ arisztokratáinak szolgálatában álltak. Ám a szörnyetegek az öntudatos Lucian vezetésével letépik rabláncukat és szembeszállnak egykori uraikkal. Az összecsapást az robbantja ki, hogy Viktor, a gonosz vámpírkirály lánya, a gyönyörű Sonja beleszeret Lucianba. Az apa persze rossz szemmel nézi mindezt. Kegyetlen és véres háború veszi kezdetét. A harcmező mindkét oldalán vérszomjas fenevadak sorakoznak, hogy megvívják mindent eldöntő csatájukat.",
+				  link: "A vámpírok és a farkasemberek egyaránt az éjszaka teremtményei. Évszázadokkal korábban a farkasemberek a sötét világ arisztokratáinak szolgálatában álltak. Ám a szörnyetegek az öntudatos Lucian vezetésével letépik rabláncukat és szembeszállnak egykori uraikkal. Az összecsapást az robbantja ki, hogy Viktor, a gonosz vámpírkirály lánya, a gyönyörű Sonja beleszeret Lucianba. Az apa persze rossz szemmel nézi mindezt. Kegyetlen és véres háború veszi kezdetét. A harcmező mindkét oldalán vérszomjas fenevadak sorakoznak, hogy megvívják mindent eldöntő csatájukat.",
+			},
+			{
+			      title: "Underworld: Az ébredés",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8Th1Dj3idJ8aMhXUXvqvvkGLkmX.jpg",
+				  previewImage: "https://erik200101272008.github.io/SkysNet/under4.jpg",
+				  description: "Selene, a vámpírok egyik legjobb harcosa 12 évnyi raboskodás után megszökik az emberek fogságából. Az általa ismert világ teljesen megváltozott: az emberek tudomást szereztek a vámpírok és a vérfarkasok létezéséről, és kíméletlen háborúba kezdtek ellenük. Selene meg akarja találni Nissát, a félig vámpír, félig vérfarkas lányát. Híre kel, hogy a BioCom kísérleti alanynak használja őt, mert a segítségével akarja megalkotni azt a felsőbbrendű fajt, melynek tagjai örökre leszámolhatnak a vámpírokkal. A föld alatti örök sötétben újabb háború készül: ebben már az emberek is részt vesznek - céljuk a totális pusztítás.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239530&hd=2&autoplay=1"
+			},
+			{
+			      title: "Underworld: Vérözön",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ipqdboF8YH4C4wngK7g55lzazf4.jpg",
+				  previewImage: "https://erik200101272008.github.io/SkysNet/under5.jpg",
+				  description: "A vámpírok és vérfarkasok háborúja talán sosem ér véget. De hozhat még néhány váratlan fordulatot. Selene egyszerre próbálja túlélni a lycan klánok brutális támadásait és az őt eláruló vámpírok ostromát. Kevesen állnak az ő oldalán, de azt a néhány férfit most arról próbálja meggyőzni, hogy békét kell teremteniük – még akkor is, ha nem értenek semmi máshoz, mint a háborúhoz, és akkor is, ha az csak egy módon születhet meg: a végső, legnagyobb áldozat kell hozzá.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239531&hd=1&autoplay=1"
+			},
+			{
+			     title: "Alien:Romulus",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/b33nnKl1GSFbao4l3fZDDqsMx0F.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p26633571_v_h8_ag.jpg?w=1280&h=720",
+				 description: "A Weyland-Yutani cég egyik bányászplanétáján, ahol soha nem süt a nap, egy csapat fiatal bányász elhatározza, hogy ha törik, ha szakad meglépnek erről a kilátástalan, élhetetlen planétáról. Kapóra jön, hogy egy sodródó, Romulus nevű űrállomás tűnik fel a bolygó felett. A fiatalok önkényesen a létesítményre mennek, hogy az ott lévő hibernálókamrákkal eljuttassák magukat egy élhetőbb bolygóra. Arról azonban fogalmuk sem lehet, hogy a kihaltnak tűnő bázison egy idegen életforma is van, ami mindenre és mindenkire veszélyes. A kis csapat hamar szembesül vele, hogy itt még inkább a túlélésük a tét…",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239606&hd=1&autoplay=1"
+			},
+			{
+			     title: "Alien vs Predator: Halál a Ragadozó ellen",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jaQ8KfNFObKWKVWlTMKbFdY4LQg.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p34715_v_h8_aj.jpg?w=1280&h=720",
+				 description: "Különös építményre bukkannak az Antarktisz jege alatt. A milliárdos gyáros, Charles Bishop Weyland vezetésével tudósokból és szakértőkből álló csapat indul a jégréteg alatt rejtőző ősi piramis felderítésére. Az izgalmasnak tűnő kaland azonban borzalmas versenyfutássá alakul, amikor kiderül, hogy a piramis két földönkívüli faj összecsapásának évezredes színtere. A Ragadozók bizarr beavatási ceremóniájában az Alien-ivadékok a zsákmány, míg az emberek az Alienek kifejlődéséhez szükséges elemózsia szerepét töltik be. A fajok háborújában az ember csak vesztes lehet.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239607&hd=1&autoplay=1"
+			},
+			{
+			      title: "A sötétség titkai",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/p21gW49vIj9hjuitReZ0Xue9OJi.jpg",
+				  previewImage: "https://images.plex.tv/photo?size=large-1280&url=https%3A%2F%2Fmetadata-static.plex.tv%2Fc%2Fgracenote%2Fcd778afd5b4208e8b51d5e4b23a0e06c.jpg",
+				  description: "Szent Patrik napján a vad bulik és részeg mulatozások éjszakáján _ három barát összefog, hogy megmentsenek egy egyetemi várost a testváltó idegenek ördögi hordájától.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239668&autoplay=1"
+			},
+			{
+			      title: "Alkonyattól pirkadatig",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rGgH3dRdmXvgqc88GnXFnJQXHJ6.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c11c13d398d645073203c4cbc71db6dbe3176e6797a13ebb1e2a50fd32b3d6e8.png",
+				  description: "Két veszedelmes bűnöző tart a mexikói határ felé. Sokadik véres bulijukon vannak túl, amelynek során majdnem lekapcsolja őket az FBI, ezért forróvá válik a lábuk alatt a talaj. A mexikói Carlos megígéri nekik, hogy a határ túloldalán menedéket biztosít a számukra. A Gecko fivérek az éppen vakációzni készülő Fuller tiszteletes családjának lakókocsiját veszik igénybe ennek érdekében. Megegyeznek, hogy a találkozó létrejöttével a határon túl szabadon engedik őket. A megbeszélt színhely Mexikó legvadabb kocsmája, a Titty Twister, ahol rengeteg kétes alak tanyázik. Érkezésük estéjén azonban rettenetes dolog történik és a hely igazi pokollá változik.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239667&hd=2&autoplay=1"
+			},
+			{
+			      title: "Boszorkányvadászok",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/aiCQsMa81YBZuCZe1hw3BFFSO3X.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p8869378_v_h8_aa.jpg?w=1280&h=720",
+				  description: "Miután gyerekként már belekóstoltak a vérontásba, Jancsi és Juliska felnőttként elszánt igazságosztók lettek, akik kegyetlen bosszú hadjáratot folytatnak minden boszorkány ellen. Nem tudják azonban, hogy hamarosan a boszorkányoknál sokkal nagyobb veszély fenyegeti őket… a saját múltjuk.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239674&hd=1&autoplay=1"
+			},
+			{
+			      title: "A majom",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gXyCAQevthfv1yEm6i6YndHODqO.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/6c13c08c0fcd096b1059fea37ce6488176b2bf2bcaf5bfb0b65f3094189cb1b0.jpg",
+				  description: "Amikor az ikertestvérek, Bill és Hal megtalálják apjuk régi cintányéros majomjátékát a padláson, szörnyű halálesetek sorozata kezdődik. A testvérek úgy döntenek, hogy kidobják a játékot, és folytatják az életüket. Az évek során eltávolodnak egymástól, ám felnőtt korukban titokzatos halálesetek sorozata kezdődik újra. A fivéreknek össze kell fogniuk a majom végső megsemmisítésére, mielőtt mindenkit elveszítenek, aki a szívüknek kedves.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239698&hd=2&autoplay=1"
+			},
+			{
+			       title: "A rettegés háza",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2vtFfd2G2yR5JXZH7oML0V9E1UT.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/a9bbf07a394c29c80481219981b66faeb1c9fb08a7d5b1346bc36d4cd3768944._SX1080_FMjpg_.jpg",
+				   description: "Szörnyű bűntény történt 1974-ben a Long Island-i Amityville-ben: meggyilkolták az Ocean Avenue 112. szám alatti házban lakó családot. Kiderült, hogy Ronald Defeo végzett a szüleivel és a négy testvérével. Azt állította, hogy a házból hallható hangok sarkallták arra, hogy elkövesse a gyilkosságokat. Egy évvel késõbb a Lutz házaspár költözik a házba a gyerekeivel, abban a boldog hitben, hogy megtalálták álmaik otthonát. Ám hamarosan bizarr és megmagyarázhatatlan dolgok történnek, jelezve a még mindig ott ólálkodó Gonosz jelenlétét.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239715&hd=1&autoplay=1"
+			},
+			{
+			      title: "A gyászoló asszony átka",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/31ZjuQy5sDqLtFUy1HbC1kFUr3F.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/ad5eee4d2051e67e26db32b9e994da43a4ea78bb05c65d551695b37e62a8c3ec.jpg",
+				  description: "La Llorona. A Gyászoló Asszony. Egy rémisztő, nem evilági lény, amely saját maga okozta szörnyű sorsát, menny és pokol között ragadt, és nem találja a helyét. Valamikor réges-régen, amikor élt, féltékenységi rohamában vízbe fojtotta a gyerekeit, azután, amikor rájött, mit tett, utánuk ugrott.Azóta kísért a Földön, és halált hoznak a könnyei. Akik éjszaka meghallják a hangját, azok nem érik meg a reggelt. A Gyászoló Asszony a homályban bujkál, gyerekekre vadászik, és mindenre képes, hogy valamiképpen pótolja saját veszteségét. Büntetése az örök kín, bosszúja, hogy saját fájdalmát mások is kénytelenek átélni.Ahogy telnek az évszázadok, egyre rafináltabb módszerekkel, egyre kegyetlenebb elszántsággal sanyargatja az élőket.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239887&hd=1&autoplay=1"
+			},
+			{
+			      title: "Tudom,mit tettél tavaly nyáron",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dur6Bu3FmHMIWIsWqFeLUatl4vf.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c094f799746e5cd9389c59a7383b5e285fd39767215a7e5b74a0d3a20df0943e.jpg",
+				  description: "Az érettségi bankett varázslatos éjjelén négy végzős gimnazista - két fiú és két lány - beül egyikük új autójába és önfeledt hangulatban nekivágnak az éjszakának. Hirtelen a semmiből feltűnik egy alak. Ray hiába fékez, az ismeretlen mozdulatlanul fekszik az út közepén. A fiatalok pánikba esnek a rájuk váró súlyos büntetés miatt. Félelmükben olyan lépésre szánják el magukat, ami örökre megváltoztatja egész életüket. A holttestet a közeli mólóról a tengerbe dobják. Az ismeretlen azonban magához tér, de Barry szándékosan vízbe fojtja. A négy barát fogadalmat tesz, hogy megőrzik titkukat mindhalálig. Valaki azonban követi őket. Akárhova mennek, mindig a nyomukban van és mindent tud róluk. Látta, amit tettek. Ügyes és kegyetlen lelki terroristájuk ismeri minden gyenge pontjukat, nem akarja futni hagyni őket. Most visszafizeti nekik mindazt a szörnyűséget, amit ők okoztak az idegennek.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239892&hd=1&autoplay=1"
+			},
+			{
+			      title: "Még mindig tudom,mit tettél tavaly nyáron",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pPDAjegtsjkz1jWMWQb2hu4T5rp.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c7265b4e0df4d45aec44cc69079b49df5133263e20a360230297abedcb439fbf.jpg",
+				  description: "Egy év telt el azóta, hogy egy idilli amerikai kisvárosban egy őrült bestiálisan meggyilkolt néhány fiatalt. Egyedül Julie maradt életben, ám tudja: nincs elfelejtett bűn, előbb-utóbb mindenért bűnhődnie kell. Hosszú idő után úgy dönt, elutazik barátaival a Bahamákra, ám egy idilli kirándulás helyett szörnyűséges rémálomba csöppen. A sziget elhagyatott, ráadásul a közeledő vihar miatt nem lehet elhagyni, és Julie levelet kap valahonnan, melyben csak ennyi áll: Még mindig tudom, mit tettél tavaly nyáron!",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239893&hd=1&autoplay=1"
+			},
+			{
+			       title: "A kör",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pwgGJ8Y1aCH7BfLtlbx3n0sSqr.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/bb56bbb7f009381d2d60fc3e166443fc778bb411c2b2c175510adb10de677c20.jpg",
+				   description: "Csak egy újabb nagyvárosi legendának tűnt - egy videokazetta, amin rémálomszerű képek vannak, és miután megnézed csörög a telefon, és valaki azt mondja, hogy hét nap múlva meghalsz. Rachel Kelle újságírónő természetesen szkeptikusan viszonyult a sztorihoz, amíg négy tinédzser meg nem halt ugyanabban az időpontban - pontosan egy héttel azután, hogy megnézték a videót. Rachelen úrrá lesz oknyomozói kíváncsisága, ráveti magát az ügyre, felkutatja a kazettát és megnézi. És megcsörren a telefon. Rachel kétségbeesésében barátja, Noah segítségét kéri, hogy megmentse saját és kisfia életét. Pontosan hét napjuk van, hogy megfejtsék A KÖR rejtélyét.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239951&hd=2&autoplay=1" 
+			},
+			{
+			        title: "A kör 2",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mKXCQci0LZJxGxeEDIJxdS6702A.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/362524743745bc098ef25e561e220eb08701d58d0bcf95a1d39514e28b995524.jpg",
+					description: "A történet fél évvel azután folytatódik, hogy Rachellel és kisfiával, Aidannel (David Dorfman) megmagyarázhatatlan és rettenetes események történtek Seattle-ben. Rachel mindent el akar felejteni, ezért Aidennel egy oregoni városkába, Astoriába költözik, és megpróbál új életet kezdeni. Rachel tervei azonban rögtön szertefoszlanak, mert egy helybéli bűntény színhelyén talált bizonyítékok - köztük egy titokzatos videokazetta - ijesztõen ismerõsnek tűnnek. Rachelnek rá kell döbbennie, hogy a gonosz Samara visszatért, és még elszántabban folytatja halálos bosszúhadjáratát",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239952&hd=2&autoplay=1" 
+			},
+			{
+			       title: "Beszélj hozzám!",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/t7SXSS54Mn8eVB5yJZRjMPjIB4u.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/1fe49386267107d24ada43ca6c550e8ffe8e08e1c3977c87aec6fb6867c3010a.jpg",
+				   description: "Egy fiatal társaság hozzájut egy titokzatos bebalzsamozott kézhez, amely segítségével kapcsolatba lehet lépni a szellemekkel. Ha valaki megfogja a kezet és kimondja, „Beszélj hozzám!”, azzal átmenetileg összekapcsolja a szellemvilágot a való világunkkal. A félelmetes játékszer az esti bulik fő attrakciójává lép elő, a fiatalok a közösségi médiában rajonganak az új izgalomért. Ám egy alkalommal egyikük túl sokáig engedi megszállni magát, és ezzel félelmetes természetfeletti erőket szabadít el.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240037&hd=1&autoplay=1" 
+			},
+			{
+			       title: "A halálkártya",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/uLfY4RQdjDg4ij0kiDccgLaVOfI.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/aplus-media-library-service-media/ac584bff-8ef4-4fe2-a4bc-4981b8caca86.__CR174,0,3492,2160_PT0_SX970_V1___.jpg",
+				   description: "Egy pakli tarot kártya nemcsak néhány színes lap. Sokkal több annál: van, akinek az élete van benne. És van, akinek a halála. Néhány jó barát talált egy régi kártyapaklit, amelynek 78 lapján furcsa minták vannak. Mágus. Remete. Akasztott ember. Ördög. Torony... És végül: a Végítélet. Nem tudják, mi ez, és nem ismerik az alapszabályt: nem szabad olyan lapokhoz nyúlni, amelyet másnak osztottak. Szörnyű hibát követnek el, amelynek szörnyű következményei vannak: az átkozott lapok közül kiszabadul egy nem evilági gonosz lény, és a társaság tagjai egyenként kénytelenek szembetalálkozni sorsuk legborzasztóbb változatával. Aki még él közülük, az a halállal fut versenyt, hogy kiszabadítsa a jövőt abból a rettentő lehetőségből, amelyet a jóskártya ígér.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240038&hd=2&autoplay=1" 
+			},
+			{
+			      title: "Démonok között",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rwHzhzKvpXQRlqdcraYnPhoOWYy.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/0bcd6f5bdab70ca04fe0b87a6f4c72026cd274bdf8f077bc2ca0d452f6918f92._UR1920,1080_.jpg",
+				  description: "Azt hihetnénk, hogy ilyesmi csak egy forgatókönyv-írónak juthat eszébe, pedig ez a történet megtörtént eseten alapul. A paranormális esetek két világhírű kutatója, Ed és Lorraine Warren jegyezte fel annak a családnak a történetét, melyet a világtól távol, egy tanyaházban nem evilági lények terrorizáltak. Perronék öt gyerekükkel költöznek be új, magányosan álló vidéki házukba, és nem tudják, hogy valaki már él a falak között. Valaki, aki minden percben jelen van, gonosz, és képtelenség megszabadulni tőle. A megmagyarázhatatlan földöntúli jelenlét pokollá teszi a napjaikat, és egyre veszélyesebb, ijesztőbb módokat talál, hogy jelezze: övé a ház, és nem engedi át másnak. Kénytelenek paranormális ügyek nyomozóihoz fordulni: azokhoz, akik az amityville-i esetet is lejegyezték. A szakemberek nekilátnak, hogy kifüstöljék a gonoszt a házból de úgy tűnik, még ők sem bírnak vele.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239717&hd=1&autoplay=1"
+			},
+			{
+			       title: "Démonok között 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gIRSNmOiAD0dVt7OTeD7uHKST93.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/efde8a27de2b1c654e78951c895361c6de4cb3e65a428a831202cf93f8028d91._SX1080_FMjpg_.jpg",
+				   description: "A paranormális esetek két világhírű kutatója, Ed és Lorraine Warren valós, lejegyzett esetei között az egyik legmeghökkentőbb ez a történet. A páros ismét egy bajba került családon segít, és egy bajt okozó házat szeretne megtisztítani az ártó szellemektől. Ezúttal Angliába hívják őket: egy négy gyerekét egyedül nevelő anya könyörög a démonűzők segítségéért: két lánya egyre furcsább jelenségeket tapasztal a vén házban. És ami eleinte játéknak tűnt, az nemsokára megállíthatatlan, borzasztó valósággá válik…",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239718&hd=1&autoplay=1"
+			},
+			{
+			       title: "Démonok között 3: Az ördög kényszerített",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3LuhbwmmYZuEvR0GyjyPidT32NB.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c8ec6ff8525878e36290816b51e65395e1a9ddd1267b3c0d12f68132e84a29fa.jpg",
+				   description: "A gyilkosnak nem jár felmentés. Kivéve, ha ártatlan. Ed és Lorraine Warren, a legendás démonűző pár mindig a jót szolgálta, de néha a gonosz eszközévé válik. Ezúttal egy olyan ügyben harcolnak a nem e világi hatalmak ellen, amelynek során valaki meghalt – és a brutális gyilkosságot talán egy ártatlan ember követte el: akit a benne bujkáló démon kényszerített szörnyű tettére. A Warren-házaspár úgy érzi, akkor is választ kell találnia a kérdésre, ha közben a saját életük kerül veszélybe…",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239719&hd=1&autoplay=1"
+			},
+			{
+			      title: "Until Dawn:Hajnalig",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/iTZBeqeFDjbojPcRof8QGeuf3i9.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/53e30470b1f7c88cfd4c9176cddcb156e9f152469edd71336f0c57c0839d2c7c.jpg",
+				  description: "Egy véget nem érő rémálom – vagy ha véget ér, akkor csak kezdődik újra. Clover és barátai egy kietlen völgybe merészkednek, de nem csak városnézők. Egyáltalán nem. Egy évvel ezelőtt Clover húga, Melanie nyomtalanul eltűnt ezen a helyen. A csoportot még mindig kísérti az eltűnése, képtelenek elfogadni a múltat, válaszokat keresnek. De hamarosan a túlélés lesz az egyetlen céljuk. Amikor leszáll az éjszaka, egy elszigetelt turistaházban keresnek menedéket, csakhogy egy álarcos gyilkos vadászik rájuk, aki egyenként lemészárolja őket. Nincs menekvés. Mindegyikük szörnyű sorsra jut... Amíg fel nem ébrednek, és újra csapdába nem esnek ugyanabban az éjszakában. De ezúttal minden megváltozott. A gyilkos módszerei megváltoztak. A brutalitás fokozódik. Az őrület egyre mélyül. Nem kell sok idő, hogy rájöjjenek a szörnyű igazságra: az esélyeik fogytán vannak. És hajnalra csak egyikük juthat ki élve.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239757&hd=2&autoplay=1"
+			},
+			{
+                title: "A fiú",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/43zIhR9xw7j4TKLj45zCdORwpXR.jpg",
+                previewImage: "https://videa.hu/static/custom_image/1.13.8.2938427.1160246.1?md5=ORHGCpTQ2AGjimrKyIe0kQ&expires=1773483958",
+                description: "Egy amerikai lány pénzkereset gyanánt egy angliai családnál helyezkedik el mint bébiszitter. Azonban a gyermek akire vigyáznia kell nem más, mint egy 8 éves gyermek mására készített porcelánbaba. A háziak által szabott szabályokat nem szabad megszegni, mivel azok be nem tartása súlyos következményeket von maga után. Néhány nem várt esemény arra enged következtetni, hogy a baba talán nem is olyan élettelen.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239554&hd=1&autoplay=1"
+            },
+            {
+                title: "A fiú 2",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/swTC1DSZcvdxTOzmAKrtoUUPiDW.jpg",
+                previewImage: "https://onlinefilmvilag2.eu/img/articles/4933.jpg",
+                description: "Miután a család Heelshire Mansionbe költözik, a fiuk összebarátozik egy Brahms nevű, élethű babával.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239555&hd=2&autoplay=1"
+            },
+			{
+			      title: "Az ördög ügyvédje",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/9mgKBhdi93L5pL4okDMnrSapiCl.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p19989_v_h8_am.jpg?w=960&h=540",
+                  description: "Démoni hatású, egyedi filmcsemege. Az utolsó pillanatokig meglepetésekkel szolgál az utóbbi évek egyik műfajteremtő filmje. Kevin Lomax, a sikeres védőügyvéd egyetlen pert sem veszített még életében, mert szinte hipnotikus erővel bírja rá az esküdteket, hogy mentsék fel ügyfeleit. De nemcsak a tárgyalóteremben, hanem a magánéletében is szerencsés, elbűvölő feleségével, Mary Annel az oldalán. De semmi sem tarthat örökké. Egy napon betoppan hozzá egy tekintélyes New York-i jogi cég megbízottja és közli vele, hogy felettesei felfigyeltek hihetetlen teljesítményére és szeretnék a cég munkatársai között látni. Feleségével New Yorkba utazik, ahol hamarosan megismerkedik a cég titokzatos vezetőjével, John Miltonnal is. A nagyravágyó Kevin nem bír ellenállni a kísértésnek és elfogadja Milton ragyogó ajánlatát...",				  
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239676&hd=1&autoplay=1"
+			},
+			{
+			      title: "Halálod appja",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/fWRmunMryydpmH6imSQxjVYJzh9.jpg",
+				  previewImage: "https://www.brainlesspen.com/wp-content/uploads/2022/01/Countdown-2019-brainless-pen.jpg",
+				  description: "Az okostelefonok teljesen átszövik mindennapjainkat, egymás után jelennek meg a hasznosabbnál hasznosabb applikációk, a legújabb őrületnek azonban az az alkalmazás számít, amely képes megjósolni, mennyi van hátra az életünkből. Quinn döbbenten veszi észre, hogy mindössze két napja maradt. A másodpercek egyre csak peregnek visszafelé, a lány pedig próbál versenyt futni az idővel, miközben egy gyanús és sötét alak is a nyomába…",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239677&hd=1&autoplay=1"
+			},
+			{
+			       title: "A rítus",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ih5x1yLl0xih4Pc0JGut0FO8DzO.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/525a4d6b2d58ba7ae59a03a5e12a11c24b7d3a1a3eadb70380661aba5c6b1fba._UR1920,1080_SX500_FMjpg_.jpg",
+				   description: "Egy hitéből szinte teljesen kiábrándult ifjú pap (Colin O'Donoghue) a Vatikánban képezi tovább magát, és a legjobb szándéka ellenére is kénytelen megtanulni az ördögűzés szabályait. Római tartózkodása során találkozik Lucas atyával (Anthony Hopkins), és onnantól kezdve másképp tekint az egyházra, Rómára, a hitre és az ördögre.Lucas atya ismeri a hit sötét oldalát. Az idős pap az életét tette a gonosz elleni küzdelemre, és nem válogat az eszközökben. Azt reméli, hogy Michael személyében végre rátalált a rég keresett tanítványára.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240026&hd=1&autoplay=1" 
+			},
+			{
+			      title: "Bűnösök",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/uF2KoTEBfoHNn6mB9yckRiTZ7tB.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg",
+				  description: "Az ikertestvérek visszatérnek szülővárosukba, hogy újrakezdjék az életüket. Ott azonban egy gonosz lény várja őket vissza...",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1"
+			},
+			{
+                title: "Nappali műszak",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cerq62TyZVsZDKNh9IDfQ3asw9W.jpg",
+                previewImage: "https://occ-0-8407-92.1.nflxso.net/dnm/api/v6/Qs00mKCpRvrkl3HZAN5KwEL1kpE/AAAABbdqlbbgtR7XhgGx3DDxzUQdIWcLuwVe_nZSO9Ly7dCSPAr_8ssKhUcG2h7WQvHGrKdViYgPetRT0cBUMDU3VaEb6t2typFqmdymiD2SitZv09IbeLEHH5LXv17cFm0trm4YYg.jpg?r=aae",
+                description: "Egy keményen dolgozó, munkás apuka története, aki csak jó életet akar biztosítani a gyors észjárású 8 éves lányának. San Fernandóban végzett medencetisztítói munkája csak álca az igazi bevételi forrásához: valójában vámpírvadász.",
+                link: "https://videa.hu/player?v=t2SAuQGlzUFdA42n"
+            },
+			{
+			      title: "Gonosz csoda",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jy7DD8t2lhnzYdYYuof7kxYgeUk.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/9b817078dfc5587c556bdc8a7a5d84fd95221695d544e6b4e8cd723b7f717e48.jpg",
+				  description: "Csoda történt, igazi csoda! Egy kisvárosban élő, siket lányt meglátogat Szűz Mária, és meggyógyítja az ártatlant. Mivel véletlenül egy cinikus, szakmája legszélére sodródott újságíró is éppen ott tartózkodik, az egész világ értesül a csodálatos gyógyulásról – és arról, hogy Alice egyre több embert gyógyít meg. Az egyház eleinte kételkedik, de végül hozzájárul, hogy a lány tömegeknek prédikáljon. És Bainfield felé megindul a hívők áradata.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239735&hd=1&autoplay=1"
+			},
+			 
+			
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
 
-<a href="https://videa.hu/videok/film-animacio/az-ejszaka-fogai-meganfox-t4rGVAAw1aJGhvNw" class="movie-container">
-<img src="éjszakaifogak.jpg">
-</a>
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
 
-<a href="https://videa.hu/videok/film-animacio/a-felelem-utcaja-1.resz-horror-2TzSNx3PuhkgYYvz" class="movie-container">
-<img src="fstreet1994.jpeg">
-</a>
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
 
-<a href="https://videa.hu/videok/film-animacio/a-felelem-utcaja-2-horror-Y2zidieLobgkN9dr" class="movie-container">
-<img src="fstreet1978.jpg">
-</a>
-
-<a href="https://videa.hu/videok/film-animacio/a-felelem-utcaja-3-horror-AXNdeghHvS2FpQdg" class="movie-container">
-<img src="fstreet1666.jpg">
-</a>
-
-<a href="https://videa.hu/videok/film-animacio/nappali-muszak-akciofilm-t2SAuQGlzUFdA42n" class="movie-container">
-<img src="nappalim.jpg">
-</a>
-</body> 
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
 </html>

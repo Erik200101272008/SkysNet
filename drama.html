@@ -1,0 +1,533 @@
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
+        }
+
+        .logo img {
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
+        }
+
+        .movie-container {
+            display: inline-block;
+            position: relative;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .movie-container img {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi/fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	
+	
+	
+
+    <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		
+		{
+                title: "Erőszakik",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/aJBvLW35gQQ0M4lc6JQxhr4jxWA.jpg",
+                previewImage: "https://www.kritizator.hu/wp-content/uploads/2021/03/Bons_baisers_de_Bruges.jpg",
+                description: "Ray (Colin Farrell) és Ken (Brendan Gleeson) életét egy pokoli munka keseríti meg, és amíg az ügy tisztázódik, fõnökük (Ralph Fiennes) Londonból Brugesbe küldi õket egy kis pihenõre karácsony környékén. A két bérgyilkos a gótikus építészet és a kanálisok flamand városában próbál alkalmazkodni a turistaléthez, ami Kennek könnyebben, fiatalabb és izgágább pártfogoltjának azonban nehezebben megy. Ken élvezi a város árasztotta nyugalmat, míg Rayt még mindig kísértik a londoni vérontás képei. Miközben fõnökük hívását várják, egyre több helybélivel és turistával ismerkednek meg, valamint közelebbi kapcsolatba kerülnek az erõszakos középkori művészetekkel és egy amerikai törpe színésszel, aki Európában forgat művészfilmet. Természetesen a gyengébbik nem képviselõivel is szorosabb ismeretséget kötnek, különös figyelmet fordítva néhány holland prostituáltra és a Ray fejét elcsavaró titokzatos Chloë-ra. Végül megérkezik a várva várt londoni telefon, de addigra ez a bruges-i kirándulás igazi élet-halál harccá válik a két szakember számára.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239553&hd=2&autoplay=1"
+            },
+			{
+                title: "Gran Turismo",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/lfYhseJHr5uqfd8NMdMbxR10VQp.jpg",
+                previewImage: "https://www.bellracing.com/wp-content/uploads/2024/07/bell-granturismo-100823-01_1.jpg",
+                description: "Egy tizenéves Gran Turismo játékos játéktudásával megnyerte a Nissan versenyek sorozatát, és már jó úton halad afelé, hogy igazi profi autóversenyzővé váljon. A világhírű Gran Turismo videojáték-sorozat filmes adaptációja, amely az arcade-hangulat helyett a realizmusra helyezi a hangsúlyt. Itt minden autóversenyzésről szól, amely az egész bolygón zajlik, és a leghíresebb járműveket és versenypályákat láthatjuk.augusztus 10-től a mozikban!",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239557&hd=2&autoplay=1"
+            },
+            {
+                title: "Motorosok",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4Yqzf9TmpDN5okqrn9HM30N5Kx7.jpg",
+                previewImage: "https://lh3.googleusercontent.com/nS-m572XT-OCj0NB48iEfAEErrVLBeeu2Ov8G1p2cC4WWfLztOYkRDd43TMDRdWENo7jwFcUVNc",
+                description: "Voltak már szelídek, voltak már kemények, voltak már vadak. Ezúttal simán: MOTOROSOK. Ezek a motorosok a 60-as években alapítják meg klubjukat „Vandálok” néven az amerikai Középnyugaton, Marlon Brando A vad című filmjének hatására. A klub kezdetben a chicagói kívülállók menedéke, ám Johnny (Tom Hardy) vezetésével egyre kiszámíthatatlanabbá válik, és fokozatosan mélyebbre csúszik a bűnözés világába, veszélybe sodorva ezzel a motorosok eredeti életmódját. A fiatal Bennyben (Austin Butler) lassan kételyek ébrednek a bandában betöltött szerepével kapcsolatban…",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239558&hd=2&autoplay=1"
+            },
+			{
+                title: "Futni mentem",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5sIaSGmoriD812OVixxkl3t8RGQ.jpg",
+                previewImage: "https://pb2.jegy.hu/imgs/system-4/program/000/169/538/futni-mentem-fabri-original-249234.png",
+                description: "Vera (Udvaros Dorottya) a férjével (Csuja Imre) közösen teljesít egy bakancslistát. Már csak egy kihívás marad hátra, amikor a férj váratlanul meghal. Az asszony elhatározza, hogy az utolsó kívánságot is végrehajtja, és lányaival (Lovas Rozi, Tenki Réka, Trill Beatrix) váltóban lefutja a maratont. Apró probléma, hogy egyikük sincs fizikálisan és mentálisan felkészülve a futásra. A legkisebb testvér, Emma (Trill Beatrix) a munkában és magánéletben sem találja a helyét. A legidősebb, Dorina (Tenki Réka), a család helyett a karrierre koncentrál. A középső, Kata (Lovas Rozi), a két gyerekét neveli és arra vágyik, hogy hosszú évek után a párja, Ákos (Bányai Kelemen Barna) végre megkérje a kezét. A futáshoz Vera egy edzőt (Ember Márk) kér fel, akivel korábban Emmának volt már egy kutyás kalandja. A karrierista Dorina a szomszéd kislánnyal kerül barátságba, akit egyedül nevel a rendőrezredes Tamás (Csányi Sándor). Az anya és lányai lehetetlennek tűnő vállalkozása a rokonokat és barátokat is váratlanul éri, Vera azonban nagyon eltökélt.",
+                link: "https://vimeo.com/1056743736/f3c050300b"
+            },
+            {
+                title: "Mindent egy lapra",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/uvj4afEOtYpJ2AbHKoulGcSKtEV.jpg",
+                previewImage: "https://occ-0-8407-90.1.nflxso.net/dnm/api/v6/Qs00mKCpRvrkl3HZAN5KwEL1kpE/AAAABQyikfLzhIdgFJic8WhAOBif5zVguFWkM9gPAnz4mGr9KDnowi8vqPft3ofhGiAKtQchA1-ilAbs_S-2UTuzTbrjYIiMSsbXemTQ8CI_y1jdOVnYrKTTXXamQjml-n81hqG8ew.jpg?r=d2a",
+                description: "Egy kiégett kosárlabdázó felfedez egy tehetséges streetball-játékost Spanyolország utcáin, és meglátja az esélyt, hogy rajta keresztül ismét feljusson a csúcsra. Szereplők: Adam Sandler, Robert Duvall, Queen Latifah, Ben Foster, Kevin D. Benton, María Botto, Jordan Hull, Lyon Beckwith....",
+                link: "https://videa.hu/player?v=kaC1TWW82q0fZtcn"
+            },
+            {
+                title: "Az Ír",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pCyD2YHZ7kr619TLpzVdFlUVjAX.jpg",
+                previewImage: "https://pb2.jegy.hu/imgs/system-4/program/000/111/535/az-ir-474-279-147215.jpg",
+                description: "Martin Scorsese lenyűgöző gengsztereposza a második világháború utáni Amerika alvilágával ismerteti meg a nézőket. Egy kiszolgált katona, Frank Sheeran a kulcsfigurája, aki idővel a korszak élvonalbeli gazfickóinak dolgozó szélhámos orgyilkos lett. A hosszú éveken átívelő cselekmény Jimmi Hoffa, az 1975-ben rejtélyes módon eltűnt szakszervezeti vezető eltávolításának történetét tárja fel. Lerántja a leplet a bűnszervezetek összecsapásairól és a politikához fűződő viszonyukról. Főszerepben Robert De Niro, Al Pacino és Joe Pesci.",
+                link: "https://videa.hu/player?v=ckVWLhdG4alhNGO1"
+            },
+			{
+                title: "Harcosok klubja",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/74RcH5EIo9IrPIgsZw7mGd989tW.jpg",
+                previewImage: "https://i.ytimg.com/vi/uYh26GlVQUM/maxresdefault.jpg",
+                description: "Amerika nagyvárosainak pincéiben egy titkos szervezet működik: ha egy éjjel az utca összes nyilvános telefonja összetörik, ők jártak ott; ha egy köztéri szobor óriás fémgömbje legurul talapzatáról, és szétrombol egy gyorsétkezdét, az az ő művük; ha egy elegáns bank parkolójának összes autóját rettentően összerondítják a galambok - az sem véletlen. Vigyáznak a leveleinkre, átveszik telefonüzeneteinket, kísérnek az utcán: és még csak készülnek a végső dobásra: a nagy bummra... Pedig az egészet csak két túlzottan unatkozó jóbarát találta ki: azzal kezdték, hogy rájöttek, nincs jobb stresszoldó, mint ha alaposan megverik egymást. Pofonokat adni jó. Pofonokat kapni jó. Számukra ez a boldog élet szabálya. A történetet egy jól szituált, de cinikus és kiábrándult fiatalember meséli el. Nevét nem tudjuk, néha Jacknek (Edward Norton) hívja magát. Önismereti terápiás csoportokba jár, mégsem kerül közelebb valódi énjéhez és embertársaihoz. Véletlenül összeismerkedik Tylerrel (Brad Pitt), akiben felfedezi hiányzó tulajdonságait. Tyler egy különös, titkos társaság megalapításával próbál megszállottan úrrá lenni a világ káoszán. A Harcosok Klubjának híre hamar elterjed a túl hamar meggazdagodott menedzser nemzedék tagjai között, akik egyre intenzívebb élményekre várnak. Az egyetlen, aki a két rokonlélek közé ékelődik, egy nő. Marla (Helena Bonham Carter) kétségbe vonja Tyler erőltetetten férfias ideológiáját.",
+                link: "https://videa.hu/player?v=da6FmT2ZulSXwjia"
+            },
+			{
+			   title: "Napos oldal",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dnIKXBpoqIs7atOCnnBWuEzcxij.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p9248795_v_h8_ak.jpg?w=960&h=540",
+			   description: "Pat Solatano (Bradley Cooper) mindenét elvesztette - a házát, az állását, a feleségét. És most kénytelen újra a szüleihez (Robert De Niro, Jacki Weaver) költözni, miután nyolc hónapot töltött egy elmegyógyintézetben. Pat szeretné újra rendbe hozni az életét, pozitívan szemlélni a világot és szeretne újra összejönni ex-feleségével is. A szüleinek csak annyi a vágya, hogy Pat képes legyen ismét lábra állni a nehéz időszak után. Ám a dolgok még bonyolultabbá válnak, mikor Pat megismeri Tiffanyt (Jennifer Lawrence), a titokzatos fiatal lányt, aki szintén nem kevés problémával küszköd. Tiffany felajánlja Patnek, hogy segít neki visszahódítani egykori kedvesét, de csak akkor, ha cserébe majd ő is tesz érte valami nagyon fontosat. Mikorra pedig egyezségük kezd beteljesülni, meglepő módon azt tapasztalják, hogy felettébb közel kerültek egymáshoz, és talán a saját elrontott életükre is érvényes lesz a minden rosszban van valami jó-tézis.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239078&autoplay=1"
+			},
+			{
+			    title: "A harcos",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ipZdkoyaNZmaIFyIuYK32GhYtqG.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p8175505_v_h8_at.jpg?w=1280&h=720",
+				description: "A harcos szókimondó, szeretettel teli humorral átszőtt, és egyben megrázó története megtörtént eseményeken alapul. A film főhőse a hihetetlen visszatérést produkáló, és váratlanul bokszhőssé váló Irish Micky Ward, és féltestvére, Dicky Eklund. Akiknek előbb ellenfelekké kellett válniuk ahhoz, hogy végül igazi testvérekként tudják megszerezni a győzelmet, és meg tudják erősíteni a családi kötelékeket.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239094&hd=1&autoplay=1"
+			},
+			{
+			    title: "Nincs baj drágám",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4YIrb99N83djhOREBKcJOajkELY.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p21735429_v_h8_ac.jpg?w=960&h=540",
+				description: "Minden tökéletes. Alice és Jack szeretik egymást, boldogok, és a férfi munkahelye által fenntartott kisvárosban, Victoryban, egy szép házban élnek. Körülöttük mindenki szép, boldog, és ugyanannál a titokzatos cégnél dolgozik. De mit csinálnak, amikor nincsenek otthon? Mivel foglalkozik ez a bőkezű vállalat? Alice először unalmában kezd kérdezősködni, azután egyre több furcsa részletre akad, és a cég képviselőinek nagyon nem tetszik a kíváncsisága. Számukra, úgy látszik csak az a lényeg, hogy senki ne tudja meg, min dolgoznak – és bármire hajlandóak, hogy megőrizzék a titkaikat.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239187&hd=2&autoplay=1"
+			},
+			{
+			    title: "Nulladik nap",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ai7qo5yqXnNM1Wx9bAwvkmGrceP.jpg",
+				previewImage: "https://www.mafab.hu/static/profiles/2014/293/11/47637_48.jpg",
+				description: "Amerika ismét háborúban áll. Három jóbarátnak (egy ügyvédnek, egy írónak és egy taxisnak) 30 napon belül újra jelentkeznie kell katonai szolgálatra. Ez nem könnyű, hiszen mindannyiuknak megvan már a maga civil élete. Rifkin házas és most nevezték ki cégpartnernek egy ügyvédi irodában. Feller második regényét írja, miután az első már nagy sikert aratott. Dixon szívesen szolgálna újra a hadseregben, amíg egy váratlan esemény fel nem kavarja életét.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239221&hd=2&autoplay=1"
+			},
+			{
+			     title: "Social Network:Közösség háló",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5UOUiC57PPWxACcI0fh3QW5JMN5.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/w780/2COZmkcKlqTd4shuqWnUYB9YWD2.jpg",
+				 description: "2003 egyik őszi éjszakáján a kollégiumi szobájában egy egyetemista új komputerprogramot tervezett - a haverjai közösségi életét áttette a netre, hogy megkönnyítse a kapcsolattartásukat. És ez bomba ötletnek bizonyult. Mark Zuckenberg nem sokkal később már a világ legfiatalabb milliárdosa volt, de ezzel alaposan felkavarta a magán- és szakmai életét is.David Fincher új rendezése, a Social Network - A közösségi háló magával ragadó történet egy lázadó, meg nem alkuvó emberről. Egy zöldfülű zseniről, akit kirúgnak a csajok, de ő forradalmat robbant ki azzal, ahogy egy egész generáció számára felforgatja az emberi kapcsolatokat. Az izgalmas, viharos és humorban is bővelkedő alkotás a Facebook születését majd - miután kiderül, mennyit ér - a tulajdonlása körüli ádáz küzdelmet mutatja be.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239350&hd=2&autoplay=1"
+			},
+			{
+			     title:"Snowden",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tIwCEJ5HG6o7RlhkGXKFt688KzE.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p11823926_v_h10_aa.jpg?w=1280&h=720",
+				 description: "Edward Snowden a hazáját akarta szolgálni. Azonban egészségi állapota hamar véget vet katonai karrierjének, de informatikusként helyet kap a titkosszolgálatnál. Itt megdöbbentő felfedezést tesz: az amerikai kormány a világon bárkit képes megfigyelni. Snowden, aki szentül hisz a szabadságban és az Amerikai Egyesült Államokban, válaszút elé kerül: vagy ő is asszisztál a kormány cselekedeteihez, vagy nyilvánosságra hozza mindazt, amit megtudott és menekülni kényszerül...",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239351&hd=1&autoplay=1"
+			},
+			{
+			       title: "A remény rabjai",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oBZ36R1z6Ner9TYmZeSWPhHwF7r.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p15987_v_h8_au.jpg?w=1280&h=720",
+				   description: "1946-ban egy Andy Dufresne nevű bankárt - noha makacsul hangoztatja ártatlanságát - kettős gyilkosság elkövetése miatt életfogytiglani börtönbüntetésre ítélnek. Dufresne egy Maine állambeli büntetés-végrehajtó intézetbe kerül és hamar meg kell ismerkedjen a börtönélet kegyetlen mindennapjaival, a szadista börtönszemélyzettel, a szinte elállatiasodott rabokkal. Azonban Andy nem törik meg. A bankéletben szerzett tapasztalatai segítségével elnyeri az őrök kegyét és azzal, hogy elvállalja egyik rabtársa illegális akcióiból származó bevételeinek könyvelését, kivívja társai elismerését is. Cserébe viszont lehetőséget kap a börtön könyvtárának a fejlesztésére, ezzel némi emberi méltóságot csempészve a keserű körülmények között élő rabok mindennapjaiba.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239434&hd=1&autoplay=1"
+			},
+			{ 
+			      title: "Az aszfalt királyai",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/znHiuP6otmLPkrtsFG5ImTcOP9E.jpg",
+				  previewImage: "https://filmlexikon.hu/media/news/thumbs/a/z/az-aszfalt-kiralyai-ford-v-ferrari-Bj2jzsYDpzgPvS1T2LehGVLAAaXmKNOl.jpg",
+				  description: "Carroll Shelby és a vakmerő, brit születésű autóversenyző, Ken Miles együtt küzdenek meg a vállalati beavatkozással, a fizika törvényeivel és saját démonjaikkal, hogy megépíthessenek egy forradalmi versenyautót a Ford Motor Company részére, amivel legyőzhetik Enzo Ferrari autóit az 1966-os Le Mans-i 24 órás versenyen.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239833&hd=1&autoplay=1"
+			},
+			
+			{
+			       title: "Semmelweis",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ol6lDiWvWIDZsElj2sfBwQF9IBJ.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/cd542337178fe3901412cf5708cf9c94a54c6bd463eb3f0aee5dd667981db812._SX1080_FMjpg_.jpg",
+				   description: "A láthatatlan gyilkos 1847-ben játszódik Bécsben. A szülészeti klinikán titokzatos járvány tombol, tizedeli a gyermekágyas nőket. Egy magyar orvos a hagyományos teóriákkal szembeszállva próbálja meg legyőzni a kórt. Semmelweis egy fiatal osztrák bába személyében talál társra, kapcsolatuk egyre romantikusabbá válik. A küzdelem azonban nemcsak a kór ellen zajlik: a vaskalapos vezetés mindent megtesz, hogy megvédje tekintélyét a megszállott magyar orvos felfedezésének következményeitől. A kórházban a harcot Semmelweis nyeri, az utcán pedig a progresszív erők. Hamarosan Bécsben és Pesten is kitör a forradalom, Semmelweis pedig elindul, hogy felfedezését hazájában is a szülő nők javára fordítsa.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239858&hd=2&autoplay=1"
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+			];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>

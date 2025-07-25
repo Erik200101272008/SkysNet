@@ -1,62 +1,521 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #000000;
-            color: #ffffff;
-            text-align: left;
-            font-family: Arial, sans-serif;
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
         }
 
         .logo img {
-            width: 200px;
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
         }
 
         .movie-container {
             display: inline-block;
             position: relative;
-            margin-top: 20px;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
         }
 
         .movie-container img {
             width: 200px;
-            height: 100px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-radius: 10px;
         }
 
         .movie-container:hover img {
-            transform: scale(1.1);
-            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         }
-		    </style>
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
 </head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
 <body>
-
-    <!-- SkyShowtime logó -->
-    <div class="logo">
-        <img src="skysnet.png" alt="SkyShowtime">
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
     </div>
-	<br>
-	<b>DC filmek</b>
-	<br>
-	<br>
-	<a href="https://videa.hu/videok/film-animacio/flash-a-villam-akciofilm-uKhXD7CSD2Jywm95" class="movie-container">
-<img src="flash.jpg">
-</a>
 
-<a href="https://videa.hu/videok/film-animacio/aquaman-akciofilm-hXbDZfCn7mLVIBLa" class="movie-container">
-<img src="aquaman.jpg">
-</a>
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/aquaman-2-akciofilm-7dVIPVFsIxGUIXak" class="movie-container">
-<img src="aquaman2.jpg">
-</a>
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/kek-bogar-akciofilm-wkKe7ZXX6rrdUBZA" class="movie-container">
-<img src="kekbogar.png" alt="Kék bogár">
-</a>
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		
+		{
+			   title: "Suicide Squad:Öngyilkos osztag",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sk3FZgh3sRrmr8vyhaitNobMcfh.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p11319046_v_h8_ay.jpg?w=1280&h=720",
+			   description: "Elkapták őket, és mindenre hajlandóak, hogy újra kiszabadulhassanak. Egy titkos állambiztonsági szervezet, az A.R.G.U.S. összefogdosta a gonosz szuperhősök leggonoszabbjait, és különleges börtönökben helyezte el őket: úgy, hogy semmiképpen ne szökhessenek meg. A Cég saját maga akarja szélesre tárni a zárkaajtókat. A raboknak szabadságukért cserébe szolgálatot kell vállalniuk. A gonoszok kénytelenek jót cselekedni. Létrejön az Öngyilkos Osztag, mely akkor indul bevetésre, ha az emberiség már nagy bajban van. Tagjai őrültek, kegyetlenek, kiszámíthatatlanok... mégis a mi oldalunkon állnak. Remélhetőleg.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239077&autoplay=1"
+			},
+			{
+                	title: "Az acélember",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6tPMf955Ns6Ys6yOwb73yXByUje.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/73b6c63e-5eb5-4c0d-86f5-c3f398114a15/5a31537cf2a6bbe22f9afddba06a516624422f58.jpg?submitted=1684661848526&host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Clark Kent a Kripton bolygó szülöttje, és még gyerekként érkezett a Földre, egy meteor becsapódásakor. Martha és Jonathan Kent veszik maguk mellé, és felnevelik őt. Clarknak azonban különleges képességei vannak, melyet szeretne valami jóra használni, így egyenes az út a hőssé válás felé.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239640&hd=1&autoplay=1"
+			},
+			{
+			        title: "Batman Superman ellen: Az igazsá hajnal",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/16JZKhdjtqECeER7TVtsJUPJWup.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/f672e34c-6103-4a1c-a925-e131b6b70761/4fb749d2-24e8-11f0-adbd-0250a7dc3367?host=wbd-images.prod-vod.h264.io&partner=beamcom&w=500",
+					description: "Milyen hősre van szüksége a világnak? Gotham City védelmezője úgy érzi, hogy Metropolis megmentője már istenként tekint magára, senki és semmi nem korlátozza, így szembefordul vele. De a világ nem törődik velük, mert más kérdésekre keresi a választ: senki nem tudja, mit szeretne: mindenható védelmezőt, vagy függetlenséget. Amíg Batman és Superman az egymás ellen folytatott háborújukkal vannak elfoglalva, egy új, minden eddiginél rémisztőbb fenyegetés egyre erősebbé válik. Az emberiség még sosem volt ekkora bajban - és talán már nincs, aki segíteni tud rajta.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239641&hd=2&autoplay=1"
+			},
+			{
+			        title: "Wonder Woman",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/aXcSoIB0iTEgths024uMxdCaF7u.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/a618358a-a71d-44a2-8294-24da8fae8591/e7e04238-f9d7-4293-b2ca-20b3329ddb86?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Nem hívták mindig Wonder Womannek. Valaha ő volt Diana, az amazonok hercegnője, aki egy távoli, titkos szigeten, csupa nő között élt. Uralkodónak nevelték, legyőzhetetlen harcosnak képezték ki, de békében teltek a napjai. Míg meg nem látta az első férfit. Egy pilóta lezuhan a parton, és óriási háborúról beszél a páncélba öltözött nőknek, amely a kinti világban dúl. Diana biztos benne, hogy ő véget tudna vetni a vérengzésnek, a lábadozó pilótával együtt elhagyja az otthonát, és beleveti magát a harcba. Csak a küzdelem közben érti meg, mibe keveredett, de akkor már nincs visszaút. Véget akar vetni minden háborúnak, és közben rácsodálkozik saját, emberfeletti erejére... és megsejti, hogy mi a végzete...",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239642&hd=1&autoplay=1"
+			},
+			{
+			        title: "Wonder Woman 1984",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/z9hVW2JKLbWLFjYSbVyN6T1mYef.jpg",
+					previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/4296565c-c6c9-4b81-9398-fdf996e7d925/3a0091cf-28a7-44a8-a84e-1d43d0a3fb02?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+					description: "Hidegháború. Az ezerkilencszázhetvenes-nyolcvanas évekbeli Európában, a közelinek látszó atomháború árnyékában igazán szükség volt hősökre. Diana sem maradhat tétlen: igazságérzete a régi, ereje nagyobb, mint valaha, úgy érzi, tennie kell valamit azért, hogy a világ kevésbé veszélyes hely legyen.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239643&hd=1&autoplay=1"
+			},
+			{
+			       title: "Flash: A villám",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8v8roezG4bQJulxXjBTSaAdSsUo.jpg",
+				   previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/69cf2552-e159-43c7-ad8e-34f7f3393514/5d62e569930e90ee3226020241bcc7755e12b5fa.jpg?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+				   description: "Világok ütköznek össze, amikor a szupergyorsnál is gyorsabb Barry (Ezra Miller) arra használja a szupererejét, hogy visszafusson a múltba – reméli, hogy ha ott változtat, a jelen is más lesz. Csak a családja sorsát akarja jobbá tenni, a szülein szeretne segíteni, de sajnos, megtörténik, amiért nekirugaszkodott: megváltoztatja a jelent. Egy újfajta valóság csapdájába esik. Ebben Zod tábornok visszatér, és a Föld elpusztításával fenyeget, de nincsenek szuperhősök, akik az emberiség segítségére siethetnének. Ha meg akarja menteni a világot, amiben élt, és vissza akar térni a jövőbe, amit remél, Barry-nek futnia kell. És különleges gyorsasága segítségével elő kell kerítenie azokat a szuperhősöket, akik segíthetnek a bajban. De nem pont azokat találja, akikért indult. És nem biztos, hogy az ő önfeláldozása elég hozzá, hogy helyretolja a kizökkent valóságot.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239639&hd=1&autoplay=1"
+			},
+			{
+			       title: "Aquaman",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sUlURiu6h8UaASxmUSnxZktfhqr.jpg",
+				   previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/7b5168e8-da4e-4b49-bd29-091bc899ef2b/2e197915-505c-11f0-a15b-0affc01eaf4b?host=wbd-images.prod-vod.h264.io&partner=beamcom&w=500",
+				   description: "Arthur Curry megtudja, hogy Atlantisz, a víz alatti királyság trónja rá vár. Mint törvényes örökösnek, neki kell elfogadnia a koronát, hogy csatába vezesse a népét – mert a világ bajban van és nincs más, aki kiálljon érte.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239646&hd=1&autoplay=1"
+			},
+			{
+			       title: "Aquaman és az Elveszett királyság",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/vCK1W5IE1bwOBnw2fTDltg3UJh3.jpg",
+				   previewImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWxloCar5SBSlYgQfyug-nwzHP5w8lWYITmQ&s",
+				   description: "Az óceán soha nem békés! Ezért nem pihenhet meg egyetlen percre sem az óceánok hét királyságának uralkodója. Black Manta megpróbálta már legyőzni Aquamant, a világ tengereinek urát (Jason Momoa), de kudarcot vallott. Továbbra is meg akarja bosszulni az apja halálát, így aztán bármire hajlandó, és bárkivel szövetkezik, hogy elpusztítsa ősellenségét. És most erősebb, mint eddig bármikor, mert megszerezte a legendák csodafegyverét, a fekete szigonyt, amelynek segítségével egy ősi, gonosz erőt szabadít a világra. Aquaman kénytelen kiszabadítani börtönbe zárt testvérét, Orm királyt (Patrick Wilson), Atlantisz egykori uralkodóját. Békét nem kötnek, de átmeneti szövetséget igen – ha nem teszik meg, akkor Aquaman családja, azután az összes tenger, végül az egész világ elpusztul.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239647&hd=2&autoplay=1"
+			},
+			{
+			       title: "Az Igazság Ligája ",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kv5mzLUWf0NyLbpCvTgdJuexe3x.jpg",
+				   previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/7cb007b4-653f-428c-bd90-8a340e37798a/b975c3c6-dcd9-470c-b6d7-1291ac8662ac?host=wbd-images.prod-vod.h264.io&partner=beamcom&w=500",
+				   description: "Bruce Wayne tudja, hogy nem vonulhat vissza. A világnak szüksége van rá, és a hozzá hasonlókra, mert különben védtelen. Új szövetségese, Diane Prince segítségével csapatot toboroz. Ehhez hasonló nem történt még soha: Batman és Wonder Woman mellé felsorakozik egy csapat metahumán: Aquaman, Cyborg és Flash. És amikor végre összefognak, rá kell jönniük, hogy talán még az ő egyesített erejük is kevés. Lassúak voltak. A Földet fenyegető katasztrófa már nagyon közel jár, és elképesztő hatalommal bír. Nincs metahumán, aki képes lehet megállítani.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239644&hd=1&autoplay=1"
+			},
+			{
+			       title: "Zack Snyder: Az Igazság Ligája",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/utPWLyqFVjRqTJtYpbZJY10aoa.jpg",
+				   previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/d34191ed-48d8-417f-bd98-87d803c0b44f/3e292e98-6351-4f5e-9a70-cd6833b46037?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+				   description: "Hogy Superman végső áldozata ne legyen hiábavaló, Bruce Wayne és Diana összefog, és verbuválnak egy metahumán csapatot, hogy elhárítsák a világot fenyegető katasztrófát. A feladat nehezebbnek bizonyul, mint ahogy azt Bruce elképzelte, mivel az újoncoknak meg kell küzdeniük saját démonjaikkal, hogy ütőképes lehessen a világ különlegesebb hőseiből verbuvált liga. A kérdés már csak az, hogy Batman, Wonder Woman, Aquaman, Cyborg és Flash alkotta csapatnak lesz-e elég ideje megmenteni a bolygót.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239645&hd=2&autoplay=1"
+			},
+			{
+			       title: "Ragadozó madarak",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/w97wQfBGdhYUquFJmBDppvbxDp6.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/fbb57437953a6636ae6627daebc86142965a41a382d99775a8c074cee6eda8be.jpg",
+				   description: "Harley Quinn sosem volt jó kislány. Sem normális. De amióta Gotham legizgalmasabb nője szakított Jokerrel, megváltozott benne valami. Feladja addigi magányát, és három nem kevésbé életveszélyes barátnőjével, Fekete Kanárival, Vadásznővel és Renee Montoyával indul újabb kalandokra. És amikor egy gonosz maffiavezér elrabol egy fiatal lányt, úgy dönt, társnőivel együtt kipróbálja, milyen érzés, ha egyszer a jó oldalon harcol. Hát, furcsa. Lehet, hogy nem is bírja így sokáig.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239949&hd=1&autoplay=1"
+			},
+			{
+			       title: "RED",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8eeK3OB5PeSRQD7BpZcGZKkehG.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/d2a57bcff44ed87b731fedfd06f3c3cc1927f45d80b09d7d4e15808427c49bb4.png",
+				   description: "Frank (Bruce Willis), Joe (Morgan Freeman), Marvin (John Malkovich) és Victoria (Helen Mirren) egykor a CIA legjobb ügynökei voltak. Természetesen nem porszívókat árultak. Ismerik a szervezet minden titkos valamint kompromittáló anyagát, és most éppen emiatt válnak a CIA célpontjává. A visszavonult szuperkémeknek minden tudásukra szükségük van, hogy profi csapatként egy lépéssel üldözőik előtt járjanak, megpróbáljanak életben maradni a folyamatos merényletek közben és rájönni, hogy vajon melyik információ az, amely miatt egykori munkaadóik a legkülönfélébb módszerekkel megpróbálják hidegre tenni őket. Értelemszerűen nem egy hangulatos alaszkai kalandtúra akarják küldeni a csapatot. Frank és csapata úgy dönt, betörnek a CIA titkos központjába, és fényt derítenek azokra a titkokra és összeesküvésekre melyek miatt egyre többen akarják kinyírni őket.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239979&hd=2&autoplay=1" 
+			},
+			{
+			       title: "RED 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/eGRpZ2tXcdAu1gs0XfZlGrCWxEe.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/5b0942062c0cc9e9194b6127d8c382a39ecec86166375a254b837e2eb242510d.jpg",
+				   description: "Frank Mosest (Bruce Willis), a visszavonult titkosügynököt megint utoléri a múltja. Mikor Frank egykori társa temetésére érkezik, az FBI már tárt karokkal várja őt. Egy rég elfeledett üggyel kapcsolatban hallgatnák ki, de nem sok sikerrel: Franket még azelőtt megszöktetik, hogy bármilyen hasznos információt kiszedtek volna belőle. Marvin (John Malkovich) felbukkanásával világkörüli útra indul a profi duó, Sarah-val (Mary Louise Parker) kiegészülve. A cél: Párizs, Moszkva, London. Persze ez most nem a turistáskodás ideje. Terroristákkal, bérgyilkosokkal a nyomukban próbálják kideríteni, hogy miért akarja mindenki őket eltenni láb alól. A csapathoz a halálosan elegáns jó barát, Victoria (Helen Mirren) is csatlakozik. A félelmet nem ismerő ex-ügynökök terve: megmenteni a világot, és közben valahogy életben maradni. Mit nekik fegyveres túlerő, vagy nukleáris fenyegetés! A legjobbak sosem pihennek.",
+				   link:"https://vk.com/video_ext.php?oid=1037217102&id=456239980&hd=2&autoplay=1" 
+			},
+			{
+			      title: "Constantine: A démon vadász",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/l7lauerZ0n5ItWuuNHMBxpEx7qy.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/00724332c5f2748655f8762a9e25eca8421d854b3d7475294ec1c3d3090e0309.jpg",
+				  description: "Az emberi érzékek számára felfoghatatlan vidékeket különös lények, angyalok és démonok népesítik be, tetteik sokszor a mi világunkban is következményekkel járnak. John Constantine magándetektív ebben a másik világban is járatos. Ugyanis megjárta már a poklot - szó szerint. A természetfeletti ügyekre specializált nyomozó egyik nap a szokásosnál is nehezebb ügybe botlik. Megbízója nem hisz a túlvilágban. A rendőrnő eddig csupán a kézzelfogható bizonyítékokban hitt, most azonban még az ördöggel is szövetséget kötne, hogy megtalálja ikertestvére gyilkosát.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239694&hd=1&autoplay=1"
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+			];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>

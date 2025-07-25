@@ -1,87 +1,700 @@
-<!DOCTYPE html>
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #000000;
-            color: #ffffff;
-            text-align: left;
-            font-family: Arial, sans-serif;
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
         }
 
         .logo img {
-            width: 200px;
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
         }
 
         .movie-container {
             display: inline-block;
             position: relative;
-            margin-top: 20px;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
         }
 
         .movie-container img {
             width: 200px;
-            height: 100px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-radius: 10px;
         }
 
         .movie-container:hover img {
-            transform: scale(1.1);
-            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         }
-		    </style>
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
 </head>
-<body>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-    <!-- SkyShowtime logó -->
-    <div class="logo">
-        <img src="skysnet.png" alt="SkyShowtime">
-    </div>
-	<br>
-	<b>Marvel filmek</b>
-	<br>
+  gtag('config', 'G-BLN73N32GS');
+</script>
 	
-	<a href="kraven.html" class="movie-container">
-<img src="kraven.jpg">
-</a>
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
 
-<a href="megtorlo.html" class="movie-container">
-<img src="megtorlo1.jpg">
-</a>
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/a-megtorlo-2-haborus-ovezet-akciofilm-8WaAHpOCj5BYCFG1" class="movie-container">
-<img src="megt2.jpg">
-</a>
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
 
-<a href="https://videa.hu/videok/film-animacio/penge-marvel-WFpfJZvRT0B2xP9b" class="movie-container">
-<img src="penge1.jpg">
-</a>
-
-<a href="https://videa.hu/videok/film-animacio/penge-2-marvel-v2JcjYJTgQHp15vY" class="movie-container">
-<img src="penge2.jpg">
-</a>
-
-<a href="https://videa.hu/videok/film-animacio/penge-3-marvel-bCHH0jpVuynf7S8b" class="movie-container">
-<img src="penge3.jpg">
-</a>
-
-<a href="https://videa.hu/videok/film-animacio/venom-akciofilm-XVP2HcLOqG907mET" class="movie-container">
-<img src="venom1.jpg">
-</a>
-
-<a href="https://videa.hu/videok/film-animacio/venom-2-veronto-akciofilm-tfJjFCJGvY6lI8i5" class="movie-container">
-<img src="venom2.jpg">
-</a>
-
-<a href="https://videa.hu/videok/film-animacio/venom-3-az-utolso-menet-akciofilm-rmAaKJZrfKe026qw" class="movie-container">
-<img src="venom3.png">
-</a>
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
 
 
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
 
-</body> 
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		
+		
+		{
+                title: "Kraven a vadász",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/hizQHP2AywGGfUSKlwGKA3PDwvJ.jpg",
+                previewImage: "https://ntvb.tmsimg.com/assets/p22445405_v_h8_ah.jpg?w=1280&h=720",
+                description: "A gonoszok nem születnek. Azzá nevelik őket. Kraven, a vadász (Aaron Taylor-Johnson), Pókember egyik legveszélyesebb ellensége, a Baljós Hatos alapító tagja sem gonosznak született. Igazi nemes: Kravinov néven látta meg a napvilágot; a családja 1917-ben menekül az Egyesült Államokba. Talán egy félresikerült oroszlánvadászat tehet róla, amikor a ragadozó halálos sebet ejtett rajta, és az állat vére összekeveredett az övével. Talán brutális, maffiakapcsolatokat ápoló, gyerekeit szeretet nélkül nevelő apja (Russel Crowe) a hibás. De annyi biztos, hogy Kraven nem egyszerűen a fenevadak erejével, ügyességével és kegyetlenségével rendelkezik: gyors, halálos és nem ismer könyörületet. Rossz ember – ha ember még egyáltalán –, de valahol a mélyében még ott bujkál a maradék jóság. És kérdés, mi történik vele, ha találkozik egy nála is furcsább, kiszámíthatatlanabb lénnyel: Rinóval.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239165&hd=2&autoplay=1"
+            },
+			{
+                title: "Megtorló",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/xmJpSpWqVr4HxpAyuXHmfpCykHV.jpg",
+                previewImage: "https://onlinefilmvilag2.eu/img/articles/5559.jpg",
+                description: "Frank Castle (Tom Jane) túl sok szörnyűséget látott katonaként, majd különleges FBI-ügynökként. Úgy érzi, végre itt az ideje, hogy normális életet éljen felesége (Samantha Mathis) és kisfia mellett. Már csak egy utolsó feladat vár rá, de a balul sikerült akció során egy fiatalember életét veszti. A fiú apja, Howard Saint (John Travolta) gazdag üzletember, aki ugyan nagy megbecsültségnek örvend, de nem tagja a floridai elitnek, mégpedig azért, mert vagyonát kétes alvilági üzletekből szerezte. Saint és felesége, Livia (Laura Harring) bosszút fogadnak fiuk halála miatt, és a Castle család kiirtására törnek.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239817&hd=1&autoplay=1"
+            },
+            {
+                title: "Megtorló: Háborús övezet",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/aOjwUjwWQTmLg5cR8LOLnDbLXZS.jpg",
+                previewImage: "https://occ-0-8407-90.1.nflxso.net/dnm/api/v6/Qs00mKCpRvrkl3HZAN5KwEL1kpE/AAAABRZEkpCOk00V0pmeXzNRxq1LZacRkc4b3Z06_RYP1vwgDrgHz0G_r0_P0k_cdiH-nd4DZ5ym7PGM28iwGO3blzNxXJnKXPo8ReSq.jpg?r=224",
+                description: "Frank Castle egykor szövetségi ügynökként kereste a kenyerét. Miután a családja egy bűncselekmény áldozatául esett, a férfi saját kezébe vette az igazságszolgáltatást és egymaga számol le a bűnözőkkel. Ezúttal a rettegett maffiavezért, Billy Russotit üldözi. Az összecsapásban azonban egy FBI-ügynök életét veszti, miközben a sérült gengszternek sikerül elmenekülnie. Castle hamarosan két tűz között találja magát. Nemcsak a bosszúra szomjazó Russoti vadászik rá az alvilág legkegyetlenebb embereivel, a szövetségiek is el akarják fogni a történtekért.",
+                link: "https://videa.hu/player?v=8WaAHpOCj5BYCFG1"
+            },
+            {
+                title: "Penge",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/q7SRwzlWtgZ9nDLpqTWXagZVwxA.jpg",
+                previewImage: "https://m.blog.hu/ju/judgebravo/image/.external/.thumbs/a0f716149569a11066cff6fbfcddbb28_d49afe6e3b4eb7cadfe308837303ec67.jpg",
+                description: "Penge (Wesley Snipes) félig ember, félig vámpír. Erős és gyorsan gyógyul a sebe, tud a fényben is járni. Ő a kulcs és a kiválasztott a két faj között. Barátjával a vámpírok ellen harcol gyerekkora óta, s egy nap melléjük szegődik Karen doktornő, akinek megmentette az életét. A vérszomjas, átalakult Frost a vámpírok uralmát akarja megteremteni a Földön. A vér istenének uralma mindent megváltoztathat. De Penge felveszi vele a harcot",
+                link: "https://videa.hu/player?v=WFpfJZvRT0B2xP9b"
+            },
+            {
+                title: "Penge 2",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yaOW43qhPylglFkWQuQCTalJuqO.jpg",
+                previewImage: "https://www.filmek1.hu/kepek/penge-2-2002-968/wesley-snipes-penge-2-2002-plakat-kep-56474.jpg",
+                description: "A vámpírok legyőzhetetlen ellensége, Penge (Wesley Snipes) kénytelen szövetséget kötni a vérszívókkal, amikor egy újabb, még rémítőbb faj fenyegeti kihalással a táplálékláncban alattuk álló fajokat, vagyis mindenkit. A Sötét Tanács szövetséget ajánl a vámpírvadásznak, és ő rövid habozás után elfogadja a feladatot. Újratoborozza a régi csapatot, és együtt vetik be különleges fegyverzetüket a különleges ellenség ellen. A vérfürdő egészen idilli volt a rájuk váró harchoz képest.",
+                link: "https://videa.hu/player?v=v2JcjYJTgQHp15vY"
+            },
+            {
+                title: "Penge 3",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/z8ls3vltuNoZHt7p8sNv6szUuAI.jpg",
+                previewImage: "https://awilime.blob.core.windows.net/img/nr/ji.webp",
+                description: "A sivatag mélyén a vámpír lordok életre keltik a faj ősatyját, Drakulát. Hogy megnehezítsék az ellenük harcoló félig ember-félig vámpír Penge dolgát, a vérivók rágalomhadjáratot indítanak ellene. Gyilkos szörnyetegként mutatják be, és felkeltik iránta az FBI érdeklődését. A Cumberland ügynök vezette FBI-csatlósokkal vívott küzdelem után Penge szövetséget köt az emberekből álló vámpírvadász klánnal, amelyet tanítómesterének gyönyörű lánya, Abigail illetve Hannibal King vezet. Oldalán a két rettenthetetlen ifjúval Penge az ősi ellenfél nyomába szegődik.",
+                link: "https://videa.hu/player?v=bCHH0jpVuynf7S8b"
+            },
+			{
+                title: "Venom",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2uNW4WbgBXL25BAbXGLnLqX71Sw.jpg",
+                previewImage: "https://w0.peakpx.com/wallpaper/894/504/HD-wallpaper-movie-venom-tom-hardy.jpg",
+                description: "Az űrből jön, és csak akkor létezik, ha egy másik lényen élősködhet. Gazdateste Eddie Brock (Tom Hardy) fotós, de ő maga hidegfejű szadista, aki a világ létét fenyegeti, ám néha mégis kiáll az ártatlanokért. Pókember egyik különleges erejű, veszélyes és kiismerhetetlen ellenfele maga sem tudja, hogy a fény vagy a sötétség oldalán áll-e: különleges betegsége (mely egyben az emberek fölé emeli) néha a jók, néha a gonoszak közé sodorja. Abban az egész Univerzumot megrázó csatában, amely most vár rá, a jóságára és a gonoszságára is szüksége van.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239160&hd=1&autoplay=1"
+            },
+            {
+                title: "Venom 2: Vérontó",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oWEBI6a10WvvldwncE8YwBVJfsO.jpg",
+                previewImage: "https://resizing.flixster.com/Y8bjTo8-l3miQNhxBnR9PbFaMDY=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p16809215_v_h8_aj.jpg",
+                description: "„Ha egyszer kiszabadulok innen, lesz egy kis vérontás” – mondta egy titokzatos fegyenc a Venom végén Eddie Brock-nak (Tom Hardy). Annak a vakmerő, nagyszájú tényfeltáró újságírónak, aki egy laboratóriumi felderítése során súlyosan megfertőződött: és azóta szimbiótaként, a testében élősködő gonosz Venommal együtt kénytelen élni. És kezdi megszeretni, hogy egy szupererős szörny lapul benne. Rá is szorul: mert mostantól nemcsak magával kell szembenéznie, hanem egy nála is erősebb, gonoszabb lénnyel, akit nem akar senki rövid pórázon tartani. Jön Vérontó (Woody Harrelson), hogy ígérete szerint pusztítson a világon. Meg kell állítani. Bármi áron.....",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239163&hd=1&autoplay=1"
+            },
+            {
+                title: "Venom 3: Az utolsó menet",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sRhv9KYAn9EvfshBofxzj9IXuIy.jpg",
+                previewImage: "https://theartsshelf.com/wp-content/uploads/2024/06/Venom-The-Last-Dance.png",
+                description: "Eddie Brock (Tom Hardy) nagyjából boldogan élt. Volt barátnője, munkája… aztán úgy alakult, hogy egy űrbéli, pusztító étvágyú szörny érkezett a földre, és pont őt választotta gazdatestnek. Azóta Eddie magányos, meggyötört… és legyőzhetetlen. Ha bajba kerül, a benne rejtőző szörny előbújik belőle, és kérlelhetetlenül felzabálja a támadókat. Meg egy kis rendetlenséget csinál közben. De lehet, hogy van olyan ellenség, ami a szupererős Venomnak is sok – a saját bolygójáról, a saját fajtársai rátalálnak, megérkeznek a földre, és persze nincs bennük kímélet. Az egész bolygót könnyedén elpusztíthatják. Venom azonban már inkább a földiek pártján van. Harcba száll a fajtársai ellen – de ahova ő megy, oda Eddie-nek is mennie kell. És ha ő halálos veszélybe kerül, akkor Eddie-nek is bőven van félnivalója.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239164&hd=2&autoplay=1"
+            },
+			{ 
+			   title: "Daredevil: A fenegyerek",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kmiR902ywGp0QShE8XMuExztPle.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p31328_v_h10_aa.jpg?w=960&h=540",
+			   description: "Az igazság néha vak, ám a bűnösnek nincs menekvés. Matt Murdock (Ben Affleck) gyerekkorában maradandó sérülést szerez egy balesetben. A megvakult Matt többi érzéke hihetetlenül élessé válik a baleset következtében, de ezt nem árulja el környezetének. Matt felnőttként sikeres ügyvédként szerez magának hírnevet. Amit nappal nem sikerül a tárgyalóteremben megoldani, azokkal a veszélyekkel éjszaka próbál dacolni. Ő Daredevil, a környék fenegyereke, a félelem nélküli vörös ruhás ember, aki rettegésben tartja a bűnözőket. Legfőbb ellenfele Kingpin (Michael Clarke Duncan), a New York-i alvilág ura és jobbkeze, illetve az életveszélyes Bullseye (Colin Farrell), akinek minden tárgy fegyverré válik a kezében.",
+			   link: "https://videa.hu/player?v=EbSl7bGO1f4cJCR7"
+			},
+			{
+			    title: "Deadpool",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3E53WEZJqP6aM84D8CckXx4pIHw.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p11098044_v_h10_aa.jpg?w=1280&h=720",
+				description: "A szuperhősök korát éljük, de vár még néhány meglepetés. Wade Wilson a különleges erőknél szolgált, azután zsoldos lett. Egy furcsa, alig legális kísérlet eredményeképpen a szervezete meghökkentő képességekre tett szert: hihetetlenül gyorsan meggyógyul, bármi baj éri. De nem ez az egyetlen fegyvere: őrült, gonosz humora is van - és nem fél használni. A szupererős ember, aki a valóságból átlépett a hősök birodalmába, most élete legnehezebb háborújába indul: bosszút akar állni azon az emberen, aki egykor majdnem tönkretette őt.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239110&hd=2&autoplay=1" 
+			},
+			{
+			    title: "Deadpool 2",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/p89SWit8y4glPsHBzzF4KMC1iu1.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p12854824_v_h10_bb.jpg?w=1280&h=720",
+				description: "Mikor egy szuperkatona érkezik gyilkos küldetéssel, Deadpool rákényszerül, hogy olyasmikre legyen tekintettel, mint a barátság, a család, és arra, hogy mit is jelent tulajdonképpen hősnek lenni – s mindeközben ötven árnyalatúra rúgja a szürke hátsókat. Merthogy: ha az ember a jóért harcol, időnként be kell piszkolnia a kezét.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239111&hd=2&autoplay=1"
+			},
+			{
+			    title: "Deadpool és Rozsomák",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jlDQ00NFffI1IizOtUvbSbatr7f.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p23093323_v_h10_ag.jpg?w=960&h=540",
+				description: "A kedveszegett Wade Wilson számára a polgári élet kész kínlódás. Az erkölcsileg rugalmas zsoldos gyúnyáját végleg szögre akasztotta, amikor azonban világát a megsemmisülés fenyegeti, vonakodva bár, de ismét magára ölti jelmezét és még vonakvóbb… vonakodóbb? Vonatkotróbb? Meg kell győznie a vonakodó Rozsomákot, hogy - ez így szar...",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239112&hd=2&autoplay=1"
+			},
+			{
+			   title: "X-men:A kívülállók",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mqGSoqrRtz9cqKahOUU9nSSBNt9.jpg",
+			   previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/69EC10BBF7C495ED71E3868B08C3A184BF62570B5FB7EE33EB3D0C7F76440CAB/scale?width=1200&aspectRatio=1.78&format=webp",
+			   description: "Mutánsok élnek köztünk. Emberek ők is, de a genetika véletlene folytán különleges képességekkel születtek. Van köztük, aki olvas mások gondolataiban, van, aki átsétál a falon, vihart támaszt, vagy ölni tud a puszta tekintetével. Az emberek nem ismerik őket, ezért félnek tőlük. A mutánsok egy része pedig retteg ettől a félelemtől, ezért a zseniális Magneto vezetésével háborúra készül. Ám működik egy különleges intézet, ahol a rejtélyes X professzor X-Men nevű különleges csapatával mindent megtesz, hogy a mutánsok rosszabb felétől megvédje az emberiséget.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239265&hd=2&autoplay=1"
+			},
+			{
+			   title: "X-men 2",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bWMw0FMsY8DICgrQnrTSWbzEgtr.jpg",
+			   previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/BE8BB4850B903C386B3AFD939FB85DBBB5F615F5FE540B56F911EE5873EA3D2E/scale?width=600&aspectRatio=1.78&format=webp",
+			   description: "Xaviér professzor pártfogoltjai, a kívülállók folytatják harcukat az előítéletekkel szemben és az elpusztításukra törő erők ellen. Egyre inkább felszínre kerül a politikai és társadalmi élet mutánsokkal szemben érzett gyűlölete és heves tüntetések kezdődnek ellenük. E mozgalom vezetője William Stryker, a vagyonos, egykori hadúr és tudós, akiről az a szóbeszéd járja, hogy mutánsokon végzett kísérleteket. Velük kapcsolatos munkája valamiképpen összefonódik Farkas titokzatos és feledésbe merült múltjával is. Amikor Farkas nyomozni kezd eredetét illetően, Stryker működésbe hozza az anti-mutáns programot, és kezdetét veszi a katonai offenzíva a társadalom e számkivetettjei ellen.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239266&hd=2&autoplay=1"
+			},
+			{
+			    title: "X-men:Az elllenállás vége",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ilC344178dX8ihPkVOcX7btDiO8.jpg",
+				previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/74362E778C24D563495FED75BF3B5FBE7CA21C21734D062041CF9662826357E0/scale?width=1200&aspectRatio=1.78&format=webp",
+				description: "X professzor segítségével a mutánsok megtanulták irányítani és a jó ügy érdekében felhasználni képességeiket. Most azonban válaszút elé kerülnek: megőrzik különleges képességüket, annak ellenére, hogy az elszigeteli őket a többségtől, vagy feladják adottságaikat, és beilleszkednek a társadalomba. A másságot betegségnek tituláló kormány által kifejlesztett gyógyszer valójában a kisebbség ellen irányul, annak beolvasztására, megsemmisítésére törekszik. Mindez fellépésre készteti a kirekesztettség ellen küzdő, a természetfeletti képességeikhez ragaszkodó Farkast, Ciklont, Vadócot és a többi mutánst.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239267&hd=2&autoplay=1"
+			},
+			{
+			    title: "X-mem kezdetek:Farkas",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2F5Wj92hvBKexmk2UAA2TMkWC0E.jpg",
+				previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/1BEE200D88C60150CBF1A2CBF0330DF972F873E7DFC679B4F3CBE3D53EB3739D/scale?width=1200&aspectRatio=1.78&format=webp",
+				description: "James Logan (Farkas) gyermekkorában fedezte fel, hogy különbözik a többiektől. Később a féltestvérével, Victorral titkos katonai programban vesznek részt. James azonban hamarosan hátat fordít az osztagnak, amivel kivívja a program egyik vezetője, Stryker tábornok ellenszenvét. A tábornok Victor segítségével tőrbe csalja Farkast, és az akciónak áldozatul esik a barátnője. Ráveszi Farkast, hogy részt vegyen a kísérleti szérum kipróbálásában, aminek hatására emberfeletti erőre tesz szert. Ám Farkas önállósítja magát, és ettől kezdve csak egyetlen cél érdekli, hogy leszámoljon az ellenségeivel.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239269&hd=2&autoplay=1"
+			},
+			{
+			    title: "X-men: Az elsők",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/snpDUtBzViCkT9AN0SrcT60EETq.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p8118537_v_h8_am.jpg?w=1280&h=720",
+				description: "A hatvanas évek Amerikájában járunk. Két különös, tehetséges fiatalember összebarátkozik. Az egyik angol arisztokrata, a másik Kelet-Európából menekült, Auschwitzot túlélt zsidó. Barátságuk alapja, hogy mindkettőjük különös tudást fedez fel magában: az egyik olvassa és irányítja az emberek gondolatait, a másik uralkodik a fémek fölött. Képességeik más hasonló mutánsok körébe sodorják őket, és ők állnak élére annak a közös harcnak, amelyet az emberiségre leselkedő óriási veszély elhárítására kezdenek. De a küzdelem őket magukat is eltávolítja egymástól: Magneto és Xavier egymás ellen fordítja földöntúli erejét.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239271&hd=1&autoplay=1"
+			},
+			{ 
+			    title: "X-men: Az eljövendő múlt napja",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3stGsPCcSu7EwH7ncZMUsyToceH.jpg",
+				previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/538E36C20FD81793563BCDB786A7572628A26F73911CBA7F850C80EBA00359A1/scale?width=1200&aspectRatio=1.78&format=webp",
+				description: "A mutánsok köztünk élnek. Ez így volt a múltban is, és így lesz a jövőben is. Legfeljebb nem ebben a sorrendben. Az alternatív jövőt, a mutánsok és emberek közti háború újabb fejezetét bemutató filmben az X-Men-mozik mindkét generációja játszik: a több, egymást keresztező idősíkon bonyolódó történetben Xaiver professzor tanítványainak nemcsak az emberekkel és az emberekben örök ellenséget látó mutánsokkal kell megküzdeniük – immár robotokat is bevetnek ellenük. A sok mutánsnak és a sok harcnak egyetlen célja van: meg kell akadályozni egy a jövőben készülő katasztrófát. De erre csak egyféleképpen van lehetőség: meg kell változtatni a múltat.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239272&hd=1&autoplay=1"
+			},
+			{
+			    title: "Farkas",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/d9S1u0oVh7bBwEazj9xjLRWR5Mz.jpg",
+				previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/341F997BC1DF4D26F4B3EA1BFE1AE402D3D4A7A47AB556062080E5D6A8DC1D4A/scale?width=1200&aspectRatio=1.78&format=webp",
+				description: "A különlegesek közt ő a legkülönlegesebb. A győzhetetlenek között ő a legerősebb. Farkas vad, magányos, kortalan. Minden sebe azonnal gyógyul, a csontjait adamantiumötvözet teszi törhetetlenné. Ezúttal azonban - hosszú élete során először - mégis sebezhető. Egy titokzatos férfi kérésére Logan Japánba utazik, ahol egy olyan ajánlatot kap, amelytől egész élete megváltozhat. Ám céljai eléréséhez le kell győznie a félelmetes Ezüst Szamurájt, egy csapat nindzsát és egy veszélyes tudóst is. Erején felül harcol, ám nemcsak a szamurájkardok fenyegetik: saját démonait, kétségeit és félelmét is le kell győznie ahhoz, hogy életben maradjon. Ha viszont győz, erősebb lesz, mint valaha volt…",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239273&hd=1&autoplay=1"
+			},
+			{ 
+			    title: "X-men:Apokalipszis",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/k9sIh3PdLrcVn2oMCE0haMAtxea.jpg",
+				previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/E98D13F91C06E25C7CE6DF8DBDF89862D9D193A8D0F24A04349A83C35F1101D7/scale?width=1200&aspectRatio=1.78&format=webp",
+				description: "X professzor, Magneto és Mistique még mindig kerülik egymást. De a sors újra úgy akarja, hogy útjaik keresztezzék egymást. Apokalipszis felébred a sírjában, körülnéz a világban, és úgy dönt: hirtelen evolúciós ugrással alakítja át a '80-as éveket. Elindul, hogy összegyűjtse négy mutáns segédjét, a négy lovast: egyiküket Kairó utcáin, a másikat egy berlini pankrátorklubban, a harmadikat valahol Kelet-Európa mélyén találja meg. A negyedik lovas maga Magneto, aki Lengyelországban bujkálva, egy szeretett nő oldalán próbált normális életet élni. X professzor iskolája sok tehetséges fiatal mutánst képez ki. Ám az átmeneti nyugalom véget ér, és senki sem maradhat semleges: hatalmas háború várható.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239274&hd=2&autoplay=1"
+			},
+			{
+			    title: "Logan",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jeeRY9up7ob8hcdncwvO9YZj68e.jpg",
+				previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/B114E324C33D9C51E91CDB05C27AE7601B22D3613BF6F5B475826489F32D4873/scale?width=1200&aspectRatio=1.78&format=webp",
+				description: "2029-et járunk, a mutánsok szétszéledtek. A megfáradt, magányos Logan a mexikói határ szélén, egy porfészekben bujkál, alkoholba fojtva bánatát. Társa a száműzetésben a csavargó Caliban, és a beteg X professzor, akinek elméjét súlyos rohamok gyötrik. Egyik nap egy titokzatos nő keresi fel Farkast. Egy különös kislánnyal érkezett, akit Logannek kellene biztonságba juttatnia. És a sokat próbált harcos elindul, hogy egy utolsó, életre-halálra szóló küldetés során beteljesítse sorsát.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239275&hd=2&autoplay=1"
+			},
+			{
+			     title: "Amerika kapitány:Szép új világ",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pN4iFudmQ0xg4rCx4I7ptm8eueM.jpg",
+				 previewImage: "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/0758e403-7535-45d0-b34a-19e1d0d121aa/compose?aspectRatio=1.78&format=webp&width=1200",
+				 description: "Miután hőseinknek sikerült legyőzniük az univerzum legnagyobb gonoszát, Thanost, maga Amerika Kapitány juttatta vissza a végtelen köveket az eredeti helyükre. Steve Rogers azonban belefáradt hősnek lenni, így meghozta döntését, hogy a továbbaikaban saját boldogságáért tegyen. Így kapta meg Amerika Kapitány pajzsát Sam Wilson, azaz Sólyom, aki kezdetekben úgy érezte, nem méltó annak viselésére. A hősöket azonban a tetteik formálják, Sam Wilsonnak pedig azt a sorsot jelölte ki, hogy ő vegye át Rogers helyét. A folytatásban egy új Amerika Kapitány lép elénk, aki továbbra is az igazságot képviseli a világban.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239308&hd=2&autoplay=1"
+			},
+			{
+			      title: "Fekete özvegy",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yMyjSNmrAFZq1ULqO1zgwcndCFk.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p16808418_v_h10_ab.jpg?w=1280&h=720",
+				  description: "Natasha Romanoff kénytelen lesz szembenézni múltja sötét epizódjaival, amikor egy veszedelmes összeesküvés hozzá is elér. Nyomában egy életére törő, kérlelhetetlen erővel, Natasha számot kell vessen kémes múltjával és családi kötelékeivel, amiket már jóval azelőtt felbontott, hogy Bosszúálló lett.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239499&hd=2&autoplay=1"
+			},
+			{
+			      title: "Szellemlovas",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/xaNsnFYnZLIndPaDsf0b1xy3s48.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/4bc0148f0b6c57a37b870575eb7dea5bc306b84635b34b370b38b07e5459dd70.jpg",
+				  description: "Johnny Blaze (Nicolas Cage) megszokta a halál közelségét: ő a száguldó világ legvakmerőbb motoros kaszkadőre. Amikor egy különös idegen a lelkét kéri cserébe súlyosan beteg apja felgyógyulásáért, nem habozik: számára a Mefisztóval (Peter Fonda) kötött üzlet csupán egy újabb kaland, újabb játék a halállal. De az alvilág urával nem lehet játszani. Johnny örök rabságba kerül. Nappal továbbra is lélegzetelállító trükkjeivel szórakoztatja a borzongani vágyókat, éjjel viszont a gonoszak ellen kell harcolnia: akit legyőz, azt a pokol tüzével bünteti. Lángoló motorja nyergében minden éjjel nekivág szörnyű büntetőhadjáratának - és hiába szeretne, nem nyugodhat meg sosem.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239713&hd=1&autoplay=1"
+			},
+			{
+			      title: "Szellemlovas: A bosszú ereje",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dlkk3Qnz2NG8L4CA1ldtigUmhWy.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/08c2ba4bda0a14370965ad1c027ab0736f27e873b85906320d2e927c831e444d.jpg",
+				  description: "Johnny Blaze Kelet-Európában rejtőzött el, és magányosan folytatja kilátástalan küzdelmét az átokkal, ami miatt időről időre lángoló koponyájú bosszúállóvá változik. Egy nap azonban egy szekta vezetője keresi fel, és felbéreli, hogy ölje meg magát a Sátánt, aki éppen kisfiának születésnapján akar testet ölteni, az ő testét felhasználva.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239714&hd=1&autoplay=1"
+			},
+			{
+			      title: "Morbius",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h4WLN3cmEjCsH1fNGRfvGV6IPBX.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/2f1be63ec1968149f82c3823125316d4bf6407e268de37a100fcc0a725b72a5d.jpg",
+				  description: "Dr. Michael Morbius, aki egy ritka vérbetegségben szenved, és eltökélt szándéka, hogy megmentsen másokat is, akik ugyanerre a sorsra jutnak, kétségbeesett hazárdjátékba kezd. Ami eleinte radikális sikernek tűnik, hamarosan kiderül, hogy a betegségnél is rosszabb gyógymód.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239797&hd=1&autoplay=1"
+			},
+			{
+			      title: "Madame Web",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wbN5572tgWpL8EEHMiio9ExCcN7.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/2b38697321021244067c205a0d5b414d2d6130295b785dd56ef4354196d404df.jpg",
+				  description: "Így születik egy hősnő. Cassandra Webb a hétköznapok hőse. Mentőautót vezet New Yorkban: az életveszély és az életmentés számára mindennapos. Meg az, hogy folyton rohan, kapkod, az idővel harcol. Azután történik valami. Ami még az ő, mindig váratlan fordulatokat hozó életében is egészen új. És attól kezdve nem ért semmit: Talán gyorsabb lett, mint bármelyik embertársa? Talán a jövőbe lát? Talán egy földöntúli képességekkel rendelkező szuperember vadászik rá Összekavarodik a világa, úgy érzi, darabokra tört az univerzum. Még szerencse, hogy összeakad néhány vagány, kemény New York-i csajjal, és miközben megpróbálnak életben maradni, együtt deríti ki, hogy mi ez az egész.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239798&hd=1&autoplay=1"
+			},
+			{
+			      title: "Mennydörgők",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/vr20UIrV0jxe0ntkLqbPNyIwvAm.jpg",
+				  previewImage: "https://m.media-amazon.com/images/M/MV5BNTc0YWE5NGYtMDMyZC00M2UwLTk4NjAtOTM1OGFkYmMwYmQxXkEyXkFqcGc@._V1_QL75_UX500_CR0,26,500,281_.jpg",
+				  description: "A Mennydörgők*-ben a Marvel Studios merőben szokatlan antihős-csapatot toboroz össze: ők Jelena Belova, Bucky Barnes, Vörös Őr, Szellem, Kiképző és John Walker. Miután kijutnak egy Valentina Allegra de Fontaine által felállított halálos csapdából, ezek a kiábrándult figurák veszedelmes küldetésre vállalkoznak; e küldetés során múltjuk sötét epizódjaival lesznek kénytelenek farkasszemet nézni. Képes lesz-e az össze nem illő banda megváltásra lelni és időben egységbe verődni, vagy inkább elpusztítják egymást?",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1"
+			},
+			{
+			      title: "A Fantasztikus négyes",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/xoTRajLHcthOcxA80WrzPS9CNYO.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/614ca8a42093a6af062962b87e7c37b568538c670aee0c6e32f9e3cf97b1b7ec.jpg",
+				  description: "Reed Richards álma, hogy megfejti az ember genetikai kódját. Ehhez elfogadja riválisa, a mágnás Victor von Doom segítségét, hogy űrexpedíciót vezessen egy kozmikus vihar közepébe. Az expedíció tagja még Reed barátja, Ben Grimm asztronauta, Sue Storm, Doom kutatási igazgatója, valamint a nő öccse, Johnny Storm pilóta. Kiderül, hogy a számításokba hiba csúszott, a kozmikus sugárzás megváltoztatja a legénység DNS-ét. Az együtt elszenvedett tragédiát igyekeznek előnyükre fordítani. Egy csapatként szállnak szembe az időközben gonosz acélemberré változott Doommal.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239940&hd=1&autoplay=1" 
+			},
+			{
+			      title: "A Fantasztikus négyes és az Ezüst utazó",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/t7U1jiFx4zBBb8SfAaTU0SQvpVl.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/5427a18040df42c69e35b5ff0006d181cb30864f1f720f38d9c1596448af2749._UR1920,1080_.jpg",
+				  description: "Nem akartak ilyenek lenni. Három srác és egy lány egy kozmikus baleset következményeképpen mégis átalakult: egyikük nyúlik, mint a gumi, a másik kőből van, a harmadik láthatatlanná tud válni, a negyediknek engedelmeskedik a tűz. Mivel kigyógyulni nem lehet belőlük, igyekeznek a legjobban hasznosítani új képességeiket. A jót szolgálják a gonosz ellen. Ezúttal a galaxison túlról érkezett ellenséggel kell leszámolniuk. Az Ezüst Utazó megfoghatatlanul gyors és felfoghatatlanul kegyetlen: bejárja a Földet és mindenütt káosz meg szenvedés jár a nyomában. És négy fantasztikus képességű szuperhős. Ha megértik az Ezüst Utazó titkát, talán még régi ellenségüket, Dr. Doomot is könnyebb lesz legyőzniük",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239941&hd=2&autoplay=1" 
+			},
+			{
+			        title: "Pókember",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/9ccWTRUkxSbfkk4LrFOiRKcqSGn.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/8c16fc3bbac3a70f0915adf3c36e06ada173dc8169d0d7888cb44badc7b621af.jpg",
+					description: "Egy pókcsípés nem a világ. Peter Parker, a kétballábas diákújságíró világa mégis fenekestül felfordul, amikor egy laboratóriumi osztálykirándulás során megcsípi egy mutáns pók. Ezt követően a srác egyre furább képességeket tapasztal magán: könnyedén sétál a plafonon, csuklójából ragadós pókszálat lő ki, a veszélyeket pedig jóval bekövetkezésük előtt megérzi. Ami kezdetben játéknak tűnik, hamarosan szörnyű és izgalmas kötelezettséggé válik. Peternek meg kell küzdenie az emberfeletti erővel rendelkező, gonosz Zöld Manóval és el kell nyernie a gyönyörű Mary Jane szerelmét.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239953&hd=2&autoplay=1" 
+			},
+			{
+			        title: "Pókember 2",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bAoWeNubgUrvZMtJDG52lMOqJkK.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/0d4efc0d1ec68cbb6b6d28ff11ff9bb4a624e2e8b711698d5d3450a969ae52ac._UR1920,1080_.jpg",
+					description: "Két éve már, hogy Peter Parker elhagyta szerelmét Mary Jane Watsont, hogy vállalhassa a szuperhős-léttel járó felelősséget. Peternek nagy nehézsséget okoz, hogy megteremtse az egyensúlyt a nappal szorgalmas egyetemista, éjjel pedig szuperhős énje között. Egyre erősebb késztetést érez arra, hogy elárulja titkait szerelmének, azonban M.J. életében egy új férfi jelent meg. Mindeközben Peter legjobb barátja, a Zöld Manó fia, Harry Osborn bosszúját tervezi Pókember ellen az apja haláláért, és ráuszítja Dr. Otto Octaviust, akinek szörnyűséges robotkarjai komoly veszély jelentenek Peterre.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239954&hd=2&autoplay=1" 
+			},
+			{
+			        title: "Pókember 3",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/eE2Ic9tBWDULlznO5zkxv2icLtI.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/f8594960c658abdba8bf027376e9f7cce4bcdd16b8b95d922cc6958f66055d9a.jpg",
+					description: "Komoly bajba keveredik Pókember. Miközben két rendkívüli képességekkel bíró rosszakarója, Venom és Homokember összefog ellene, egy gyönyörű, szőke lánnyal is találkozik. Peter szeretne hű maradni régi szerelméhez, Mary Jane-hez, de úgy tűnik képtelen ellenállni a csábításnak. A mindenre képes szökött fegyenc, a Peter nyomában szaglászó paparazzo, a fekete anyag, amely egy kalandja során átitatja a Pókember ruháját, és átalakítja a testét, a város rendőrfőnökének gyönyörű lánya és a Zöld Manó régi ruhájában járó, még mindig bosszúállásra készülő egykori jóbarát - Pókember élete még sosem bővelkedett ennyire a kalandokban.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239955&hd=2&autoplay=1" 
+			},
+			{
+			       title: "A csodálatos Pókember",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pKsQmTEzXHguxi1I2l5sUMFCKju.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c5ed8fc3f9cda42d21560c45c24ac2401509f50e26d024be5c19b3027214ab01._UR1920,1080_.jpg",
+				   description: "Peter Parker átlagos gimis srác. Kicsit magányosabb, kicsit szótlanabb a társainál - talán azért, mert a szülei még kiskorában eltűntek, és azóta Ben bácsikája neveli. Ahogy közeledik a felnőttkor, Peter egyre jobban érdeklődik a múltja iránt, hogy ki ő igazán és mi történhetett a szüleivel. Úgy érzi, titkok hálója veszi körül. Egyedül iskolai szerelmében bízhat. Amikor megtalálja apja régi irattáskáját, meghökkentő dokumentumok kerülnek elől belőle: attól kezdve egészen másképpen látja magát és a világot. A nyomok az idősebb Parker régi társához, dr. Curt Connors laboratóriumába vezetnek.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239956&hd=1&autoplay=1" 
+			},
+			{
+			       title: "A csodálatos Pókember 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7rpWJzs9LX6qsXzoMLm2NEnJvFg.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/57b14ed9d7e3b2791898c67d6a3f6cec3d13bd57046fc83bc2805db2c38b1bbb.jpg",
+				   description: "Még a szuperhősök sem tartják be az összes ígéretüket. Peter Parker, aki vörös-kék pókruhájában üldözi a gonoszt a nagyvárosi utcákon megígérte szerelme haldokló apjának, hogy kerülni fogja a lányt – és így gondoskodik a biztonságáról. Ám ez egyszer megszegi az ígéretét. Nem elég neki, hogy elkapjon minden bűnözőt, kevés a toronyházak fölötti, őrült tempójú száguldás és lendülés: Gwen nélkül már semmit sem ér az élete. Lehet, hogy meg fogja bánni: egy új szupergonosz ellenfél, Electro felbukkanása ugyanis minden eddiginél nagyobb veszélybe sodorja – és a múltjából is újabb, tisztázatlan emlékek kísértik…",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239957&hd=2&autoplay=1" 
+			},
+			{
+			       title: "Pókember: Hazatérés",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/St2j6bjlESxXRYZn5g3PdGtSy8.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/f1953622f38bb0873dc893ea44466ae206376a9f6ef24debd13d12dfb0234b1d.jpg",
+				   description: "Kamaszodni eleve nem könnyű, és Peter nem arról híres, hogy feltalálja magát. Nagyon vicces srác, mégsem tartozik a nagymenők közé. Nappal. Éjszaka azonban övé a nagyváros, és nemcsak utcaszinten. Különleges szerkóban lendül felhőkarcolóról felhőkarcolóra, nem lehet meglépni előle és nem könnyű legyőzni. Eddig legalábbis senkinek sem sikerült. De a Pókember most egészen új ellenségekkel találkozik, és úgy tűnik, még a szokásos humora is kevés lehet hozzá, hogy életben maradjon. Az új bajban új szövetségesek után kell néznie.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239958&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Pókember: Idegenben",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ssK9wL266IUTaMdi1nJlegSUsEO.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/a5a2d5703727ac5aa4b8c0399a046b62993da6271e0c3d8776340ce0fc7627b1.jpg",
+				   description: "Pókember nem pihenhet. Az már kiderült, hogy az ifjú pók egyedül is képes megmenteni a világot, és csoportban is megállja a helyét, de közben ő úgy érzi, hogy neki is jár mindaz, ami bármelyik középiskolásnak: és a haverjaival európai utazásra indul. De éppen, amikor végre élvezhetné mindazt, amit a baráti lazulás kínálhat, újabb ellenség tör a világra. A rejtélyes Mysterio erősebb az eddigi ellenfeleknél, és könnyen lehet, hogy Pókember, aki nagy nehezen próbálja a hátizsákos utazást a hősi küzdelemmel összehangolni, kénytelen régi bosszúálló társaitól segítséget kérni.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239959&hd=2&autoplay=1" 
+			},
+			{
+			       title: "Pókember: Nincs hazaút",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rKZQB6AYyjRnNDrNkFLOLy82qa9.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/617679e8663707ffc8b3f480b33123ddc4ae7bbf45de3ac0785cb4d85e468d0a.jpg",
+				   description: "Peter Parker lelepleződik, már nem tudja elválasztani a normális és a szuperhős életét. Amikor Strange segítségét kéri, a tét még veszélyesebbé válik, és arra kényszeríti, hogy felfedezze, mit is jelent valójában Pókembernek lenni.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239960&hd=2&autoplay=1" 
+			},
+			{
+			       title: "Fekete párduc",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6EkZiTjH2oFgjJ0uwNWtVXZkiTv.jpg",
+				   previewImage: "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/f895e67a-2151-418d-9d12-c2e99a1e3fe1/compose?aspectRatio=1.78&format=webp&width=1200",
+				   description: "T’Challa apja halálát követően hazatér az elszigetelt, ám technológiailag fejlett afrikai országba, Wakanda királyságába, hogy elfoglalja az őt megillető helyet a trónon. Ám mikor egy nagy hatalmú ősi ellenség ismét feltűnik a színen, T’Challa királyként és a Fekete Párducként is próbára tétetik: a félelmetes összecsapás kimenetelén nem pusztán Wakanda, hanem az egész világ sorsa áll. Árulások és veszélyek közepette az ifjú uralkodónak maga mellé kell állítania szövetségeseit és felszínre kell engednie a Fekete Párduc minden erejét, hogy legyőzze ellenfeleit és biztonságban tudhassa népét.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240033&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Fekete párduc 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rci5ufvauie3CTDx8soJjIaZEVu.jpg",
+				   previewImage: "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/de911906-069d-4a5f-a48e-0927fddadcf1/compose?aspectRatio=1.78&format=webp&width=1200",
+				   description: "Ramonda királynő, Shuri, M'Baku, Okoye és Dora Milaje azért küzdenek, hogy megvédjék nemzetüket a beavatkozó világhatalmaktól T'Challa király halála nyomán. Miközben a wakandaiak arra törekednek, hogy magukévá tegyék a következő fejezetet, a hősöknek össze kell fogniuk Nakia és Everett Ross segítségével, és új utat kell kialakítaniuk Wakanda királysága felé.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240034&hd=1&autoplay=1" 
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
 </html>

@@ -1,0 +1,526 @@
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
+        }
+
+        .logo img {
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
+        }
+
+        .movie-container {
+            display: inline-block;
+            position: relative;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .movie-container img {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		
+		{
+			      title: "Vaskarom",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4D2fnyBk8eJDxklQzFu3KMYa3AZ.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/332c2c562e7643685a53e6a07593f1e1af73eed3a97e7852985e85e728578da0.jpg",
+				  description: "A texasi Fritz Von Erich több világbajnoki címmel rendelkezett, és forradalmasította az amerikai pankráció világát. Nem csak a ringet és az üzleti életet vezette kemény kézzel, de a családot is: megszállottan dolgozott azon, hogy a fiai átvegyék majd tőle a birodalmat. Kevint, Kerryt, Davidet és Mike-ot egyaránt abban a szellemben nevelte, hogy ha ők lesznek a legerősebbek, legkeményebbek, akkor semmi sem árthat nekik. De vajon elég volt ahhoz a ringbeli győzelem, hogy a fiúk megtörjék a családot sújtó átkot?",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239692&hd=2&autoplay=1"
+			},
+			{
+			      title: "Vér és csont",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/78AHK0mncGSlF3nEkwxdWHcr27w.jpg",
+				  previewImage: "https://media.zenfs.com/en/comingsoon_net_477/842a02305b108c02fb74a721084bed7b",
+				  description: "Michael Jai White neve garanciát jelent rá, hogy nem Hollywoodi szépfiúk betanult mozdulatait fogjuk látni a képernyőn – kőkemény, küzdősportban jártas figurák, villámgyors, technikás akciók csontropogás és vér vár ránk. Bone (Michael Jai White) nem keresi a bajt, de ha az megtalálja, akkor kő kövön nem marad. A börtönből szabadulva Bone elindul, hogy hogy megtartsa szavát, amit egykori cellatársának, egyetlen benti barátjának tett: megvédeni annak családját. A feladat közel sem egyszerű, ugyanis a felültetett férfi felesége időközben egy utcai harcokat szervező gengszterfőnök drogfüggő nője lett, fiát pedig örökbefogadták. Bone viszont nem az a fajta, aki megijed egy kis harctól….A filmben pár kultikus küzdősportos alak is felbukkan: Bob Sapp (K1) és Kimbo Slice (MMA).",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239519&hd=2&autoplay=1"
+			},
+			{
+			      title: "Vitathatatlan",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tssoozfjBktlMphsFKLiVw5HTsu.jpg",
+				  previewImage: "https://is1-ssl.mzstatic.com/image/thumb/E5v1OT0hZrrc7ZHMFIAllQ/1200x675.jpg",
+				  description: "A nehézsúlyú ökölvívó világbajnokot, Iceman Chamberst (Ving Rhames) nemi erőszak vádjával börtönbe zárják. Iceman tombol, hisz profi ökölvívói karrierje csúcsán megakadályozzák abban, hogy kiélvezze és megvédje az őt vitathatatlanul megillető bajnoki státust. Ugyanabban a fegyházban, ahová Iceman kerül, tölti életfogytiglani börtönbüntetését Monroe Hutchen (Wesley Snipes), aki tíz éve a börtön koronázatlan bajnoka. A Sweetwater börtön életfogytig lakója Emmanuel Ripstein (Peter Falk) is, akit még mindig jó kapcsolatok fűznek a kormányzathoz, a maffiához és a börtönigazgatósághoz is. A két bajnok között a börtönben óriási feszültség vibrál. Ripstein felismeri az ellentétek adta üzleti lehetőséget, s megszervezi Monroe és Iceman mérkőzését.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239520&hd=1&autoplay=1"
+			},
+			{
+			      title: "Vitathatatlan 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yJhsCZh0Po0PM1lzvTRaLDUJLQh.jpg",
+				  previewImage: "https://is1-ssl.mzstatic.com/image/thumb/CT2yKBGba07mUqCXHPqzVQ/1200x675.jpg",
+				  description: "George Chamberst (Michael Jai White), a nehézsúlyú bokszvilágbajnokot drogcsempészés vádjával egy kegyetlen orosz börtönbe zárják. Odabenn elvesznek a jogai, lépten-nyomon megalázzák és megkínozzák. Csak egy módon szabadulhat, ha megküzd a ringben a maffiavezér pártfogoltjával, a kegyetlen Bojkával (Scott Adkins). Itt nincsenek szabályok és semmit nem érnek az eddigi címek. Képes lesz-e túlélni egy orosz börtön poklát? Küzdelem életre-halálra, kesztyű nélkül.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239521&hd=1&autoplay=1"
+			},
+			{
+			      title: "Vitathatatlan 3",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/liBmqL5Jy5NyM4eFZfcU9e11uZ7.jpg",
+				  previewImage: "https://is1-ssl.mzstatic.com/image/thumb/PQD6AbCQuTTnbZuhirAuBQ/1200x675.jpg",
+				  description: "Uri Boyka (Scott Adkins), az orosz Chorny Cholmi börtön trónfosztott bajnoka (előző részben szerzett) térdsérülése miatt képtelen a ringbe lépni, úgy tűnik, kénytelen lesz kihagyni a harcok harcát, a küzdelmet, aminek minden résztvevője visszanyeri a szabadságát. Egy igazi harcost azonban nem állíthat meg semmilyen sérülés, így Boyka hamarosan a nyolc különböző nemzetű elítélt között találja magát, és kezdetét veszi az illegális bajnokság.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239522&hd=1&autoplay=1"
+			},
+			{
+			      title: "Nindzsa",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ab6pvzHIPS2FnOZbjbcuRe4qxXg.jpg",
+				  previewImage: "https://resizing.flixster.com/AOOqOCK85wBDXe6Iqs4HvWSCgRc=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p8041802_v_h10_ab.jpg",
+				  description: "Takeda harcművészeti iskolájában a két rivális Casey és Masazuka között érezhető ellenszenv a tetőfokára hág, mikor egy edzés alkalmával Masazuka valódi karddal támad Casey-re, akit ezért kicsapnak az iskolából. Bérgyilkos lesz és bosszút akar állni az iskolán azzal, hogy elveszi az iskola ereklyéjét. Ennek elkerülése miatt Takeda Casey-t és a lányát New Yorkba küldik, ahol elhelyezik az ereklyét. Ezalatt Masazuka kivégzi az iskola tanulóit és New Yorkba indult az ereklye után...",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239523&hd=2&autoplay=1"
+			},
+			{
+			       title: "Creed:Apolló fia",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wUBTJ12iRDplul2K3HdmXQuQfCQ.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/be42b4ebadf85608cd535f812fc1c955c31180e79caa87835902b0893a918252._SX1080_FMjpg_.jpg",
+				   description: "Adonis Johnson sosem ismerte legendás apját, a nehézsúlyú világbajnok Apollo Creed-et, aki még azelőtt elhunyt, hogy ő megszületett volna. Ettől még nem kérdéses, hogy a boksz a vérében van, ezért Adonis Philadelphiába, apja és Rocky összecsapásának helyszínére megy. A srác felkeresi a legendás bokszolót, és arra kéri, legyen az edzője. Rocky Balboa meglátja benne az erőt és az elhivatottságot, és szárnyai alá veszi a tehetséget, de az egykori bajnoknak egy olyan „ellenféllel” is meg kell küzdenie, ami sokkal halálosabb veszéllyel fenyegeti, mint bárki a szorítóban.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239739&hd=2&autoplay=1"
+			},
+			{
+			       title: "Credd 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/v3QyboWRoA4O9RbcsqH8tJMe8EB.jpg",
+				   previewImage: "https://static1.srcdn.com/wordpress/wp-content/uploads/2018/10/Creed-2-Creed-vs-Drago.jpg",
+				   description: "Az élet kötéltánccá vált Adonis Creed számára. Személyes kötelezettségei és a következő nagy meccsre való felkészülése között megtalálni az egyensúlyt komoly kihívásnak bizonyul. Az, hogy ellenfele családja és a sajátja közös múlttal bír, csak feszültebbé teszi a közeledő megmérettetést a ringben. Rocky Balboa viszont mindvégig ott van mellette, így együtt néznek szembe régi sérelmeikkel, együtt jönnek rá, miért is érdemes küzdeni és együtt fedezik fel, hogy semmi sem fontosabb a családnál.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239740&hd=1&autoplay=1"
+			},
+			{
+			       title: "Creed 3",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cvsXj3I9Q2iyyIo95AecSd1tad7.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/ebb361a030e19f00b8ad1a68f2b1d903fcba34e10687aff614db7307e94b2606.png",
+				   description: "Adonis Creed (Michael B. Jordan) KO-zta a világot, és az most a lába előtt hever. Bajnok lett. Boldogan él. Mindene megvan. De a bunyó olyan, mint az élet: a győztesnek is mindig készülnie kell egy váratlan fordulatra. A bajnok egy régi haverja, Damian kiszabadul a sittről. Tizennyolc évet húzott le odabent, és abból kb. tizenhatot gyúrással tölthetett. Elképesztő formában van, és forr benne a düh. Mindenkit utál, aki kinn volt, amíg ő benn. De a legjobban a bajnokot gyűlöli – és be akarja bizonyítani, hogy neki jár a cím. És odabenn nem sportszerű meccsre készült. A gyerekkori barátoknak meg kell küzdeniük egymással. Adonis csak akkor győzhet, ha mindent kockára tesz: ő nagyon sokat veszíthet, az ellenfele viszont semmit. A legendás franchise új részében két elképesztő formában lévő színész csap össze: lélegzetelállító bunyókkal és nagy izgalmakkal jön a harmadik menet!",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239741&hd=2&autoplay=1" 
+			},
+			{
+			      title: "A kőkezű",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/r0VsYu7JNHKe4HJeC5vVoxG7f6z.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/2cb6cc778b6ade4b6944f373835a38d17381f683d95fa86584a6ef3b0c92f2d6.jpg",
+				  description: "Roberto Duran profi debütálására 1968-ban került sor, amikor a fiú még csak 16 éves volt, karrierje ezt követően 34 évet ölelt fel. 1980 júniusában legyőzte Sugar Ray Leonardot, mellyel elnyerte a WBC középsúlyú világbajnoki övét, majd novemberben ismét a szorítók közé állt egy visszavágóra. A két legendás sportember, Roberto Duran és edzője, Ray Arcel megváltozatták egymás életét.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239819&hd=1&autoplay=1"
+			},
+			{
+			       title: "George Foreman bukása és tündöklése",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nvSfVjSSKvOagjpmKOdL88hh4SO.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/b94441fb0181e8817909aa00fbd60d702b635ce2b94e15b915fe3eded6f16862.jpg",
+				   description: "Film a visszatérés és a második esély erejéről. Foreman olimpiai aranyérmes és nehézsúlyú világbajnok bokszoló lett, majd a ringet a lelkészi pulpitusra cserélte. Később azonban minden idők legidősebb nehézsúlyú ökölvívó világbajnokaként tért vissza.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239859&hd=1&autoplay=1"
+			},
+			{
+			      title: "Acélököl",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wwYAtSMcjjHoxZbnCyvUYleeS1K.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/1191e72d62c5a530a824c339f2c3ad8b9ac2f7c2d8e6478d8b433e8468bb7f0a._UR1920,1080_SX500_FMpng_.png",
+				  description: "Tyson, aki kisfiúként idejének nagy részét az utcán töltötte, félénk gyerek volt, és társai állandóan kínozták. Tizenéves korára azonban már kemény bűnözővé vált, akire hatalmas benyomást tett a börtönbe látogató Muhammad Ali. Ezután káprázatosan fejlődött a bokszban: tizennyolc évesen profi lett, s mindenki félt tőle. Ellenfelei gyakran inkább visszaléptek, semhogy megkockáztatták volna halálos kiütését. Tysonból legendás szörnyeteg lett: egy bajnok, akinek bokszolói képességei túlfejlettek, ám szociális készségei sohasem voltak.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239895&hd=1&autoplay=1"
+			},
+			{
+			       title: "A szív bajnokai",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2cSEfuFZf8ya2dN7iMM5WW0pjgu.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/8e1313f817a9157056f72cebddabcd29b99c8ca9cbf4b337909f86e88c66c3ce.jpg",
+				   description: "Michaelnek nehéz gyermekkora volt, Memphis utcáin nőtt fel. Egy napon azonban találkozik egy asszonnyal, Leigh Anne-nel, és ez alapjaiban változtatja meg mindkettőjük életét. A jómódú, középosztálybeli, fehér bőrű házaspár ugyanis magához veszi a nagydarab, lézengő fekete bőrű kamaszt: a Tuohy család új fiúra, gyerekeik testvérre, Michael pedig otthonra lel. A fiú lassan oldódik fel az új környezetben, ám a sport révén rátalál önmagára. Michaelből az amerikaifoci egyik legnagyobb csillaga lesz. A Tuohy család története bizonyítja, hogy nemcsak anyagiakkal lehet másokon segíteni.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239944&hd=1&autoplay=1" 
+			},
+			{
+			    title: "Családi bunyó",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8a6NpLl5X9VZkz52YNHRXUwMfEz.jpg",
+				previewImage: "https://is1-ssl.mzstatic.com/image/thumb/BfFldtNYp2_lKsHXqw7scg/1200x675.jpg",
+				description: "Ricky, felesége, Julia, lányuk, Paige és fiuk, Zak, akik együtt lépnek ringbe kisebb pankrációs rendezvényeken. Mikor Paige és Zak lehetőséget kapnak, hogy felvételt nyerjenek a WWE-be, vagyis az első számú pankrációs szórakoztatócég kötelékeibe, kapva kapnak az alkalmon, hogy legvadabb álmaikat valóra váltsák. A testvérek azonban csakhamar szembesülnek vele: ha szupersztári babérokra törnek, tehetségük mellett kapcsolatuknak is komoly próbát kell kiállnia.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239188&hd=2&autoplay=1"
+			},
+			{
+			   title: "Zsákolj, ha tudsz",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/skRsDc0qF08RDuIeRKUh23qWLuV.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p13866_v_h10_ab.jpg?w=1280&h=720",
+			   description: "Sidney és Billy a kosárlabdapályán ismerkedik meg egymással. A fekete bőrű Sidney lekezelően közelít a totyakos gatyában és legyűrt zokniban feltűnő új sráchoz, akiről azonban kiderül, hogy zsonglőrként bánik a labdával. Hamarosan összeállnak egy csapatba, hogy lesöpörjenek a grundról minden ellenfelet. Egy bökkenő van csupán: Billy csomó pénzzel tartozik, a gengszterek a sarkában vannak. Nincs más választásuk, beneveznek a hírhedt utcai versenybe. Minden jól alakul, ám most a barátnőikkel van gond. Megígérik, hogy még egy utolsó meccsre elmennek, aztán vége.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239190&hd=1&autoplay=1"
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>

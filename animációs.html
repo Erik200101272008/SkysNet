@@ -1,0 +1,586 @@
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
+        }
+
+        .logo img {
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
+        }
+
+        .movie-container {
+            display: inline-block;
+            position: relative;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .movie-container img {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+    <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		
+		{
+			       title: "Jégkorszak",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/otMqHewIRc7duTpRGv3P8TDFJP9.jpg",
+				   previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/08BA8C6A8D10C518C2ACF559FFC9146C5E8CDF9C60BEC50A3785652BE0CBC32E/scale?width=440&aspectRatio=1.78&format=webp",
+				   description: "Sid, a nagydumás, kétbalkezes kőkorszaki lajhár lekési a jégkorszak elől melegebb éghajlatra távozó társait. Szerencséjére összefut Manfréddal, a magának való, marcona mamuttal. Ráakaszkodik a biztonságot nyújtó nagydarab állatra, hogy aztán némi viszontagság után együtt találjanak rá egy magára maradt embercsemetére. Manfred és Sid komoly viták után elhatározzák, hogy visszaviszik a gyermeket a családjához. Útközben, nem éppen emberbaráti szeretetből, csatlakozik hozzájuk Diego, a kardfogú tigris is.",
+				   link:"https://vk.com/video_ext.php?oid=1037217102&id=456240039&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Jégkorszak 2: Az olvadás",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kKbNI9xSfiK2vkoXAf1GLszrKwk.jpg",
+				   previewImage: "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/c0e96544-d091-41c0-aca1-cc1ab0229d8a/compose?aspectRatio=1.78&format=webp&width=1200",
+				   description: "Olvadni kezd a jégtakaró, a világ egyetlen hatalmas élményfürdővé változik. A mamut, a kardfogú tigris és a lajhár nap mint nap csúszdák, gejzírek és szökőkutak között bulizik. Ennek ellenére Manfréd búnak ereszti az ormányát, magányosnak érzi magát. Még szerencse, hogy föltűnik a színen Ellie, a mamutlány és két elmaradhatatlan kísérője, az oposszum Ropsz és Eddie. Miközben Manfréd és Ellie némi nehézség után egymásra talál, Sid rájön, hogy csupán vékonyka jéggát választja el őket az áradástól. Ha a gát átszakad, az édenkertből siralomvölgyet csinál a hatalmas áradat.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240040&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Jégkorszak 3: A dínók hajnala",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kUsgnDwO7eu1EGMcGwZ3R3Rv41c.jpg",
+				   previewImage: "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/1f21e6d0-129f-4faa-b2e2-7bcc83875689/compose?aspectRatio=1.78&format=webp&width=1200",
+				   description: "Újra együtt a nagy csapat. Manny, a mamut végre elszánta magát a családalapításra, most a nejével, Ellie-vel várják a trónörökös érkezését. Diego, az öregedő félben lévő kardfogú tigris viszont még mindig jobban szeret egyedül vadászni. Az ügyefogyott lajhárban, Sidben is feltörtek az apai érzések, a maga sajátos módján néhány dínótojás elcsenésével és keltetésével éli ki azt. Sajnos ezzel veszélybe sodorja a kis csapatot, hiszen a dínó mama nem hagyja annyiban a dolgot. Miközben megpróbálják kirángatni Sidet a bajból, még nagyobba kerülnek, a földalatti világba, ahol még mindig a dinoszauruszok uralkodnak.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240043&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Jégkorszak: 4: Vándorló kontinens",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gU8lW3FjebU3HYXvEqJalIo2qID.jpg",
+				   previewImage: "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/ee2096b4-521a-4ae1-b832-dc03cc7a9429/compose?aspectRatio=1.78&format=webp&width=1200",
+				   description: "Az idő a jégkorszakban sem áll meg: minden változik, és mindig jöhet néhány vad meglepetés. A táplálkozási láncra fittyet hányó három jó barát, Manny, Diego és Sid (a mamut, a kardfogú tigris és a lajhár) újból kénytelen vándorútra indulni: egy óriási földmozgás leszakít a kontinensről egy szigetet, és elválasztja őket a hordától. Jobb híján egy úszó jéghegyre költöznek, és új, hófehér hajójukon igyekeznek partra vergődni. A trió a nyílt tengeren sem hazudtolja meg magát: a jég hátán is túlélnek, fura tengeri lények, új földrészek és őskalózok között vágják keresztül magukat, és közben egy percre sem veszítik el a humorérzéküket. Még a motkány is viszontlátja imádott makkját – igaz, olyan körülmények között, melyre egy motkány sem készülhet fel.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240044&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Jégkorszak 5: A nagy bumm",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6hVYfqdDCvYurNm98QDCmGmAdKq.jpg",
+				   previewImage: "https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/C476EB8E6C8440162BC25B6321C4C1ECC46982C64B40F69340B3C82B82181F1C/scale?width=1200&aspectRatio=1.78&format=webp",
+				   description: "A Jégkorszak ötödik epizódjában is találkozhatunk a makkját állandóan elvesztő Motkánnyal; Mannyvel, a kissé félénk, ám nagy szívű gyapjas mamuttal és a vakmerőség határait ezúttal is komolyan feszegető, laza lajhárral, Siddel. A három jó barát izgalmas és lenyűgöző felfedezést tesz az újkorban, s kalandjaik révén ezúttal is megmutatkozik bátorságuk, de az őket összekötő szoros kapcsolat is kiállja a próbát.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240045&hd=1&autoplay=1" 
+			},
+		        {
+			       title: "Lilo és Stitch: A csillag kutya",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/r9kh91i3LDcFV7pPygHaSjmZXfv.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg",
+				   description: "A Lilo és Stitch – A csillagkutya Dean Fleischer Camp rendezésében a Disney 2002-es animációs klasszikusának élőszereplős újragondolása. A történet egy magányos hawaii lányról, Lilóról (Maia Kealoha) szól, aki találkozik egy földönkívüli lénnyel, Stitch-csel (Chris Sanders), akit eredetileg pusztításra terveztek. Lilo és Stitch között különleges kötelék alakul ki, amely segít helyreállítani Lilo széthullott családját.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1" 
+			},
+			{
+			      title: "A kis kedvencek titkos élete",
+                  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sFFAtRaf6VqFGzSyKqLocAEh76B.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/89df17a9082b7b4c8cbd4edcce5bc67d419c210aebb8b9080462991cc449e39c.jpg",
+				  description: "Max, a házikedvenc pudli élete fenekestül felfordul, amikor gazdija hazahoz egy Duke nevű keverékkutyát. Minden ellentétüket félreteszik azonban, amikor rájönnek, hogy egy Hógolyó nevű cuki fehér nyuszi hadsereget készül toborozni a sorsára hagyott háziállatokból, hogy bosszút álljon a boldog, családban élő társaikon és azok gazdáin.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239890&hd=2&autoplay=1"
+			},
+			{
+			      title: "A kis kedvencek titkos élete 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wXh2xckPlVNrQwOe4Ay74FeZ6Mq.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/706e8bd7e97906723d5257cd1c3d4378cc67ac163cd68b146ffde9089fd6dddd._UR1920,1080_SX500_FMjpg_.jpg",
+				  description: "Max és barátai a nyüzsgő nagyvárosi dzsungelből kiszabadulnak egy nyugodt kis tanyára, ahol az élet új dolgait fedezhetik fel, de eközben a város várja őket vissza egy nagy küldetéssel. Közben a kutyák számára a kis újszülött jövevény lesz az egyetlen gyerek, akit szeretnek, a gyerkőc számára pedig nemcsak játszótárssá, hanem valódi baráttá, sőt, már-már példaképpé válnak az állatok.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239891&hd=1&autoplay=1" 
+			},
+			{
+			      title: "Shrek",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/iB64vpL3dIObOtMZgX3RqdVdQDc.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/5a5cf867eb9d4fc1e5d44fa81bca4ced972e299967c7d040f5ff49fef7b49b51.jpg",
+				  description: "Hol volt, hol nem volt, egy messzi mocsárban, meghitt magányban élt egyszer egy morcos ogre, akit Shreknek hívtak. Ám a zöld szörny nyugalmát és életét egy napon fenekestül felbolygatta egy különös esemény: mesebeli lények lepték el a mocsarat - és lepték meg gyanútlan hősünket. A három vak egér futkározott a vacsoráján, a nagy, gonosz farkas feküdt az ágyában, a hét törpe Hófehérke koporsóját tette az asztalára, kunyhója előtt pedig ott nyüzsgött a három hajléktalan kismalac, és mindenféle más varázslatos figurák, akiket a gonosz Farquaad nagyúr űzött el otthonukból. Shrek tehát elment a nagyúrhoz, hogy visszakövetelje mocsarát, de ehhez előbb meg kell mentenie a szörnyű tűzokádó sárkány karmaiból Fiona királylányt, hogy Farquaad feleségül vehesse, és így király lehessen... A nagy kalandban társa is akad az ogrének: a szószátyár Szamár, aki bármit megtenne Shrekért. Hamarosan kiderül, hogy a sárkánynál sokkal nagyobb problémát jelent Fiona különös titka...",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239866&hd=2&autoplay=1"
+			},
+			{
+			      title: "Shrek 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/v8rBpjQjF0XSdwerFJVYPoJUz1z.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/b87bc408f75065a255df650ecdc01f979fc6eac31f0705666b5584c675d09b34._UR1920,1080_.jpg",
+				  description: "A tűzokádó sárkány és a gonosz Farquaad nagyúr legyőzése után Shrek, a zöld öklű öldöklő, mindenki kedvenc ogréja ezúttal élete legkeményebb diójával szembesül: el kell fogadtatnia magát apósával és anyósával. A nászutat követően Shreket és Fionát meghívás várja a lány szüleitől Túl az Óperencián birodalmába. Felkerekednek hát a levakarhatatlan Szamárral, hogy kilépjenek az ünneplő tömeg elé... csakhogy Túl az Óperencián még senki nem tudja, hogy a királylány a varázslat megtörtével kissé másképp változott meg... Harold, a király bizony másképpen képzelte lánya jövőjét - és a sajátját is. És itt lép a képbe a varázslatos hatalmú Jótündér, az elbűvölő Szőke Herceg, no meg a legendás bérgyilkos, Csizmás Kandúr...",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239867&hd=2&autoplay=1"
+			},
+			{
+			      title: "Harmadik Shrek",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/abV9EX68iDjNgwftU2N5vpVr9iZ.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/5f904bd51a3ea5bc4c9eba96c32d3db7a49c01551239df836af0398ba790c92b.jpg",
+				  description: "Nem mindenki akar király lenni - és ez különösen igaz behemót, mocsárbűzös ogrékra. Az öreg Harold király váratlanul megbetegszik és Shreket tekinti a trón várományosának. A birodalom húzódozó jövendő királya vagy talál maga helyett valaki mást a munkára, vagy élete hátralévő részét uralkodással kell töltenie. Mintha ez még nem volna elég, Fiona hercegnő is tartogat egy kis meglepetést Shrek számára. Shrek bepánikol az ország kormányzásával és az apasággal járó felelősségtől és elhatározza, hogy felkutatja az egyetlen személyt, aki rajta kívül elfoglalhatja a trónt. Ő nem más, mint Fiona rég elveszett unokaöccse, Artie, egy középkori iskolakerülő. Amíg az ogre távol van, esküdt ellensége, a Szőke Herceg visszatér Túl az Óperenciánba, hogy elégtételt vegyen az őt ért sérelmekért. Shrek és Artie csak a szószátyár Szamár, a csalafinta Csizmás Kandúr és Fiona barátnői segítségével tudják legyőzni, hogy a film végére megint mindenki boldogan éljen.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239868&hd=2&autoplay=1"
+			},
+			{
+			      title: "Shrek a vége fuss el véle",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tHQqW4gc2Q4aQyi0kgHRwHOqpBg.jpg",
+				  previewImage: "https://static.sweet.tv/images/cache/v2/movie_horizontal_poster/CJ5-EgJlbhoCVUEgAigWMCY=/16158-shrek-forever-after_.jpg",
+				  description: "Hol volt, hol nem volt, volt egyszer egy szeretnivaló ogre, aki összebarátkozott egy beszélő szamárral, aztán megmentett egy gyönyörű hercegnőt és ezzel örökre megváltoztatta az animációs filmek világát. Egy évtizednyi Shrekkel később a végéhez érkezik a varázslatos történet: a Shrek a vége, fuss el véle pedig méltó lezárása ennek a rekorddöntögető, Oscar®-díjas mozijelenségnek. A családi feladatokkal megbirkózni képtelen Shrek visszasírja azokat az időket, amikor még „igazi ogre” volt, ezért aztán aláírja Rumpelstiltskin varázslatos szerződését, amely gondtalanságot ígér, ám amint az életbe lép, minden és mindenki megváltozik. Szamár nem ismeri meg a legjobb barátját, Fionából harcos amazon lesz, a Csizmás Kandúr pedig csúnyán kihízta a lábbelijét. Shreknek mindössze 24 órája van arra, hogy megsemmisítse a szerződést és megmentse Túl az Óperencián birodalmát, no meg a boldog befejezést.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239869&hd=1&autoplay=1"
+			},
+			{
+			      title: "Shrekből az angyal",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/d3kuqVHb2VfOCZ4OocQOLFUjaWx.jpg",
+				  previewImage: "https://m.media-amazon.com/images/I/61lNMtaVGCL._UF1000,1000_QL80_.jpg",
+				  description: "Shrek, a nagy kedvenc most ismét visszatért, ám ezúttal nem egy egészestés filmben láthatjuk viszont, hanem rövid időre bepillanthatunk az otthonába a karácsonyi ünnepek közeledtével. Kedvenceink most is, mint mindig mulatságos helyzetekbe keverednek és szívet melengető párbeszédeket folytatnak, s természetesen az összes eddigi szereplő is kivétel nélkül felbukkan. A mindössze félórás film Shrek és Fiona karácsonyi készülődését, és az ünnepet mutatja be - amolyan ogre-módra.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239870&hd=1&autoplay=1"
+			},
+			{
+			      title: "Félelem és Shrekketés",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5FSb128vXvWOtFQtAZkFjXjYUqw.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c8fc80be131eceb03e25cfbb16186581f52906ce7b0d89cc0b571e6032fa622d.jpg",
+				  description: "A mindenki által szeretett zöld behemót ogre most újra visszatér! Shrek ugyanis a Halloween megünneplésére készül, így egy rövid időre bepillanthatunk jól ismert otthonába. Kedvenceink most is, mint mindig mulatságos helyzetekbe keverednek és szívet melengető párbeszédeket folytatnak, s természetesen az összes eddigi szereplő is kivétel nélkül felbukkan az alig félórás filmben...",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239871&hd=1&autoplay=1"
+			},
+			{
+			   title: "Aladdin",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/f5b1XGx6noPZTOh9tzPh0JhFiVH.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p14596224_v_h10_al.jpg?w=1280&h=720",
+			   description: "Aladdin egy megnyerő utcai suhanc, aki első látásra beleszeret a dúsgazdag hercegnőbe, Jázminba. Közös jövőjük kulcsa egy egyszerű lámpás és az abban lakó Dzsinn lehet - ám a mindenható erejű szellemre nem csak Aladinnak lenne szüksége...",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239130&hd=2&autoplay=1"
+			},
+			{
+			   title: "Szépség és a szörnyeteg",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jr9ECb7VCQHfQZ228oRXaeshKvd.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p11606343_v_h8_bv.jpg?w=1280&h=720",
+			   description: "Belle-t, az eszes, gyönyörű és független ifjú hölgyet kastélyába zárja egy szörnyeteg. Félelmeit leküzdve a lány összebarátkozik új, kényszerű otthona elvarázsolt személyzetével és végül képes lesz arra is, hogy meglássa a gyöngéd, érző szívű herceget a szörnyeteg rettentő külleme mögött.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239133&hd=1&autoplay=1"
+			},
+			{
+			       title: "Hófehérke",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sAs0dSu2NJvI1nFltMx3uTda8b0.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p22972701_v_h8_ag.jpg?w=1280&h=720",
+				   description: "A Disney-klasszikus élőszereplős adaptációja a West Side Story fiatal színésznőjének, Rachel Zegler főszereplésével.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239594&hd=2&autoplay=1"
+			},
+			{
+			       title: "Egy Minecraft film",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rOawabcW2HAhWgSJiiPaVGTYZyx.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p28215037_v_h8_ab.jpg?w=1280&h=720",
+				   description: "Négy kívülálló – Garrett Garrison (Jason Momoa), Henry (Sebastian Eugene Hansen), Natalie (Emma Myers) és Dawn (Danielle Brooks) – kiszakad a mindennapi életéből, amikor egy titokzatos portálon keresztül egy különös világba kerülnek: A Felsővilágba, egy furcsa, kocka alakú földre, ahol a fantázia uralkodik.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239595&hd=2&autoplay=1"
+			},
+			
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>
+		
+		
+		
+		

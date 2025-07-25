@@ -1,0 +1,486 @@
+
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
+        }
+
+        .logo img {
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
+        }
+
+        .movie-container {
+            display: inline-block;
+            position: relative;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .movie-container img {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		{
+			       title: "It ends with us",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mu5WBteoUYXuAnrnqT3X8O3LmAq.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p25243615_v_h8_ac.jpg?w=1280&h=720",
+				   description: "Lily túljut a traumás gyermekkorán, hogy új életet kezdjen. Egy véletlen találkozás, az idegsebész Ryle és közte kapcsolatot teremt, de Lily olyan oldalakat kezd látni, amelyek a szülei kapcsolatára emlékeztetik.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239438&hd=1&autoplay=1"
+			},
+			{
+			        title: "Alkonyat",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/31X8EzPdVYyDiOdu9vZsTIr3rIq.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p182141_v_h10_aq.jpg?w=960&h=540",
+					description: "Bella magának való, különc lány. Amikor az anyja újra férjhez megy, az apjához küldi, egy Forks nevű városkába. Itt váratlan fordulatot vesz az élete, amikor megismerkedik a titokzatos Edwarddal. A fiú nem olyan, mint a többi srác: intelligens, szellemes és különleges, hiszen 1918 óta nem öregedett. Edward ugyanis halhatatlan, mint a vámpírok. Ám ő nem vérre szomjazik, a családja más életmódot választott. A két fiatal között szenvedélyes kapcsolat alakul ki. Ám Edward egyre nehezebben képes féken tartani az ösztöneit. Ráadásul a régi ellenségei is felbukkannak.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239441&hd=1&autoplay=1"
+			},
+			{
+			        title: "Alkonyat:Újhold",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/fEcB0IRb7xmQ2Hs0WrsQ6SAtFSC.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p3505527_v_h8_ac.jpg?w=1280&h=720",
+					description: "Edward és Bella boldogságát beárnyékolják a lány tizennyolcadik születésnapján történt események. Edward kénytelen belátni, hogy a szerelme nincs biztonságban mellette. Elhatározza, hogy szakít a lánnyal, és a családjával együtt elköltöznek a városból. A csalódott Bellát a gyerekkori barátja, Jacob segíti át a nehézségeken. Eközben egyre közelebb kerülnek egymáshoz. A fiúnak azonban van egy titka, a titokzatos Quileute indián törzs tagja. Kiderül, hogy Jacob vérfarkas, a vámpírok legfőbb ellensége. Ettől kezdve nemcsak Bella, hanem Edward élete is veszélyben van.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239442&hd=1&autoplay=1"
+			},
+			{
+			        title: "Alkonyat:Napfogyatkozás",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/qPMGANNB5C6YMZgWVUpf0ulWOll.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p3623663_v_h8_bk.jpg?w=1280&h=720",
+					description: "Újra együtt a különös szerelmespár, a vámpír Edward és halandó kedvese, Bella. Úgy tűnik, minden olyan, mint régen, mielőtt a fiú és családja elhagyta volna Forks városát. Ám kiderül, hogy Bella legjobb barátja, Jacob egy vérfarkas, a vérfarkasok és a vámpírok pedig ősidők óta háborúban állnak egymással. A lány hiába próbálja kibékíteni őket, az Edward iránt érzett szerelme és a Jacobhoz fűződő barátsága képtelen helyzet elé állítja. Eközben a közeli Seattle-ben borzalmas dolgok történnek, amihez minden jel szerint Bellának is köze van.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239443&hd=1&autoplay=1"
+			},
+			{
+			        title: "Alkonyat:Hajnalhasadás 1.rész",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nI367Bh6brWgm6smUPTK5w2Tbco.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p8500932_v_h8_az.jpg?w=960&h=540",
+					description: "Bella Swan és a vámpír Edward Cullen végre az ifjú házasok boldog életét élhetnék, ám árulások és tragédiák sorozata egész világukat romba döntheti. Az esküvő után Bella és Edward nászútra Rio de Janeiróba utaznak, ahol végre átadhatják magukat szenvedélyeiknek. Bella hamarosan észreveszi, hogy várandós, és a kis híján végzetes szülés során Edward teljesíti a lány régi kívánságát: halhatatlanná teszi. Lányuk, a különleges Renesmee érkezése azonban veszélyes események lavináját indítja el. A Cullenek és szövetségeseik szembekerülnek a vámpírvezetők, a Volturik félelmetes tanácsával, és úgy tűnik, elkerülhetetlen sorsdöntő összecsapásuk.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239444&hd=1&autoplay=1"
+			},
+			{
+			        title: "Alkonyat:Hajnalhasadás 2.rész",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h6z6S8geiAGI4we1fwOJdix5EHE.jpg",
+					previewImage: "https://musicart.xboxlive.com/7/e6026e00-0000-0000-0000-000000000002/504/image.jpg",
+					description: "Bella miután életet adott lányának, Renesmee-nek, megerősödve és új képességek birtokában, vámpírként tér magához. Végre beteljesedett amire mindig is vágyott: vámpírként élheti életét Edward oldalán. A boldogságukat azonban hamarosan megzavarja a Volturik tanácsa, akik azt állítják, a Cullenek vétettek a vámpírtörvények ellen. Úgy vélik, hogy Bella és Edward gyermeke halhatatlan, természetfeletti képességeit születése után kapta, ezért a gyermeknek meg kell halnia. A Volturik csak a kínálkozó alaklomra vártak, hogy örökre leszámolhassanak a Cullenekkel. Edward Jacobbal az oldalán szövetségeseket gyűjt, hogy együtt küzdjenek meg a Volturikkal a mindent eldöntő, utolsó nagy csatában, ahol már nem csak családja, hanem a vámpírok és a vérfarkasok sorsa a tét.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239446&hd=1&autoplay=1"
+			},
+			{
+			        title: "A szürke ötven árnyalata",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tzy3AvOkeUKfwRyLU6kxYG7jZrD.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p10592929_v_h10_ag.jpg?w=1280&h=720",
+					description: "Anastasia Steele, egy irodalom szakos egyetemi hallgató, aki interjút készít Christian Greyjel, egy jóképű és intelligens ifjú milliárdossal. Ana a férfi minden tartózkodása ellenére egyre közelebb kerül hozzá, Grey pedig képtelen ellenállni a lány csendes szépségének, eszének és független szellemének. Greyt azonban minden sikere ellenére sötét démonok gyötrik és Ana lassan egyre jobban felfedezi Grey titkait és tulajdon, sötét vágyait.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239445&hd=1&autoplay=1"
+			},
+			{
+			        title: "A sötét ötven árnyalata",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bAm2IUC27AwaHhhT241xAwc88CP.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p11745452_v_h10_ad.jpg?w=1280&h=720",
+					description: "Amikor a megsebzett Christian megpróbálja visszacsábítani az óvatos Anát az életébe, ő új megállapodást akar, mielőtt adna még egy esélyt a férfinak. Miközben ők ketten megpróbálják újra felépíteni a bizalmat egymás iránt, baljós alakok bukkannak elő Christian múltjából, és elkezdik bekeríteni a párt, hogy szétzúzzák a közös jövővel kapcsolatos reményeiket.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239447&hd=1&autoplay=1"
+			},
+			{
+			        title: "A szabadság ötven árnyalata",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dPlPdpF1TKGfrANvLWTca6nWuOa.jpg",
+					previewImage: "https://ntvb.tmsimg.com/assets/p12656913_v_h10_ag.jpg?w=1280&h=720",
+					description: "Házasságukkal beteljesült Ana és Christian szerelme, de a boldogsághoz ennél több kell. A múlt árnyai ugyanis sötétségbe boríthatják a fiatal pár életét, miután feltűnik Ana egykori főnöke, Jack Hyde, akinek semmi sem túl drága, hogy bosszút álljon.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239449&hd=1&autoplay=1"
+			},
+			{
+			       title: "Mielőtt megismertelek",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/59M3ka4ACsFV1xbNf0EUti1sUc5.jpg",
+				   previewImage: "https://cinemusefilms.com/wp-content/uploads/2016/06/87-me-before-you.jpg?w=650",
+				   description: "A szerelem gyakran ott talál rank, ahol a legkevésbé sem számítunk rá. Néha pedig olyan helyekre juttat el bennünket, amiről sosem gondoltuk volna, hogy valaha látni fogjuk. Louisa Lou Clark egy különös házban él Anglia egyik vidéki részén. A 26 éves nőt mindenki kreatív különcnek ismeri, aki nem igazán tud mit kezdeni az életével és egyik állástól a másikig tengődik, hogy összetartó családját kisegítse. Bár jellemzően optimista természet, hatalmas próbatétel elé állítja az élet, amikor elvállalja a legújabb munkáját. A helyi kastélyban kell gondját viselnie egy fiatal, gazdag bankárnak, Will Traynornek aki két évvel korábban egy baleset következtében kerekes székbe kényszerült és akinek az élete egy szempillantás alatt megváltozott. A régebben kalandvágyó Will mára fásult cinikus emberré változott, aki már csaknem feladta a küzdelmet. Azonban Lou elhatározza, megmutatja neki, hogy miért érdemes élni.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239777&hd=1&autoplay=1"
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>

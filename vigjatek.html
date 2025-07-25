@@ -1,0 +1,1180 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+		<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+
+		
+		<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 20px 0;
+        }
+
+        .logo img {
+            width: 150px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
+        }
+
+        .movie-container {
+            display: inline-block;
+            position: relative;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .movie-container img {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BLN73N32GS');
+</script>
+	
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="index.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet">
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/1c0399b4f4168b1c49b17bad81a1db96748e40eb58856b3075c9c557e7fee246.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240073&hd=2&autoplay=1">Nézd meg most!</a>
+                
+		</div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+
+    <!-- Filmek listája -->
+    <div id="movie-list">
+        <!-- A filmek dinamikusan kerülnek ide -->
+    </div>
+	
+	
+	<div class="navbar">
+    <a href="index.html">Filmek</a>
+    <a href="sorozatok.html">Sorozatok</a>
+    <a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
+	<a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
+    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
+    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
+	<a href="horror.html" onclick="filterByCategory('Horror')">Horror</a>
+	<a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
+    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
+	<a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
+    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
+	<a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
+    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
+    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
+</div>
+	
+	
+	
+	
+	
+	 <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Automatikus váltás 5 másodpercenként
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+
+        // Film adatbázis
+        const movies = [
+		
+		
+		
+		
+		
+		
+		{
+                title: "Ted",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tZPTcdGTpxq4yJx1YxqBl0gthNz.jpg",
+                previewImage: "https://image.tmdb.org/t/p/w780/wS9TiAS1WckeTS2IrFg5dRN9WQD.jpg",
+                description: "A Family Guy megalkotója, Seth MacFairlane sajátos, eredeti humorát most első mozifilmjében csillogtatja meg, íróként és rendezőként egyaránt. Az élő szereplőket és a számítógépes animációt ötvöző vígjáték John Bennettről szól, aki felnőtt férfiként kénytelen szeretett játékmackójával foglalkozni, aki egy gyermekkori kívánság eredményeként életre kelt, és azóta is ott él mellette.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239546&hd=1&autoplay=1"
+            },
+            {
+                title: "Ted 2",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/uk8gK735dxA2eOxsEK4OT8ppJ3b.jpg",
+                previewImage: "https://ntvb.tmsimg.com/assets/p10975254_v_h10_aa.jpg?w=1280&h=720",
+                description: "Ted, a szabad szájú plüssmackó élete fordulópontjához érkezett, ugyanis párjával szeretnének gyermeket vállalni. Az ügy számos nehézséget vet fel: Tednek bíróság előtt kell bizonyítania, hogy emberi lény. Barátja és ő felkérik a csinos ügyvédnőt, Samantha Jacksont, aki elvállalja, hogy a bíróság előtt áll ki a plüssmackó igazárt. Seth MacFarlane (Family Guy) minden idők legnagyobb bevételt hozó korhatáros vígjátékának folytatása ismét önfeledt szórakozást ígér.",
+                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239547&hd=1&autoplay=1"
+            },
+			{
+                title: "Végzős év",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8Y2bj0835ypZi8f1O0NhcWFzkAO.jpg",
+                previewImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7TamMvDjeTc2nJqQA2tA_sq181b4FROs-0g&s",
+                description: "Egy félresikerült mutatvány miatt a pomponlány 20 évig kómában volt. Mikor 37 évesen felébred, készen áll rá, hogy megvalósítsa középiskolai álmát, és bálkirálynő legyen.",
+                link: "https://videa.hu/player?v=nzThOGvY4qiNcbly"
+            },
+			{
+			   title: "Kavarás",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/lpUTBaJx7S2HCtMFBUQimCHgalF.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p10372479_v_h8_af.jpg?w=960&h=540",
+			   description: "Az első randik szabálya egyszerű: tégy próbát, dönts gyorsan, ha pedig nem tetszik a másik, lépj le azonnal - és örökre. E film férfi hőse (Adam Sandler) így is tenne. Amikor első randija az egyébként kedvesnek tűnő szöszivel (Drew Barrymore) nem jön össze, elegánsan távozni készül... ám a sors úgy hozza, hogy kénytelen mellette maradni. Méghozzá összezárva egy családi üdülőhelyen, korábbi házasságaikból származó gyerkőceik víg társaságában. A kezdeti ellenszenvből gyors utálat lesz. Azután sok bonyodalom következik, és közben a férfi és a nő fokozatosan felfedezi, hogy a másik nem is olyan kiállhatatlan, mint első látásra hitte.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239074&autoplay=1"
+			},
+			{
+			   title: "Imádlak utálni",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ggPLaQPCR1GDxvi7D8JUEsadFaF.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p24765616_v_h8_ab.jpg?w=1280&h=720",
+			   description: "A csodálatos első randi után Bea és Ben tüzes vonzalma jéghideggé válik – egészen addig, amíg váratlanul újra össze nem találkoznak egy ausztráliai esküvőn. Így hát azt teszik, amit bármelyik érett felnőtt ember megtenne: úgy tesznek, mintha egy pár lennének.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239101&hd=1&autoplay=1"
+			},
+			{
+			    title: "Bérhaverok",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/i4HXrxjZHlDgqaN2MEENmUuZu1I.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p10866908_v_h10_aa.jpg?w=1280&h=720",
+				description: "Egy balféknek is jár a boldog esküvő. Doug legalábbis ebben reménykedik, így menyasszonyának, álmai nőjének azt hazudja, hogy rengeteg barátja van, vagy hét vőfélyt szervezett már a legjobb cimbikből és a tanúja pedig a legeslegjobb haver lesz. A lagzi viszont vészesen közeledik, és Doug képtelen beújítani legalább egy balekot, akit otthon bemutathatna. Így jut el Jimmy cégéhez. A nagydumás kiscsávó vállalata pont a Doughoz hasonló lúzerek miatt megy jól: hívásra régi iskolatársnak, gyerekkori pajtásnak adja ki magát, igény szerint tanú vagy vőfély. A lényeg, hogy hazudik, mint a vízfolyás, és mestere a sosem volt közös emlékek kitalálásának és előadásának. Ő szervezi össze azt a hét gyanús figurát is, akiknek az a feladata, hogy Doug legjobb barátainak képében megédesítsék pirulós és dadogós, de nagyon szerelmes hősünk élete nagy napját. De az is lehet, hogy végül inkább tönkre teszik.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239220&hd=1&autoplay=1"
+			},
+			{
+			   title: "Pancser police",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/q9JiyxdujRoqmxb3ZR10yKSq6Yv.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p8045197_v_h10_aa.jpg?w=960&h=540",
+			   description: "Allen, a gyilkosságiak könyvelője rajong az asztaláért. Társát, Terryt már más fából faragták, de amióta nyilvánosan megszégyenült, Allen mellé osztották be. Ők ketten csak messziről bámulják az ügyosztály menő kopóit: Dansont és Manzettit, míg végül egyszer úgy hozza a sors, hogy kénytelenek a helyükre lépni. Eljön a nagy lehetőség, hogy megmutassák, ők micsoda rendőrök.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239241&hd=1&autoplay=1"
+			},
+			{
+			    title: "Megjött apuci",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zAJz8BImmpr3ohUmJFTCj0ajQE5.jpg",
+				previewImage: "https://images1.resources.foxtel.com.au/store2/mount1/16/4/4jt42y.jpg",
+				description: "Will Ferrell legújabb vígjátékában egy galamblelkű rádiós nagyfőnököt alakít, aki nagyon szeretne felesége két gyerekének a legjobb nevelőapja lenni - de nem számít arra, hogy felbukkan a hiperlaza és élősködő vérszerinti apa, és így komoly versenyre kényszerül a gyerekek kegyeiért.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239242&hd=1&autoplay=1"
+			},
+			{
+			    title: "Megjött apuci 2",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/i2kcNR8onxmNUlDYK6b0ugudwdl.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p13783983_v_h10_aa.jpg?w=960&h=540",
+				description: "Brad és Dusty elérték a lehetetlent: barátok és apatársak lettek. Minden simán megy, amíg Dusty régi motoros, macsó faterja, Kurt és Brad ultraérzékeny és érzelmes apja, Don meg nem érkeznek a karácsonyi ünnepekre. Kurtnak feltett szándéka, hogy éket verjen Dusty és Brad közé. Vajon a fiúk össze tudnak-e dolgozni, hogy bebizonyítsák Kurtnak, hogy működik a modern nevelésük, és sikerül összehozniuk a nagy családi karácsonyt?",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239243&hd=1&autoplay=1"
+			},
+			{
+			    title: "Testcsere",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4RMCgbdxxpDfbszUJmm8KIlDOEV.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p8554305_v_h10_aa.jpg?w=1280&h=720",
+				description: "Mitch és Dave együtt nőttek fel, elválaszthatatlan jóbarátok voltak, de ahogy az évek teltek, lassan elsodródtak egymástól. Dave állandóan dolgozó ügyvéd, férj, és három gyerekes apa, Mitch viszont agglegény maradt, hol van melója, hol nincs; nagyra nőtt gyerek, akinek soha nem kellett még felelnie semmiért. Mitch szemében Dave-nek minden összejött: a gyönyörű feleség, a szerető gyermekek és a jól tejelő állás a neves jogi cégnél. Dave számára viszont Mitch stresszmentes, kötelezettségek és következmények nélküli élete maga a valóra vált álom. Egy közös italozós este után Mitch és Dave világa a feje tetejére áll, amikor egymás testében ébrednek fel, és annak rendje és módja szerint rendesen ki is buknak. Noha megszabadulnak addigi életük nyűgjétől, a két barát hamarosan ráébred, hogy a másik élete korántsem az a fenékig tejfel, mint aminek kívülről látszott. A dolgot tovább bonyolítandó feltűnik a színen Dave szexi munkatársa, Sabrina, és Mitch rég látott apja is.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239244&hd=1&autoplay=1"
+			},
+			{
+			     title: "A csúf igazság",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/x7jNwP9sKzFdrkVW2yLjlVWTlE2.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p190676_v_h10_aa.jpg?w=1280&h=720",
+				 description: "A pasi szerint minden nőt el lehet csábítani. A nő szerint minden nőnek megvan a maga szabad akarata meg józan esze - és mert az egyik egy reggeli tévéműsor gátlástalan, nagyszájú műsorvezetője, a másik meg a producere: fogadást kötnek. A férfi vállalja: bebizonyítja a főnökének, hogy a módszerei hiba nélkül, mindig működnek, azt csábít el, akit akar. És ő történetesen majdnem mindenkit akar. Ha pedig ez kevés volna, azt is vállalja, hogy a nő tanácsadója lesz - és biztos benne, hogy a módszerei működni fognak. A pár marakodva, versengve ismerkedik a csábítás fortélyaival. Egymás büszkeségét szeretnék megtörni, míg végül, mindketten megtörnek. Mert persze egymásba szeretnek. De ez még nem a vége a történetnek.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239345&hd=1&autoplay=1"
+			},
+			{
+			     title: "Kémek a szomszédban",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4U4pHsaaMGtm2mhKVIglICxcLy3.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p12119367_v_h10_aa.jpg?w=1280&h=720",
+				 description: "Miután Jeff és Karen Gaffney gyerekei nyári táborba mentek, a házaspár abban reménykedik, hogy kettesben romantikázhatnak. Karen azonban észreveszi, hogy új szomszédok költöznek az utcába. Tim utazási könyveket ír és üvegszobrokat készít, míg Natalie szociális médiatanácsadó, gasztroblogger és a Sri Lankai árvák megmentője. A kezdeti gyanakvás ellenére összebarátkoznak az új szomszédokkal, nem sejtve, hogy nemzetközi kémek.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239348&hd=1&autoplay=1"
+			},
+			{
+			     title: "A bájkeverő",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/726BgPMBFgI8MVvC4btuajD75TC.jpg",
+				 previewImage: "https://play-images-prod-ctf.tech.tvnz.co.nz/api/v1/web/image/14rIjyIqNU5ysKFWXdnZBG/d03a1a890c281284dfc6dd9510a3fb85/Bedazzled_showtile.png.d03a1a890c281284dfc6dd9510a3fb85.jpg?width=1200&height=630",
+				 description: "Az ördög még soha nem volt ennyire dögös vagy vidám! Elliot, a szerencsétlen, szerelemre éhes számítógép-technikus beleegyezik, hogy eladja lelkét hét kívánságért cserébe. De a sötétség ravasz hercegnőjének néhány trükknél több van a tarsolyában. És mielőtt azt mondhatná, hogy tűz és kénkő, Elliot élete hisztérikus pokollá válik a földön.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239352&hd=1&autoplay=1"
+			},
+			{
+			     title: "Hopp",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/eN8eNE1q6OD7yFzgy9fweIViuX3.jpg", 
+				 previewImage: "https://c4.wallpaperflare.com/wallpaper/214/948/1005/hop-2011-poster-rabbit-movie-wallpaper-preview.jpg",
+				 description: "Az animációt az élő szereplőkkel bravúrosan ötvöző Hopp Fredről, a munkanélküli naplopóról szól, aki véletlenül megsebesíti a húsvéti nyuszit, és át kell vennie a munkáját, amíg a nyuszi felépül. Miközben Fred a világ legzűrösebb vendégével küszködik, mindketten megtanulják, hogy mi kell ahhoz, hogy az ember végre felnőjön.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239387&hd=1&autoplay=1"
+			},
+			{
+			     title: "Nyúl Péter",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8iHFcKMVfgvVc8I9Wv3rc3javJe.jpg",
+				 previewImage: "https://artssiouxfalls.org/wp-content/uploads/2024/03/PeterRabbit_F_Slide-1024x554.png",
+				 description: "Nyúl Péter nagy szájánál csak a füle nagyobb. Egyébként jó kedélyű, laza, és a kék dzsekijéről biztosan felismered. Meg arról, hogy nem hord nadrágot. Szerinte ő az ember legrégibb barátja, és ezért joga van néha megebédelni a kiskertben, megmelegedni a konyhában és bulit szervezni a haverjainak nappaliban. A helybéli tanyagazdának azonban erről egészen más elképzelései vannak.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239388&hd=1&autoplay=1"
+			},
+			{
+			     title: "Nyúl Péter 2",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7BetBcUwAO48laZKx6HSbXq0hXi.jpg",
+				 previewImage: "https://lh4.googleusercontent.com/proxy/hLup-qnr_aLw9Y3zYlIcILWawnOY0oSVrFcsXhvZlKn0Zic9VLfVpMwdmO5uWKSYuYy-8wOeLHHoozORY8kE66uHpKJjCfFfbuffXuSVe3AU8SOyp38",
+				 description: "Nyúl Péter és barátai visszatérnek, és visszatér velük Bea, a bájos kétlábú valamint vőlegénye is. De a boldog brit vidéket ezúttal lecseréli a nagyváros zaja, ahol semmi sem olyan békés, mint egy ötórai tea: ahova Péter és rokonsága beteszi a tappancsát, ott biztos a felfordulás.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239389&hd=2&autoplay=1"
+			},
+			{
+			    title: "Csaló csajok",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/r9KrZ4LX6A2C0TLJYTRYp7mkG4J.jpg",
+				previewImage: "https://pixel.disco.ott.showmax.com/uuid/688762ee-5986-35b8-82f5-cc11175b101f/COVER_TITLE_WIDE?language=en-US&proposition=SHOWMAX&version=8dda181d-64db-3e86-9968-913d51a51b27",
+				description: "Penny egy tökre átlátszó sztorival csal ki pénzt férfiakból, de olyan vehemenciával teszi ezt, hogy azok simán bekajálják. Josephine Chesterfield inkább nagyvadakra lő, módszerei sokkal kifinomultabbak és segédei is vannak az átverésekhez. Mikor Penny Josephine vadászterületére, a Riviérára téved, szembesülnie kell azzal, hogy tudása és stílusa kevés ide, ezért leckéket vesz kifinomult eleganciából. A közös ügyködésnek anyagi vita vet véget, ekkor versenybe szállnak egymással, a cél egy mobiltelefonos applikáció kitalálójának, az ifjú milliomos Thomas Westerburgnek a megkopasztása. A lányok a saját módszereikkel kezdenek hozzá a dologhoz, miközben próbálják egymást is megakadályozni, hátráltatni a sikerben.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239397&hd=1&autoplay=1"
+			},
+			{
+			     title: "Hogyan legyünk szinglik?",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/aJ5Ek80491f0xj10jETgoClmnX4.jpg", 
+				 previewImage: "https://irisworldofbooks.wordpress.com/wp-content/uploads/2016/04/how-to-be-single-trailer.jpg",
+				 description: "Van, aki profi mód műveli a szingliséget, van, aki rossz ebben a műfajban… és van Alice. Meg Robin. Meg Tom, David és a többiek. New York tele van magányos szívvel és testtel, olyanokkal, akik kiválóan érzik magukat a bőrükben és olyanokkal, akik rettentően; és egyáltalán nem akarják mindannyian ugyanazt. Van, akinek életre szóló szerelem kéne, van, akinek csak egy vad éjjel, vagy még annál is kevesebb.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239402&hd=1&autoplay=1"
+			},
+			{     
+			       title: "21 Jump Street: A kopasz osztag",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3sXfsxNQB4LP3KFnYcJ4FVG3Ogn.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p8869472_v_h10_aw.jpg?w=960&h=540",
+				   description: "A jó zsaru nem feltétlenül barázdált arcú, kemény figura. Létezik egy különlegesen kiképzett speciális egység, amelynek a tagjait olyankor vetik be, amikor egy rejtély szálai kamaszok közé vezetnek. Schmidt és Jenko (Jonah Hill és Channing Tatum) csak nemrég fejezték be a rendőrakadémiát, és nem állnak a legjobb zsaruk hírében. Kapnak egy esélyt, hogy bizonyítsanak: újra hátizsákot ragadnak a revolvertáska helyett, hogy egy veszélyes kábítószer-kereskedő bandát leleplezzenek. Ehhez azonban be kell épülniük az iskolások közé. A baj csak az, hogy a gimisek már egyáltalán nem olyanok, mint ők voltak néhány évvel ezelőtt…és még a kamaszkori szorongásaikkal is meg kell küzdeniük, amiről már azt hitték, hogy rég a múlté.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239409&hd=2&autoplay=1"
+			},
+			{
+			       title: "22 Jump Street: A túlkoros osztag",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sdcZSFPYGZhsb5ourvcCbbFFpol.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p10372543_v_h10_ag.jpg?w=1280&h=720",
+				   description: "A rossz rendőr is hasznos - ha tejfeles képű. A kopasz osztag tagjai különlegesek: olyan éretlenek, hogy feltűnés nélkül elvegyülhetnek a fiatalkorú bűnözők között. Jenko nem túl eszes, de legalább kemény, társa Schmidt még pufi is. A véletlen úgy hozta, hogy agyatlan módszereikkel valahogy sikerült lebuktatniuk egy középiskolai kábítószer-bandát, így főnökük, Dickson kapitány új bevetésre küldi őket. A páros ezúttal egy nagyon gyanús főiskola felé veszi az irányt.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239410&hd=1&autoplay=1"
+			},
+			{
+			       title: "Barátnőt felveszünk",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4qEWrhjZe0vaJNwdICH3CnSt60q.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p23561164_v_h8_ad.jpg?w=1280&h=720",
+				   description: "A gyermekkori otthona elvesztésének küszöbén Maddie egy érdekes álláshirdetést fedez fel: gazdag helikopteres szülők keresnek valakit, aki „randevúzna” introvertált 19 éves fiukkal, mielőtt az egyetemre indul. Meglepetésére Maddie hamarosan rájön, hogy Percy nem könnyű eset.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239468&hd=2&autoplay=1"
+			},
+			{
+			       title: "Bölcsek kövére",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6Fufd3pjSTBN2TUNP7C3Iq97hUw.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p18173_v_h10_bf.jpg?w=1280&h=720",
+				   description: "Azzal még semmit sem mondtunk, ha eláruljuk, hogy Sherman Klump professzor a legnagyobb arc az egyetemen. Mindkét értelemben. Ő a bölcsek kövére! Ez a tudós kolosszális. Az agya fenomenális. A teste kriminális. A családja abnormális. A szerelmi élete pedig katasztrofális. Ez a minden hájjal megkent hasas pasas, ez a túlsúllyal sújtott makro-professzor, aki alig fér a bőrébe, miután már mindent kipróbált, hogy leadjon valamit kétszáz kilójából, végső elkeseredésében feltalál egy forradalmi génformulát. Ki is próbálja saját magán és észreveszi, hogy már nem az aki volt, pontosabban csak a fele régi önmagának. Egy korty a csodalöttyből, és az aranyos, szégyenlős tudósból egy fesztelen, nagysvádájú Casanova lesz, Haver Lamúr, akinek a nők nem tudnak ellenállni, és aki bármilyen helyzetből kidumálja magát.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239470&hd=1&autoplay=1"
+			},
+			{
+			       title: "Bölcsek kövére:A Klump család",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yHooyDHgUV8hXdWlTXn9r6zh4jX.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p25756_v_h8_as.jpg?w=1280&h=720",
+				   description: "A bölcsen kövér, vagy inkább kövéren is bölcs Sherman Klump professzor beleszeret kolléganőjébe, a DNS-szakértőként magának nagy hírnevet szerzett gyönyörű Denise Gaines-be, mellesleg pedig - talán a szerelem hevében - felfedez egy olyan szert, amely megállítja és visszafordítja az öregedési folyamatot. Sajnos felbukkan a színen Sherman soványabb, de annál kellemetlenebb alteregója, Buddy Love, aki egy kissé felkavarja a kedélyeket, de szerencsére időben bekapcsolódik az eseményekbe a többi Klump is, így van remény arra, hogy helyre rázódnak a dolgok.The Eddie Murphy Show. Valamikor a '80-as évek derekán ez a fogalom egyet jelentett az akkor legnépszerűbb fekete komédiás önálló paródiaestjével. Stand-up comedy, vagyis egyszemélyes, történetmesélős nevettetés.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239471&hd=1&autoplay=1"
+			},
+			{
+			       title: "Norbit",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/w9CzJl0Q4Rv2jmbKVS65uaqschE.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p163211_v_h8_aa.jpg?w=1280&h=720",
+				   description: "Norbit, akit a szülei csecsemőkorában eltaszítottak maguktól, mindig is súlyos szeretethiányban szenvedett. Mr. Wong, az őt felnevelő kínai étteremtulajdonos sem szerette soha, ellenben igen sikeresen keserítette meg az életét. Kissrácként Norbit végül megkapta az általa oly hőn áhított figyelmet egy túlsúlyos lánytól, aki eleinte igazán kedvesnek tűnt... Húsz évvel később hősünk még mindig ugyanaz a békés, jámbor fickó, a lány viszont időközben gigantikus méretű házisárkánnyá változott. Ők ketten mostmár jegyes pár, de Norbit leginkább a bokszzsák szerepét játssza a kapcsolatban. Titkon egy álomnő után epekedik, aki nem csak hogy gyönyörű, de ő Norbit egyetlen reménye, hogy kiutat találjon a rémálomnak ígérkező házasságból. Ahogy közös jövőjét tervezgeti szíve királynőjével, szerencsétlenségére rá kell jöjjön: jegyese nem az a fajta nő, akitől olyan könnyen meg lehet szabadulni...",
+				   link:  "https://vk.com/video_ext.php?oid=1037217102&id=456239476&hd=2&autoplay=1"
+			},
+			{ 
+			       title: "Seholország",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/qh5hKd0KhfqYKPBAk8UzfTUSxUn.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p176370_v_h8_av.jpg?w=960&h=540",
+				   description: "Evan befektetési tanácsadó, aki többet foglalkozik a tőzsdei árfolyamokkal, mint a kislányával. A hétéves Olivia így a fantáziavilágába menekül, ahol hercegnőkkel barátkozik. Rossz idők járnak Evanre: veszélyben van a széke, egyre kevesebb a kuncsaftja. Ráadásul lánya telerajzolja az üzleti feljegyzéseit a képzeletbeli hercegnők gondolataival. A végsőkig elkeseredett Evan a hercegnők üzeneteinek felhasználásával tart prezentációt a befektetőknek. Legnagyobb megdöbbenésére a jóslatok valóra válnak. Mindez arra készteti, hogy átértékelje a lányához fűződő kapcsolatát.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239477&hd=1&autoplay=1"
+			},
+			{
+			       title: "A magadfélék",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/xiCvFBpGivX5hdCQyem1xj5c23J.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p23583947_v_h8_aa.jpg?w=1280&h=720",
+				   description: "Egy új házaspár megtanulja, hogy az ellentétek vonzzák egymást, de egyes családok nem, amikor szembesülnek szüleik egymásnak ellentmondó nézeteivel a kapcsolatukról.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239478&hd=1&autoplay=1"
+			},
+			{
+			       title: "50 első randi",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gsEhxMv43i2JZECKM9YXhYgDvDt.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p33587_v_h10_aa.jpg?w=1280&h=720",
+				   description: "Henry a paradicsomi Hawaii-on éli az unatkozó playboyok édes életét. Egyik reggel azonban találkozik a csinos Lucyval, akinek remek a humora, bájos a mosolya és palacsintájából épp meseházat épít a tányérján. Egyszóval teljesen belehabarodik a lányba. Minden nagyszerűen alakul, de másnap kiderül, hogy Lucy semmire sem emlékszik a vidám randiból, mivel rövid távú memóriája egy autóbalesetben jóvátehetetlenül megsérült. Így Henrynek nem marad más választása: minden nap újból nekiveselkedik, hogy meghódítja Lucyt.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239479&hd=2&autoplay=1"
+			},
+			{
+			       title: "Csontdaráló",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2q22bRkQTRCYueqy2wnalv5wsEc.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p35823_v_h10_af.jpg?w=960&h=540",
+				   description: "Egy sztársportoló is kerülhet nagyon mélyre. Ennél mélyebbre azonban biztosan nem. Paul Crewe (Adam Sandler) egykor az amerikaifoci bajnokság ünnepelt játékosa volt, ma csak egy a rabok között: igazi nehézfiúkkal összezárva tölti mindennapjait az USA egyik legjobban őrzött, legrosszabb körülmények között fenntartott börtönében. Ám a fegyencek között akad egy régi ismerős: egykori edzője (Burt Reynolds) is itt tölti életfogytig tartó büntetését. A börtönigazgató bíztatására a rabok edzeni kezdenek, és a szedett-vedett társaság hamarosan kihívhatja legnagyobb ellenfelét: az őrök válogatottját. A pályára kifutó csapatok mindennél jobban gyűlölik egymást. Eddig sem vigyáztak a másik testi épségére. Ami most a pályán folyik félig játék... félig van egy másik, kimondatlan célja is: a játékosoknak, a bíróknak és a börtönigazgatónak is.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239481&hd=1&autoplay=1"
+			},
+			{
+			       title: "A kismenő",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/sInsIGezR5HLBHqDMAF6QofXDPJ.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p29097_v_h8_ax.jpg?w=1280&h=720",
+				   description: "A világon minden ember gazdag akar lenni. Longfellow Deeds (Adam Sandler) kivétel: ő csupán arra vágyik, hogy gyermeteg versikéit üdvözlőlapok hátára nyomtassák. Egyébként szereti a csendes kisvárost, ahol él és a zsúfolt pizzériát, amelyből éldegél. Egy nap Deeds kénytelen elmenni a nagyvárosba, hogy átvegye 40 milliárd dolláros örökségét, melyet soha nem látott, elfeledett nagybácsikája hagyott rá. A pökhendi városlakók persze ki akarják semmizni a vagyonából, vagy el akarják csábítani a vagyonáért, vagy információkat szeretnének kicsalni belőle a vagyonáról. Szerencsére a jövevényt sem ejtették ám a feje lágyára.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239482&hd=1&autoplay=1"
+			},
+			{
+			       title: "Férj és férj",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6jrK7lzV0LGXt5SZMufr0oTkeiJ.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p167482_v_h8_aj.jpg?w=1280&h=720",
+				   description: "Egy tűzeset során Larry, a tűzoltó megmenti Chuck életét. A férfi nem is tudja, hogyan hálálja meg mindezt. Larry azonban megtalálja a módját, ugyanis furcsa helyzetbe került. A bürokrácia szeszélye folytán a saját gyerekei nem lehetnek az életbiztosítása kedvezményezettjei. Mi sem egyszerűbb, arra kéri Chuckot, mondja azt, hogy az élettársa. A dolog egészen addig remekül működik, míg az egyik hivatalnok gyanút nem fog. Nincs más hátra, ha nem akarnak lebukni, akkor együtt kell élniük egy darabig. A két szélhámos egyik kínos szituációból a másikba csöppen.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239483&hd=1&autoplay=1"
+			},
+			{
+			       title: "Nagyfiúk",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cpec8KXCJ3XGU8ZKGss72zumPnq.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p7937506_v_h10_aa.jpg?w=1280&h=720",
+				   description: "Harminc évvel a középiskola befejezése után újra találkozik egymással az öt egykori jó barát. Szomorú aktualitása a dolognak, hogy meghalt a kosárlabdaedzőjük, akivel megnyerték a bajnokságot. Ha már a temetésére végre összejött a csapat, kihasználják az alkalmat, és együtt töltik a hétvégét a feleségeik és gyerekeik társaságában, méghozzá az edzőjük tóparti házában, ahol régen a győzelmüket is ünnepelték.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239484&hd=1&autoplay=1"
+			},
+			{
+			       title: "Nagyfiúk 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6e7GjwSyYK4X8DmqNOjPEqsMKTH.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p9670463_v_h10_aa.jpg?w=1280&h=720",
+				   description: "A jó barátok mindig jó barátok maradnak. Az öt általános iskolai haver, aki hosszú szünet után egykori kosárlabda-edzőjük temetésén találkoztak újra, és töltöttek együtt egy emlékezetes hétvégét, újra összejönnek. A családok egyre nagyobbak, az apák azonban nem lettek normálisabbak - ismét egy őrült, vad és teljesen agyatlan hétvége várható!",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239485&hd=2&autoplay=1" 
+			},
+			{
+			       title: "Jack és Jill",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/hMX0iHzXhQfSzf133LHCqBzZipw.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p8718215_v_h8_an.jpg?w=1280&h=720",
+				   description: "A Sadelstein család boldogan él gyönyörű Los Angeles-i otthonában. A nyugalom és békesség szinte megzavarhatatlan körülöttük. De csak szinte. Évente egyszer, a Hálaadás napján beüt a ménkű: meglátogatja őket a családfő, Jack (Adam Sandler) ikertestvére, Jill (Adam Sandler).",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239486&hd=1&autoplay=1"
+			},
+			{
+			       title: "Pixel",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zVVhiEtKBxuBDVLmyMx8lwZGYBt.jpg",
+				   previewImage: "https://i0.wp.com/rachelsreviews.net/wp-content/uploads/2015/07/pixels10.jpg?resize=700%2C470&ssl=1",
+				   description: "A videójátékok kora lejárt. De mi lesz az egykor népszerű, mára elfeledett figurákkal és feladatokkal? Talán élvezik a békés nyugdíjas életet? Tévedés! Utálják a feledést, és ha eljön az idő, visszatérnek. És akkor lesz haddelhadd! Ebben az ellen-Tron filmben, PacMan, Tetris és társaik fellázadnak teremtőik ellen, kilépnek a monitorról, és háborút indítanak az egyre modernebb játékokra vágyó emberek ellen. Még szerencse, hogy egy mindenre kész csapat felveszi ellenük a harcot.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239487&hd=1&autoplay=1"
+			},
+			{
+			      title: "Nem férek a bőrödbe",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/PQbVGXQIdhxQmfMC29rvqRMyd7.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p32185_v_h10_aa.jpg?w=1280&h=720",
+				  description: "Dr. Tess képtelen megbirkózni tinédzser lánya szeszélyeivel, és egy este a szokásosnál is csúnyábban összekapnak. Anna rockzenészi ambícióival megy anyja idegeire, míg Tess küszöbön álló házasságát a lánya nem nézi jó szemmel. Két elfogyasztott szerencse süti azonban a feje tetejére állítja az életüket: a csodával határos módon testet cserélnek. A következő nap, amit egymás bőrében töltenek el, sok tapasztalattal szolgál mindkettejük számára. Azonban vészesen közeledik a szombat, amikor Tess frigyre lép jövendőbelijével, s addig anyának és lányának mindenképpen vissza kell jutnia a saját testébe.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239497&hd=1&autoplay=1"
+			},
+			{
+			       title: "Szőr Austin Powers: Őfelsége titkolt ügynöke",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/psXd8kKMqWNbmULjKQIonOC2BaD.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p19297_v_h10_aa.jpg?w=1280&h=720",
+				   description: "Jobb, mint Bond, nyalkább, mint Stirlicz, sármosabb, mint Arsene Lupin, dögösebb, mint Mata Hari - s hülyébb, mint Lord Sinclaire és Danny Wilde együttvéve. Hölgyeim és uraim, a világ mindennek ellenére meg van mentve, hiszen itt jön ő, a kémek kémje, az udvarias, a sima modorú, a kihívó és a szuper laza Austin Powers, a brit titkosszolgálat sajátos gondolkodású csodafegyvere, aki mindig jókor sül el! A '60-as évek nyüzsgő Londonjában menő divatfotósnak álcázza magát, de még így sem tudja lerázni az őt üldöző nők hadát. Soha egyetlen ellenfele sem tudott kicsúszni a kezei közül, és soha egyetlen nő kezei közül nem akart kicsusszanni. Küldhették akár a Közel-Keletre vagy az orosz tundrára, Austin Powers minden küldetését sikerrel teljesítette.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239589&hd=1&autoplay=1"
+			},
+			{
+			       title: "Kicsikém:Sir Austin Powers 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/iI2jsxt19kpyTh7FchOwSoghITM.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p23153_v_h10_aa.jpg?w=1280&h=720",
+				   description: "Austin Powers, mint brit titkos ügynök üldöz elmebetegeket és szed fel jobbnál jobb nőket téren és időn át. De régi ellenfele, a kissé bizarr, de annál erőteljesebb Dr. Genya is újra feltűnik a színen. Hatalmas váltságdíjat követel, s cserében talán nem pusztítja el a Földet. Austin az egyetlen, aki megmentheti az emberiséget... Dr. Genyanak sok sikertelen próbálkozás után rá kellett döbbennie, hogy nem győzheti le Austin-t, ha csak meg nem szerzi annak mojoját, finoman fogalmazva azt a libidó-szerű valamit, ami Austin-t legyőzhetetlen szex-szimbólummá teszi. Visszautazik hát az időben, úgy 1969 körülre, és ellopja a hibernált Austin mojoját. Eközben Austin, egy orosz kémnő karjaiban rádöbben, hogy valami baj történt. Férfiassága felmondta a szolgálatot. Hosszas kutatások után kiderül az igazság: Dr. Genya keze van a dologban. Nem marad hát más hátra, megkezdődik a hajsza az időben.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239590&hd=1&autoplay=1"
+			},
+			{
+			       title: "Austin Powers:Aranyszerszám",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2XA9oenT9gUXNUfLSUM1J8CNk8B.jpg",
+				   previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/9758fd01-0754-4f08-b89d-ccc27dabecd9/e0a673e3869be9fe6fa6728099584c11bb77fc93.jpg?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+				   description: "Dr. Genya (Mike Myers), profikat megszégyenítő szökése után, szövetkezik Kicsi Énnel (Verne Troyer) és a komplett idióta Aranyszerszámmal, hogy elrabolják Austin apját, Nigel Powerst (Michel Caine), a kémek kémét. Teszik mindezt az időutazás aljas trükkjét felhasználva, hogy magukhoz ragadják a világ feletti hatalmat. Csakhogy Szőr Austin (Mike Myers) is visszaszáguld 1975-be stricimobilján, és összefog a kreolbőrű szépséggel, Foxxy Cleopatrával (Beyoncé Knowles), hogy megakadályozzák az akciót.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239591&hd=1&autoplay=1"
+			},
+			{
+			     title: "Állj vagy jövök!",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/44MvFZEZh9KcwTxYxV6wCoRuRfI.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p23869_v_h10_af.jpg?w=1280&h=720",
+				 description: "Logan (Martin Lawrence) kiváló tolvaj, egyébként meg rettentő nagy balek: szerez egy húszmilliót érő gyémántot, ám rendőrök veszik körül, és nincs kiút. Logan egy építkezésre menekül, ahol eldugja zsákmányát, és megadja magát: tudja, hogy vissza fog térni. Vissza is tér, de míg ő a börtönbüntetését töltötte, az építkezés befejeződött, és a gyémánt fölött most a kerületi rendőrség terpeszkedik. Logan persze a leglehetetlenebb megoldást választja, hogy visszaszerezze, ami az övé: rendőrnek áll.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239597&hd=2&autoplay=1"
+			},
+			{
+			     title: "Gagyi mami",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/un4BFdGD10MaZOIuizy3XD8iusl.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p25581_v_h10_aa.jpg?w=960&h=540",
+				 description: "Malcolm Turner nemrég számolt le a távol-keleti maffiával, és máris újabb bevetésre indul: de ilyen meleg helyzetben még ő sem volt soha. Azt, hogy ellenfele brutális bankrabló, fel sem veszi. Hogy a cél érdekében egy fedél alá kell költöznie a keresett bűnöző menyasszonyával, azt egyenesen élvezi. Ha mindehhez álruhát kell öltenie, még azt is vállalja. De hogy egy kétszáz kilós nagymamának adja ki magát, akinek a testénél csak a szája nagyobb, az azért még neki is megfekszi a gyomrát.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239598&hd=1&autoplay=1"
+			},
+			{
+			     title: "Gagyi mami 2",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/qPPbLd7AEwBBizUdyxvOTV0oIa5.jpg",
+				 previewImage: "https://www.etv.co.za/sites/default/files/styles/facebook/public/media/images/2024-11/big_mommas_house_2.png?h=c673cd1c&itok=_-kYwDtJ",
+				 description: "Visszatér a minden lében kanál, gigantikus nagyi, azaz újabb megpróbáltatás vár Malcolm Turner FBI-ügynökre. Ezúttal egy látszólag hétköznapi családba kell beépülnie, hogy elhárítson egy a nemzet biztonságát veszélyeztető katasztrófát. A családfő ugyanis olyan számítógépes vírus kifejlesztésén dolgozik, amellyel megbéníthatja az ország informatikai rendszereit. Mindez azonban eltörpül a problémák mellett, amikor a házvezetőnőnek álcázott hősünk egy szétesett, nem működő családdal találkozik. Ráadásul Malcolm állapotos kedvese mit sem tud az akcióról.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239599&hd=1&autoplay=1"
+			},
+			{
+			     title: "Gagyi mami:Mint két tojás",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/fdoYBNfe6poKNg0gSCPPabfbmpn.jpg",
+				 previewImage: "https://static.emol.cl/emol50/Fotos/Panoramas/2011/5/6/2386_Pel__02Des1_.jpg",
+				 description: "Az FBI különleges álruhás bevetésekre szakosodott szuperügynöke, Malcolm Turner (Martin Lawrence) minden bajból kivágja magát. A fia viszont minden bajba belekeveredik. Így aztán, amikor egy orosz maffia-leszámolás véletlen szemtanújává válik, apja mindenáron meg akarja védeni. Úgy, ahogy ő tudja: álruhában. Ezúttal tehát nemcsak ő öltözik nőnek, hanem a fiára is szoknyát húz, és együtt költözik be vele egy leánykollégiumba, ahol - azt reméli - biztosan nem keresik majd őket. De vannak bajok, amelyek a vérszomjas maffiánál is veszélyesebbek. Például egy csak lányokból álló pizsama parti vagy egy balett óra, egy tornatermi öltöző vagy a festőszakkör.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239600&hd=1&autoplay=1"
+			},
+			{
+			    title: "Gagyi lovag",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3WVGF2s2UebNH03nJe52G4zMmf9.jpg",
+              	previewImage: "https://ntvb.tmsimg.com/assets/p28720_v_h10_aa.jpg?w=1280&h=720",
+				description: "Jamal a középkor hangulatát idéző minigolf-pálya alkalmazottja, aki meglehetősen unja a melót. A pálya nem csak a makett várak és lovagfigurák miatt tűnik ódonnak, hanem azért is, mert utoljára éppen a középkorban renoválták. Egy szerencsétlen baleset után döbbenten veszi tudomásul, hogy a XIV. századi Angliában van, ahol hős lovagnak nézik. A jövő kelekótya hírnöke hamarosan kénytelen szövetkezni egy modern gondolkodású lánnyal és egy lezüllött exlovaggal, hogy közös erővel megdöntsék a gonosz Leo király hatalmát.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239601&hd=1&autoplay=1"
+			},
+			{
+			    title: "Nekem 8",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oKeBlSqQzugEvypVNeaVLlqnQ1p.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p19588_v_h10_aa.jpg?w=1280&h=720",
+				description: "Jobb lett volna meg sem születni - gondolja Nick Beam, amikor hazaérve édes kis feleségét félreérthetetlen helyzetben találja, a saját főnökével. A felszarvazott férj azt gondolja, ennél rosszabb már nem történhet aznap. Vagy mégis? A mostohasors T. Pault sodorja az útjába. Az izgága kis fekete, a botcsinálta útonálló beugrik a szerencsétlen lakli kocsijába, és megpróbálja kirabolni. Egy nappal előbb Nick talán megadóan engedett volna, de most beletapos a gázba és elrabolja kirablóját. A két vadidegen hamarosan hajmeresztő kalandokba keveredik.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239602&hd=1&autoplay=1"
+			},
+			{
+			   title: "Fogtündér",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3L3wk3eKE19c1TR33s7xVcjHbea.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p3593387_v_h8_aa.jpg?w=1280&h=720",
+			   description: "Derek Thompson, a jégkorongliga egyik legkeményebb játékosa, ráadásul nem hisz a mesékben. Nem véletlen, hogy összetöri a legfiatalabb rajongói álmait. Hányaveti magatartása a magánéletében is megmutatkozik, ami a barátnőjével, Carlyval való kapcsolatát veszélyezteti. Ezt tetézi, amikor bemeséli Carly kislányának, Tessnek, hogy a fogtündér nem létezik. Mindez nem marad következmények nélkül. Derek váratlanul a hitetleneket vizsgáló bizottság előtt találja magát, akik két hét tündérlétre ítélik. A férfi azt hiszi, az egész rossz álom csupán. Ám legnagyobb megdöbbenésére szárnyak nőnek ki a hátából.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239603&hd=1&autoplay=1"
+			},
+			{
+			    title: "Tor-túra",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/uWMcahs24L8e12jjVH8aYlaLtYM.jpg",
+				previewImage: "https://m.media-amazon.com/images/S/pv-target-images/27067902653d0c54d1f390100fe3d2912195ee1672b976458fafde652eea6361._SX1080_FMjpg_.jpg",
+				description: "Nick, aki utálja a gyerekeket, most alaposan kifogta. Bomlana Suzanne-ért, de a nõnek van két rosszcsont kölke, akik megesküdtek arra, hogy minden hódolónak elveszik a kedvét - még az élettõl is. Nicket azonban nem az a fajta, aki könnyedén feladja. Mikor karácsony másnapján Suzanne-nak sürgõsen Vancouverbe kell utaznia, a hõs szerelmes felajánlja, hogy elkíséri a srácokat Kanadába. A két csemete természetesen mindent megtesz azért, hogy Nick elbukja a küldetést, õ azonban összeszorított fogakkal tűri a megpróbáltatásokat: csak azért is eljutnak Vancouverbe.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239604&hd=1&autoplay=1"
+			},
+			{
+			    title: "Tor-túra 2",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mwFEi258QDvZlqddSAiLoIi4lJK.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p163913_v_h8_af.jpg?w=1280&h=720",
+				description: "Nick Persons jól tudja, hogy vadonatúj feleségét és a nő két csemetéjét nem viheti abba a lepukkant kéglibe, ahol agglegény éveinek legjavát töltötte. Ráadásul úton van a família legújabb tagja, ezért Nick úgy dönt, hogy ideje kicuccolni a kertvárosba. A meseszép családi lakról azonban kiderül, hogy meglehetősen bizonytalan lábakon áll és Nick elköveti azt a hibát, hogy maga esik neki a javításoknak Terve azonban hamarost összeomlik, s mielőtt a ház is így tenne, felbérel egy hóbortos építészt. Chuck viszont inkább rombol, semmint épít, így Nick egyre kevésbé bízik abban, hogy egyszer otthon lesz a Persons-házból.",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239605&hd=1&autoplay=1"
+			},
+			{
+			     title: "Kémecském",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/xlWSxnNMUdeVVbw6vhe8hdhJjON.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p16779380_v_h8_af.jpg?w=960&h=540",
+				 description: "JJ, a profi CIA ügynök álmában sem gondolta, hogy a karrierje egyszer egy 9 éves kislány kezébe kerül. Miután egy félresikerült bevetést követően lefokozzák az acélos ügynököt, egy sima üggyel bízzák meg: egy családot kell megfigyelés alatt tartania. Egy nem várt fordulat azonban veszélybe sodorja a látszólag egyszerű küldetést: a família egyik tagja, a leleményes Sophie megtalálja a szobájában a CIA által elrejtett kamerákat. A lány üzletet ajánl, ha JJ megtanítja őt a kémszakma trükkjeire, akkor nem leplezi le az ügynököt. És bár JJ minden porcikájával tiltakozik a dolog ellen, mégis belemegy a szokatlan alkuba.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239608&hd=1&autoplay=1"
+			},
+			{
+			     title: "Kémecském:Az örök város",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/9xxKTcvAPiYwuBkYdYXWMwe254H.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p27365546_v_h10_ab.jpg?w=1280&h=720",
+				 description: "Közkívánatra visszatért a Kémecském dinamikus duója: a veterán CIA-ügynök JJ, valamint 14 éves mostohalánya és pártfogoltja, Sophie újra összeáll, hogy megmentsék a világot, amikor egy középiskolai kórus olaszországi turnéját egy aljas, a Vatikánt célzó nukleáris összeesküvés szakítja félbe.",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239609&hd=2&autoplay=1"
+			},
+			{
+			     title: "Másnaposok",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/l7rhTdafUC19kzkzOpMtPxl0jOw.jpg",
+				 previewImage: "https://ntvb.tmsimg.com/assets/p192248_v_h10_am.jpg?w=1280&h=720",
+				 description: "Házasodni többször is lehet, de legénybúcsú csak egyszer van az ember életében: ezért szokták boldog vőlegények és még boldogabb haverjaik alaposan elbúcsúztatni a legényéletet. Ebben a Las Vegas minden kocsmájában, bárjában és egyéb mulatóhelyén játszódó vígjátékban annyira jó munkát végeztek a cimborák, hogy másnap reggel kénytelenek rádöbbenni: valahol út közben elveszítették az ifjú férjjelöltet. Kétségbeesett nyomozásba kezdenek. Szerencsére, az előző napi dorbézolásról maradt néhány nyom: egy tigris a fürdőszobában, egy csecsemő a cipősfiókban és Mike Tyson a nappaliban. Ezek és homályos emlékeik segítségével igyekeznek bejárni előző éjszakájuk minden állomását: mire kezdődik az esküvő, elő kell keríteniük a köddé vált vőlegényt!",
+				 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239623&hd=2&autoplay=1"
+			},
+			{
+			      title: "Másnaposok 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6Zz9jQT6NK676dLNQXb6qR6KpWZ.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p8418274_v_h10_aa.jpg?w=1280&h=720",
+				  description: "Négy jó barát csapott egy eszelős bulit, másnapra totális rövidzárlatra ébredt, és fejfájósan próbálta kideríteni, mi történhetett vele az előző éjjel - a Golden Globe-díjas film 2009. nyarának legnagyobb mozis szenzációja lett, azóta pedig kultikus tiszteletnek örvend azok körében, akik voltak már valaha másnaposak, vagy tervezik, hogy legyenek. Ezúttal Stu (Ed Helms) mondja ki a boldogító igent, méghozzá Thaiföldön. A szesztestvérek természetesen így sem maradnak ki a mulatságból, de csalódottan kell tapasztalniuk, hogy Stu - tanulva az eddigiekből - óvatos kerti partit tervez a hepajozás helyett. Ám még a legtávolabbi földrészeken is igaz a régi mondás: ember tervez és aztán mások végeznek vele. Las Vegas semmi ahhoz képest, ami Bangkokban történhet. A haverok újabb agyatlan kalandok során mennek keresztül - hiszen lételemük a botrány, a káosz és pár doboz fejfájás elleni gyógyszer.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239625&hd=1&autoplay=1",
+			},
+			{
+			      title: "Másnaposok 3",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ttycpQ8g1EfD9WnO7BMeqrBwZJb.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p9573144_v_h10_aa.jpg?w=1280&h=720",
+				  description: "Úgy hívják magukat: Farkasfalka. Nem mintha bármi közük volna a farkasokhoz. Nem vadak, nem veszélyesek, a prérin egy napig sem bírnák ki. Csak jó barátok, akik nagyon szeretnek bulizni, és nincs szerencséjük. Először egy Las Vegas-i, azután egy thaiföldi lagzi ürügyén ütötték ki magukat úgy, hogy teljesen elfelejtették mindazt az őrült, lehetetlen, felfoghatatlan és életveszélyes kalandot, amin egy éjszaka alatt keresztülmentek. Most nincs esküvő. Nincs legénybúcsú. Nem történhet semmi baj… elvileg. Mert ha a Farkasfalka beindul, jó eséllyel követi őket a katasztrófa is…",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239626&hd=2&autoplay=1"
+			},
+			{
+			       title: "A randiguru",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kpjMk7Gkd8QhZQXhMf5v1yHBNBu.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p35562_v_h8_an.jpg?w=1280&h=720",
+				   description: "Albert (Kevin James), a jámbor könyvelő fülig szerelmes egy hírességbe: az elbűvölő és gyönyörűséges Allegra Cole-ba (Amber Valletta). Albert trenírozása közben azonban Hitch is emberére talál a bámulatos és ambiciózus Sara Melas (Eva Mendes) személyében, aki - mivel egy pletykarovatnak dolgozik - állandóan Allegra nyomában van. Hitch, az agglegények utolsó mohikánja hamarosan azt veszi észre, hogy őrülten belehabarodott Sarába, a riporterbe, akinek élete nagy fogása - lapjának pedig óriási szenzációja - lenne, ha le tudná leplezni Manhattan leghíresebb randidoktorát.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239634&hd=1&autoplay=1"
+			},
+			{
+			      title: "Amerikai pite",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8vv91rul0o2N5T7QLejLukwiZow.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p23343_v_h8_ad.jpg?w=1280&h=720",
+				  description: "Minden fiatal életében eljön egyszer a pillanat, amikor megpróbálja átélni a felnőtté válás legmeghatározóbb élményét. Jimnek és Chrisnek feltett szándéka, hogy még az érettségi előtt elveszítik a szüzességüket. Mivel az idő sürget, a nemes cél érdekében mindenki latba veti, amije van, más-más úton próbál közeledni kiszemelt példányához. Akad azonban olyan, akinek be kell érnie apja jótanácsaival és egy almás pitével. A címbéli sütemény ugyanis a szexuális tapasztalás sajátos fokmérője.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239656&hd=1&autoplay=1"
+			},
+			{
+			      title: "Amerikai pite 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/618rE1qbCpbdchQ0olEfeKdpvm8.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p28143_v_h8_ad.jpg?w=1280&h=720",
+				  description: "A második részben újra együtt a díszes társaság, immáron túl a középiskolán és túl a férfivá avató élményeken. Ám a tapasztalatokból sosem elég, így a pitével bensőséges viszonyt ápoló Jim, a lovagias Oz, a titkon még mindig Vickyért epekedő Kevin, a hormonálisan túlvezérelt Stifler és a Stifler mamájára specializálódó Finch úgy dönt: a nyári vakáció idejére házat bérelnek a tengerparton, és parti-zónává alakítják a parti zónát. És valóban: buli ér bulit, kaland követ kalandot. Oz szeretné megismerni a telefon-szex gyönyöreit az épp Európában tanuló Heather-rel, ám valami mindig megzavarja a virtuális hancúrt. Az örök különc Finch Stifler mamáját várja, Stifler a szomszéd lányokat szeretné behatóbban megismerni, Jim pedig látogatást tesz a zenetáborban, hogy nem éppen zenei jellegű leckéket vegyen Michelle-től, mielőtt megérkezik bohém buli-tanyájukra Nadia, a cseh bombázó. Mit mondjunk még? Ezt a pitét is mindenki kajálni fogja!",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239657&hd=1&autoplay=1"
+			},
+			{
+			      title: "Amerikai pite 3:Az esküvő",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/hlgjtJVlSAqr0m0KFwa7fT7MlQl.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p32304_v_h10_aa.jpg?w=960&h=540",
+				  description: "A gimi őrült napjai, a külföldi cserediákok, a bulitáborok és a dilis ragasztó ma már csak a múlt emlékei. Házasodni készül Jim, a piteprücskölő srác és Michelle, a zenetáboros csajszi. Michelle azt szeretné, ha tökéletes lenne az esküvő, amire nincs sok esély, tekintettel a körülményekre, de főleg a barátokra. Jim szeretné lenyűgözni leendő apósát és anyósát, ami bizonyos értelemben sikerül is. Gondjai vannak a tánctudásával is, ami pedig egy lagzin nem előny, sőt, a borotválkozás sem megy egészen simán. Eközben a jegygyűrű kalandosabb utat jár be mint az Egy Gyűrű.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239658&hd=2&autoplay=1"
+			},
+			{
+			      title: "Amerikai pite 4:A zenetábor",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/e4ZyxyeRuewdSrdyqfUJYopkxuY.jpg",
+				  previewImage: "https://is1-ssl.mzstatic.com/image/thumb/1Log-asniCwMP2DmdmnTAg/1200x675.jpg",
+				  description: "Minden idők egyik legőrültebb vígjáték-sorozatának egy újabb vicces szeletét ismerhetjük meg! Az Amerikai pite 4-ben Stifler öccsét, Matt-et egy rosszhírű nyári zenetáborba száműzik, ahol rengeteg balhét csinál, rejtett kamerák, no meg dögös ifi-vezetők bevonásával. Ezután viszont belezúg az egyik tábori lányba, Elyse-be és még a testvérén, Bránermájszteren is túltesz. Jim apja pedig nevelőként tér vissza, és megpróbálja visszazökkenteni Stifler kisöccsét a rendes kerékvágásba. Az Amerikai pite sorozat folytatása tele van végtelenül mulatságos jelenetekkel, fergeteges poénokkal, de a szívmelengető részek sem hiányoznak belőle!",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239659&hd=1&autoplay=1"
+			},
+			{
+			      title: "Amerikai pite:A találkozó",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/z0hSzI5I1VHqf0hQmOQETRAhS46.jpg",
+				  previewImage: "https://is1-ssl.mzstatic.com/image/thumb/ROBkaUnE2D-BxMiUclnlLA/1200x675.jpg",
+				  description: "Ebben az új vígjátékban az Amerikai pite szereplőit egy kicsit több mint egy évtizeddel később látjuk viszont, amikor újból összejönnek az érettségi találkozó apropóján. Egy nagyon hosszú hétvége alatt kiderül, hogy ki változott, ki nem, valamint hogy az idő és a távolság nem szakíthatja szét a baráti kötelékeket. 1999 nyara volt, amikor négy kisvárosi, michigani srác úgy döntött, megpróbálja elveszíteni szüzességét. Az azóta eltelt évek során Jim és Michelle összeházasodtak, Kevin és Vicky pedig búcsút mondtak egymásnak. Oz és Heather eltávolodtak, de Finch még mindig vágyakozik Stifler mamája után. Most ezek a régi barátok felnőttként térnek haza, hogy emlékezzenek a hormonoktól duzzadó tinédzserekre, akik voltak - és ihletet merítsenek belőlük.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239660&hd=1&autoplay=1"
+			},
+			{ 
+			      title: "Valami Amerika",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rWkymsswC5w1NPisbDIe6TsLPhP.jpg",
+				  previewImage: "https://is1-ssl.mzstatic.com/image/thumb/ozNrwhYPWp9FqSK75xX__A/1200x675.jpg",
+				  description: "A történet valahol Ausztriában kezdődik, a hegyeshalmi határátkelő felé vezető úton, de ez talán kevésbé lényeges, mint az érkező személye. Ő az amerikai, aki egy jobb kormányos luxusautóban szivarozva, Alex Brubeck néven érkezik Magyarországra, szülőföldjére, amit még fiatalon hagyott el. Neki ez az utazás a rég várt hazatérést, egy magyar reklámfilm-rendezőnek, Tamásnak pedig a nagy lehetőséget és a talán még nagyobb kalamajkát jelenti.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239663&hd=1&autoplay=1"
+			},
+			{
+			      title: "Valami Amerika 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pLYYgV5AcDXYzWCxzxtw7E13NKd.jpg",
+				  previewImage: "https://nfi.hu/file/slides/4/45176/fe_600x315valami_amerika_2_plakat.jpg",
+				  description: "A lottónyereménynek hála, Tamás megcsinálhatta a filmjét, ami azonban a várakozásokkal ellentétben nagyot bukott. A három fiú egy képeslap révén Alex nyomára jut, aki most szabadult a dutyiból Amerikában és megint csak álnéven, egy színdarab jogait akarja megszerezni. A fiúk azt remélik, hogy megtalálják Alexet, megveszik előle a jogokat és végre visszaszerzik a hatvan milliójukat, amivel a férfi lelépett. Irány Amerika! Ám természetesen a dolgok megint nem az elképzelések szerint alakulnak. Végül Tamásra vár a feladat, hogy Budapesten rendezze meg a darabot.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239664&hd=1&autoplay=1"
+			},
+			{
+			      title: "Valami Amerika 3",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3bmIyj3qPBfpBLucEzoMz0XQgjV.jpg",
+				  previewImage: "https://resizing.flixster.com/rWpeEridduopa4NIsFshm8bRCc8=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p16066215_v_h9_aa.jpg",
+				  description: "Tamás, Ákos és András, a balek testvérek minden eddiginél lehetetlenebb helyzetbe kerülnek a szélhámos Alexnek köszönhetően. A körülményeket bonyolítja a rendőrség és a két rivális maffiabanda, Baláék és Toniék is. Egy rejtélyes, milliókat érő, lopott bélyegért indul hajsza, aminek tétje a fiúk sorsa. Eszter és Timi is beleveti magát a nyomozásba, mindenki versenyt fut az idővel. Vajon ezúttal is sikerül kikeveredniük a slamasztikából?",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239665&hd=1&autoplay=1"
+			},
+			{   
+			      title: "Legénybúcsú extra",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/pzKbxr4j7q9s0Cgu0NvdVz7BWFG.jpg",
+				  previewImage: "https://media.port.hu/images/001/563/506.webp",
+				  description: "A történetben két legénybúcsús csapat versenyez egymással, hogy megnyerjék a több millió forint értékű főnyereményt. Dani (Virsinszki Zoltán) menyasszonyával (Nagy Alexandra) együtt szedi össze versenytársait, úgy hogy a győzelem biztos lehessen. Így kerül be a csapatba a zseni egyetemi matektanár (Sütő András), a régi ős laza gimis barát (Varga Ádám) és a mindig vidám és pozitív Pali bácsi (Kálloy Molnár Péter).",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239666&hd=2&autoplay=1"
+			},
+			{
+			      title: "Csak barátok",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cJ4xPN1NaD7jZlDgzLylU67PJuF.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p90672_v_h10_ak.jpg?w=1280&h=720",
+				  description: "Chris Brander (Ryan Reynolds) fülig szerelmes gyerekkori barátnőjébe, Jamie Palominóba (Amy Smart), aki imádja pufi, pattanásos barátját, de csak testvérként. Chris egy nagy megaláztatás után úgy dönt, új ember lesz belőle, és majd megmutatja a nőknek, hogy ő nem csak egy barát. Tíz évvel később Amerika legmenőbb férfijaként tér vissza, oldalán egy szőke sztárocskával. Csakhogy a szerelem nem múlt el, és hamarosan egy kellemetlen versengés közepén találja magát, melynek tétje Jamie keze.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239678&hd=2&autoplay=1"
+			},
+			{
+			      title: "Kenguru Jack",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6IoUNZj8VLeLl6fFnKaWeDoP0kv.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/96a7d64f31e2e2aaabcc3d3e9d62904ad1cf4803519bced8fd8dbe84953dfe5e.jpg",
+				  description: "A pénzt beteszi a dzsekibe, a dzsekit ráadja egy kengurura, az meg eltűnik! Ezzel megindul az őrült kenguru-dili - üldözés és kaland tetőfokon! Két brooklyni srác megérkezik Ausztráliába, hogy eljuttasson ötvenezer dollárt egy bizonyos személyhez. Útjukba akad azonban Kenguru Jack, a kenguruk (ken)guruja, aki fogja magát, és holtából feltámadva elvágtat a zsákmánnyal.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239688&hd=1&autoplay=1"
+			},
+			{
+			      title: "Miért pont ő?",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/IITcHrSoTwyZDAMObMCOJUZDeI.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/ace4f5c32a4244f95bb0a3f15439e4b13430ba049648b7f6c75222eeeba18379.jpg",
+				  description: "Ha kell lágy, ha kell extrakemény, mi az? Hát, persze, hogy az apai szív. Laird a széltől is óvja imádott lányát, és boldogan figyelte, ahogy felnőtté válik. És most végre megismerheti a lány szerelmét: aki eléggé dilis, teljesen elviselhetetlen és meghökkentően gazdag. A családfő bekeményít. Nem hajlandó eltűrni a srác gátlástalan szeszélyeit, ellenfele viszont nem nyugszik bele, hogy a csaja apja morcos. A huzakodás küzdelemmé, azután totális háborúvá válik. A srác bármit megenged magának. A lányos apa semmit nem akar megengedni neki. A srác feleségül akarja venni a szerelmét. Az apát a gutaütés kerülgeti… Legfőbb ideje, hogy eltöltsenek együtt egy hosszú víkendet.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239695&hd=1&autoplay=1"
+			},
+			{
+			      title: "Szűzörség",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/vdN0AypEZnKyVQhCzWmib3tO1O2.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/391af6571f267160c839a0da7532464bea6acfad6b26ecf6d3660109cfa9c96f.jpg",
+				  description: "Amikor három szülő rájön, hogy a lányaik paktumot kötöttek, mely szerint el fogják veszteni a szüzességüket az érettségi banketten, titkos, egy éjszakás akciót terveznek a tinik tervének meghiúsítására.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239696&hd=1&autoplay=1"
+			},
+			{
+			      title: "27 idegen igen",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/lY2h29D99KOVQ93QRE2dxWOofz6.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/b5ec9d0625d3f57f9140ff7f721f673e124cf7988ca514334af64219a393ef52.jpg",
+				  description: "Jane egy idealista, végtelenül romantikus és mindenkinél önzetlenebb nő. Ugyanakkor pedig állandó résztvevője mindenféle esküvői és lakodalmi rendezvényeknek, bár a saját boldogsága még látóhatáron belül sincs. Ám amikor Jane húga, Tess iránt saját főnöke, George lobban szerelemre (s, akibe titkon Jane is szerelmes), hősnőnk kénytelen felülvizsgálni eddigi örökké-csak-koszorúslány életstílusát. Egész élete csak arról szólt, hogy mindenkit boldoggá tegyen maga körül, ráadásul huszonhét különböző koszorúslányruha lapul szekrényében, így mindezt bizonyítani is tudja. Egy emlékezetes estén Jane éppen kénytelen ingázni két esküvői fogadás között a Manhattan-Brooklyn vonalon, a nem mindennapi teljesítménynek pedig véletlenül szemtanúja lesz Kevin, a riporter, aki nagyszerű sztorit szimatol.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239697&hd=1&autoplay=1"
+			},
+			 {
+			       title: "Kiscsávó",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rhauFdB49foXD1J9jgjqWd1cj7a.jpg",
+				   previewImage: "https://ntvb.tmsimg.com/assets/p160851_v_h10_ab.jpg?w=960&h=540",
+				   description: "A nagy bűnhöz is elég egy kis ember. Calvin (Marlon Wayans) elköveti az évszázad bűnügyét, pedig a legtöbb rendőrnek még csak a gumibotjáig sem ér fel. Ördögi ravaszsággal elrabol egy szuperbiztonsági rendszerekkel védett hatalmas gyémántot. Apró szépséghiba, hogy nem sokáig örülhet neki: menekülés közben kénytelen a követ egy ártatlan járókelő (Shawn Wayans) táskájába rejteni. És ettől kezdve törheti a fejét, hogy miképpen jusson be a békés, kertvárosi családi házba, ha vissza akarja szerezni, ami már az övé. Kis test, nagy agy: bűntársa (Keenan Ivory Wayans) egy kosárban a családi ház küszöbére helyezi őt, és minden idők egyik legravaszabb betörője újabb bevetésre indul: álruháját pelenkára, revolverét csörgőre cseréli, és mindent elkövet, hogy ártatlan, védtelen csecsemőnek higgyék.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239722&hd=1&autoplay=1"
+			},
+			{
+			       title: "Gyerekjáték",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nHp4OriVFNevWhOw2jZAt2aYAl3.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/50fd98296901e19a0648c605bfd5f869cc6ac8b7ddaeb5d69cdad2055c7aa3eb.jpg",
+				   description: "Joe Kingman valósággal lubickol a népszerűségben. A Boston amerikai futball csapatának hátvédjeként milliókat keres, az élete meg olyan, mint egy buli. A szurkolók és a nők odavannak érte, a csapat meg akár a bajnoki címre is esélyes lehet a vezényletével. Az események azonban váratlan fordulatot vesznek, amikor kiderül, hogy a hátvédnek van egy hét éves kislánya - egy egyéjszakás kaland gyümölcse. Ettől kezdve alapjaiban változik meg az élete: a bulit, randit, meccseket háttérbe szorítja a balettóra, az esti mese, a közös babázás.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239723&hd=1&autoplay=1"
+			},
+			{
+			       title: "Gorilla bácsi",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/t0E0UgA09kB6BDNcHTlIg2UT4EB.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/25573d855ef92aae99a655328cf2ac3871345a89b94f9dc9b4fab05b0eb6385b.jpg",
+				   description: "Különleges bevetésre indul Shane Wolf kommandós, veszélybe került gyerekre kell vigyáznia. A kölykök tudós apja ugyanis fontos felfedezést tett, amelyre többen is fenik a fogukat. Hogy ne keltsen feltűnést a kertvárosi környezetben, a harcedzett kommandós bébiszitternek álcázza magát. Az öt gyerek - a legkisebb néhány hónapos, a legnagyobb veszélyesen kamaszodó nagylány - mellett a szuperügynök addig még nem tapasztalt dolgokkal találja magát szembe: kénytelen megtanulni, hogyan kell bánni a pelenkával, babakocsival, pótkerekes biciklivel és a kamaszos érzelmekkel.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239724&hd=1&autoplay=1"
+			},
+			{
+			       title: "Coming Out",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jSsBOmgR2S0mudmeorjiRITLpMc.jpg",
+				   previewImage: "https://resizing.flixster.com/DnOih1vN_1Z3zUF1DWvj8JTVogY=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p11257286_v_h11_aa.jpg",
+				   description: "Erik az ország leghíresebb meleg személyisége, rádiós műsorvezető, aki büszkén vállalja másságát. A napi atrocitásokat könnyedén kezeli, nem zavarja a reggelente fejéhez vágott tojás a szerkesztőségnél vagy a mogorva szomszéd, Pecsák úr ellenszenve sem, derűs jelleme pedig nem csak a műsorába telefonálóknak segít elfogadni önmagukat, hanem a körülötte élőknek is egyfajta példaképként szolgál. Erik lelkesen készül esküvőjére kedvesével, Balázzsal, ám egy balesetet követően váratlanul szokatlan változást észlel magán: látványosan vonzódni kezd elgázolójához, aki egyben kezelőorvosa is. A kórházból kikerülve csak fokozódik zavarodottsága, amikor is kényszeresen utána fordul minden csinos nőnek. Ám ez még csak a kezdet és Erik zavarba ejtő helyzetkomikumok sorában igyekszik tisztába kerülni saját magával, miközben megpróbálja széteső életét is egyben tartani. A szerelem útjába azonban semmi sem állhat: a kérdés már csak az, hogy kinek a szerelme fontosabb számára?",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239726&hd=1&autoplay=1"
+			},
+			{
+			       title: "A maflás",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/vnu5V5xEmp7ZFYvmrJ5Emr7h8KL.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/eb351e4c85edb0ff9956bdfdf550ab7fad14698cab9dbdfd4d13320661748737.jpg",
+				   description: "Amikor egy békés természetű, lusta biosztanár megtudja, hogy az igazgatóság spórolásra hivatkozva meg akarja szűntetni a zenekart, hogy elbocsáthassa a bohém zenetanárt , akcióba lép. Már csak azért is, mert azt reméli, így végre bevágódhat az iskolában dolgozó nővérkénél akit eddig semmilyen ravasz udvarlási módszerrel sem tudott levenni a lábáról. Jobb híján indul egy utcai harcos versenyen, és bár hatalmas pofonokba fut bele, gyűlni kezd a pénz. A siker magával ragadja, és pár fura figura segítségével újabb meg újabb bunyókra jelentkezik: minden KO újabb bevételt jelent. Végül annyiszor fog padlót, hogy meghívják egy igazi, nagy versenyre: ha ott sikerül nyernie, megmenekül a zenekar.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239729&hd=1&autoplay=1"
+			},
+			{
+			       title: "Jumanji:Vár a dzsungel",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7SYoxFW0EYLDZRFS4szNr43hTtV.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/168cec343adfe8003321237f5b9760b83aa6842caa91319dd20c3518ac478d0b.jpg",
+				   description: "Négy tinédzsert beszippant egy varázslatos videojáték a Jumanji világába, egy orrszarvúkkal, mérgeskígyókkal, illetve csapdákkal és rejtvényekkel tarkított dzsungelbe. Hamar rájönnek, csak úgy tudnak megmenekülni, ha összedolgoznak, hogy befejezzék a játékot.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239730&hd=1&autoplay=1"
+			},
+			{
+			       title: "Jumanji:A következő szint",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gXm0yvQKMnwdoOIXlZ24IXc8kX0.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c54bf56c3d33ea62f5d483f484e742a64232ca605463e0065cde7cc2f7424ff5._UR1920,1080_SX500_FMpng_.png",
+				   description: "Miután Spencert beszippantja a program, három régi haverja természetesen kötelességének érzi, hogy megpróbálja kimenteni. Azt hiszik, az ismerős terepen könnyen boldogulnak majd, de nem számolnak vele, hogy néhány új játékos mindent megváltoztathat. Spencer nagyapja és annak nyugdíjas haverja is követi őket. Az avatárok összekeverednek, a tétek nőnek, a dzsungel helyett behavazott hegyeken és forró sivatagban kell megoldaniuk a feladatot, ráadásul már a startvonalnál kiderül: ezúttal egy játékos nem kerülhet ki élve Jumanjiból…",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239731&hd=2&autoplay=1"
+			},
+			{
+			       title: "Baywatch",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rxQynWvwl41VbJGb0FEyYtuRwS2.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/5f6175a529131a9ac24e18d44b32bd7e7d5f6307746472ae5a6701ef9db5189d.jpg",
+				   description: "A nagysikerű tévésorozat moziverziójában az elkötelezett vízimentő, Mitch Buchanon akasztja össze a bajuszt egy pimasz újonccal. Ám a két vetélytárs összefog, amikor arról van szó, hogy fel kell göngyölíteniük egy bűnügyet, amely az egész öböl jövőjét veszélyezteti.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239732&hd=1&autoplay=1"
+			},
+			{
+			       title: "Ace Ventura:Állati nyomozó",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6sBNhlcLqqxJqE3G1NsWJjeZi6r.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/4eae9815edff419a262ed24a1908fa3398b3a187c16c9a8391b170bf168e71d3.jpg",
+				   description: "Eltűnt a kis házi kedvence? Kutyus, cicus, aranyhal, krokodil, tarantella, denevér? Forduljon a világ legjobb állatnyomozójához, Ace Venturához! Ő garantáltan előkeríti a jó Isten minden négylábú, szárnyas, uszonyos vagy egyéb teremtményét. Ace igazi ász: frizurája bohókás, öltözéke extrém, kajája meg leginkább madáreledel. Amikor lába kél Hópihének, a miami sportklub kabaladelfinének, Ace frenetikus energiával veti magát a nyomozásba. Most kamatoztathatja különleges adottságát: ott is nyomra bukkan, ahol senki más, és - keményen hadakozva mind a két balkezével - a legképtelenebb eredményre jut.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239737&hd=1&autoplay=1"
+			},
+			{
+			       title: "Ace Ventura:Hív a természet",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gzex4exarrBFJSGCDqdCiVgMIiv.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/61327007ac45bb2ffbfc576f559e5f9fbae7f1c765e68dc73898f502e148a486.jpg",
+				   description: "Ace, amikor csődöt mond az életveszélybe került mosómedve megmentésében, Tibetbe utazik, hogy ott, a buddhista szerzetesek földjén keressen lelki vigaszt. Komolyabb elmélyülésre azonban már nem marad ideje, mert élete legbonyolultabb ügyének kellős közepén találja magát. Vincent Cadby, Bonai megye angol konzulának felkérésére Ace veszedelmekkel teli utazásnak vág neki Afrika vadonjában. Kísérőtársai a már jól ismert Spike, a majom és a dagadék Fulton Greenwall, a konzul megingathatatlan nyugalmú megbízottja. Ace feladata: megtalálni Sikakát, a szent állatot, akinek mindenáron meg kell kerülnie a jóságos vahutu törzsfőnök lányának esküvőjére, akit a harcias vahutu törzsfőnök fiával házasítanak össze. Ha Ace nem jár sikerrel, a törzsi háború elkerülhetetlen. Az idő egyre fogy, az egész fekete kontinens békéje forog kockán. Ace azonban nem marad segítőtársak nékül a bajban. Új emberek és állatok állnak barátként mellé csatasorba.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239738&hd=1&autoplay=1"
+			},
+			{
+			       title: "A maszk",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bGpbRInGmIvZ3AOWUrsjirbomgX.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/a8061d7f7ba0c77b2e056fc172a6d9ef8c0feef6b31d599587ceae228f8d016c.jpg",
+				   description: "Stanley Ipkiss igazán szánalmas, kétbalkezes figura! Bármibe fog, az homlokegyenest ellenkezőleg sül el. De csak addig, amíg rá nem vigyorog a bandzsa szerencse egy ősi maszk képében. Elegendő, ha az arcára húzza és Stanley Ipkiss többé nem az, aki volt! Új énje szórakoztató, szívdöglesztő, akinek minden trükk a kisujjában van. Ám hamarosan a maszk új gazdához kerül, aki korántsem ilyen szórakoztató, s azt tervezi, hogy emberfeletti erejével uralma alá hajtja a várost. A kétbalkezes Stanley kénytelen akcióba lépni.",
+				   link:"https://vk.com/video_ext.php?oid=1037217102&id=456239742&hd=1&autoplay=1"
+			},
+			{
+			       title: "A maszk 2: A maszk fia",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/A5JEarcaJSPXgGVTs6m6x8B3ZmN.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/adcb96c2ff1f888bc36f86a7dda456859ff61fecd97facb1214008965e5c9630.jpg",
+				   description: "Tíz esztendő telt el első látogatása óta, de Edge City lakói még mindig nem heverték ki azt a felfordulást, amit Loki (Alan Cumming) varázslatos maszkja okozott. S most újra itt van, ráadásul levakarhatatlanul, ugyanis a rajzfilmrajzoló Tim Avery (Jamie Kennedy) újszülött fia már vérében hordozza a maszk őrületes tulajdonságait. Ráadásul a család házőrzője is szívesen rátenné mancsát az álarcra. De az igazi balhé akkor kezdődik, mikor a maszk eredeti tulajdonosa, Loki is felbukkan, hogy visszakövetelje elkótyavetyélt jussát.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239743&hd=1&autoplay=1"
+			},
+			{
+			       title: "Felkoppintva",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tNRnECOhghxsAZhJUFfRyo5IaBe.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/46e88bad332d953e2022a34731ec8995f064e95753bea85edbad530f61820571.jpg",
+				   description: "Alison, a huszonnégy éves, ambiciózus tévériporter váratlanul élete legfontosabb kérdésével találja magát szembe. Egyik este bulizni megy a nővérével. A piától túlfűtött lány végül a szimpatikus léhűtő, Ben ágyában köt ki. A valószerűtlen egyéjszakás kaland nem marad következmények nélkül: Alison rájön, hogy terhes. Úgy dönt, hogy megtartja a babát. A nagy kérdés viszont, hogy hogyan tálalja mindezt Bennek. Vajon hogyan fog reagálni a hírre a mit sem sejtő apa, akinek esze ágában sincs még családot alapítani. Kilenc hónapjuk van, hogy eldöntsék, mit csinálnak.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239744&hd=1&autoplay=1"
+			},
+			{
+			      title: "Nász-ajánlat",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/jzktXw69q4pYve1LyS2oNgsM1Qb.jpg",
+				  previewImage: "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/fb35c3ec-6506-4799-92d8-c4eee1f01d39/compose?aspectRatio=1.78&format=webp&width=1200",
+				  description: "A bevándorlási hivatal ki akarja toloncolni az országból az illegális bevándorló Margaretet. A nő azt állítja, hogy házasodni készül, így nem küldhetik vissza a hazájába. A gond, hogy a vőlegénye, a gyanútlan asszisztense mit sem tud erről. Szerencsére Andrew, akit évek óta gyötört a munkahelyén, bizonyos feltételek mellett hajlandó belemenni a játékba. Erre azért van szükség, mert a hivatal embereit sem ejtették a fejük lágyára: bizonyságot akarnak. Nincs mit tenni, a páros a vőlegény családjához utazik Alaszkába. Az események nem egészen az elképzeléseik szerint alakulnak.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239763&hd=2&autoplay=1"
+			},
+			{
+			       title: "Barátság extrákkal",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/vlyg9fVdMb4CV7aj61uHmWbDPde.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/1600499aa8d55015684d7cf52185224ea79f4fc363e3966489fa1046d47fd3da.jpg",
+				   description: "Egy rámenős fejvadász megtalálja az igazi munkaerőt megbízója számára, akit rövid ostrom után meg is győz, hogy egy új állás kedvéért érdemes New Yorkba költöznie. De közben azon kapja magát, hogy nagyon bejön neki a srác. Sőt, azt is sejti, hogy ő is tetszik a srácnak. Abban viszont mindketten biztosak, hogy a másik tele van olyan tulajdonságokkal, amelyektől egész életükben féltek és menekültek. A kísértésnek legjobb engedni: az új barátok megegyeznek, szigorúan csak a testiségre koncentrálnak, érzelmek kizárva. Mindketten abban bíznak, hogy így minden nagyon egyszerű marad, de persze tévednek.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239769&hd=1&autoplay=1"
+			},
+			{
+			      title: "Ünneprontók ünnepe",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cMKuX1IS9bQlUmh4PUGdQHml8uD.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/4ec35245d532e00e0f2e2c06fb80ac07bf05dddeb5afe19ca412b06e6ba461d6.jpg",
+				  description: "A két szélhámos jó barát, John (Owen Wilson) és Jeremy (Vince Vaughn) munkaidőben válóperre készülő házastársakat békítenek, szabadidejükben pedig esküvőkre járnak, hogy nőt fogjanak. A lányok tapadnak, a pezsgő isteni, és sosem kell a második randira készülni. De aki a tűzzel játszik, az megégeti magát. Márpedig Johnt elönti a forróság, amikor Cleary szenátor lányának az esküvőjén megpillantja álmai nőjét. Claire (Rachel McAdams) szintén a szenátor lánya, és hamarosan az ő fejét is beköti Zach Lodge, a nagyvárosi tapló. Nincs mese, a nászt bármi áron is, de meg kell akadályozni.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239826&hd=1&autoplay=1"
+			},
+			{
+			      title: "Jó srácok",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/raIeazaIVq7jbLhTRk1KPQHyfAN.jpg", 
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/57b75c1d1e2e79d9ed24b6c66c9ae24076cd45506b857eaa6839acc776e792af.jpg",
+				  description: "Mennyire alakulhat rosszul egy nap? Amikor meghívják élete első csókbulijába, a 12 éves Max bepánikol, mert nem tudja, hogy kell csókolózni. Valami útmutatásra szomjazva Max és a legjobb barátai, Thor és Lucas úgy döntenek, hogy bevetik Max apjának drónját – amihez Maxnek tilos hozzányúlnia –, és kilesik a szomszédban smároló tinédzser párt. Ám amikor a dolog bődületesen rosszra fordul, a drón tönkre megy, márpedig muszáj kicserélni, mielőtt Max apja hazaér a munkából. A srácok kétségbeesésükben ellógnak a suliból, és belevágnak eposzba illően gigászian rossz döntésekkel tarkított odüsszeiájukba, melyben véletlenül ellopott drogtól kezdve paintball csatán át a zsaruk és félelmetes tinilányok elől való menekülésig van minden, ami egy ilyen fergeteges vígjátékhoz kell.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239831&hd=1&autoplay=1"
+			},
+			{
+			      title: "Éjszaka a múzeumban",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4MtdzI7l2jDaT6n9qZqUY1LBVM4.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/3ed9de94bbe0254c27782a3a79daa814683a67ee09cedbdbdf1d779864574f7e.jpg",
+				  description: "Miután megint felsül az új zseniális ötletével Larry, a nagy álmodozó, kénytelen karácsony előtt munkát keresni. A Természetrajzi Múzeumba szegődik éjjeliőrnek. Már az első éjszaka elképesztő élményben van része: rémülten látja, hogy a múzeumban elszabadul a pokol, amikor az őskori szörnyek, vadállatok és történelmi figurák egymás után életre kelnek. A zűrzavaros éjszakát csak az egykori elnök, Theodore Roosevelt segítségével sikerül túlélnie. Ám a lehetőség, hogy kirúgják az állásából, és csalódást okoz a kisfiának, megsokszorozza erejét. Larry harcot indít a múzeum megmentéséért.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239841&hd=1&autoplay=1"
+			},
+			{
+			      title: "Éjszaka a múzeumban 2",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/istNUY51OGi9N2J3CQTtCINriL0.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/1fbc5250a72e062fd033a8f8c0be1aaaf09a29c0c668c364090de6ac4c1a541d._UR1920,1080_.jpg",
+				  description: "Az időközben egy sikeres találmányának köszönhetően éjjeliőrből menő vállalkozóvá előlépő Larry Daley régi jó barátait, a washingtoni Természettudományi Múzeum kitömött vagy viaszba foglalt nevezetességeit átszállítják a Smithsonian Amerikai Nemzeti Történelmi Múzeumba, ám útközben elkallódik a Fáraó Aranytáblája, melynek segítségével éjszakánként életre kelnek a kiállítási tárgyak. Larry tehát újra elemlámpát ragad, hogy megmentse hű cimboráit.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239842&hd=1&autoplay=1"
+			},
+			{
+			      title: "Éjszaka a múzeum 3: A fáraó titka",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6WlAkrUw5WzQJSL8LuaYbWFm00z.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/19812de6e20e06b50dab00d8ae8c4c59e88ec8a8cc0d92510a8d3733a0664016._UR1920,1080_SX500_FMjpg_.jpg",
+				  description: "Sokáig nem tudta a világ, milyen izgalmas, tarkabarka élet zajlik egy múzeumban zárás után. Egy kezdő múzeumőr, Larry Daley kellett hozzá - azóta a múzeum nem poros tárlókat és unalmas, udvarias álldogálást jelent, hanem kalandot, veszélyt és játékot. De a New York-i Természettudományi Múzeum és a washingtoni Smithsonian még nem volt minden. Az éjjeliőr újra felveszi egyenruháját és övére akasztja a tekintélynövelő nagy zseblámpát. A látogatók hazamennek, egy múzeum bezárt: kezdődhet az új kaland!",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239843&hd=1&autoplay=1"
+            },
+			{
+			       title: "Bérgyilkos a szomszédom",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/b7LwbXJUDYGnHZoIkjD6UukGTzz.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/3161b51e3dded86b7bb554400ef106ce489afa46d53b724017ebcda66ef6b4b1.jpg",
+				   description: "Nicholas Oz Oseransky (Matthew Perry) egy jóhiszemű, de balfék fogorvos, aki még pénzéhes, léha feleségét, Sophie-t (Rosanna Arquette) sem képes kirúgni, pedig köztudott, hogy a nő mindamellett hogy átveri, időnként még félre is lép. Ozék hétköznapi életét teljesen felborítja az új szomszéd érkezése, aki nem más, mint a hírhedt bérgyilkos, Jimmy (Bruce Willis). Oseransky véletlenül belekeveredik a maffia leszámolási ügyébe. A szálak teljesen összekuszálódnak, ugyanis Sophie meg akarja öletni Ozt, Jimmy bosszút akar állni Janni Gogolakon (Kevin Pollak), aki meg éppen Jimmy fejére vadászik. Oz nyugalomra vágyik, na meg persze Jimmy nejére, Cynthiára (Natasha Henstridge), de mint tudjuk, még a jó szomszédok sem osztoznak mindenen.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239846&hd=1&autoplay=1"
+			},
+			{
+			       title: "Már megint bérgyilkos a szomszédom",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/vrwi8paLiDp57F3qfq2di9N0xzR.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/417919455c58d1d1a50c91a772314c90ac661cc5b743d37bda464d9d1d68cb1d.jpg",
+				   description: "Jimmy Tudesky (Bruce Willis), a visszavonult bérgyilkos élvezi a nyugodt hétköznapokat mexikói tengerparti házikójában. Hála egykori szomszédja, Nicholas Oz Oseransky (Matthew Perry) hamisított fogorvosi feljegyzéseinek, Tulipán meghalt a világ számára, és így sikerült átejteni fő ellensége, Gogolák bandáját. Tulipán most takarít, kertészkedik és főz. Mindezeknek felesége, Jill (Amanda Peet) nem örül. Hirtelen megjelenik Oz, és lélekszakadva meséli, hogy a Gogolák banda elrabolta a feleségét. Jimmy hallani sem akar az egészről, ez már nem az ő ügye. Ám Oz nyomában felbukkan a frissen szabadlábra helyezett bandavezér, Gogolák László (Kevin Pollak) és verőlegényei, akik Los Angelestől követték a gyanútlan Ozt.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239847&hd=1&autoplay=1"
+			},
+			{
+			       title: "Családi üzelmek",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3tmQHRshZd3vDLQ68DWcyVilIek.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/bc46ce5013d1fe946303785a38be8a599cf80390236263283f9f310816ff9c17.jpg",
+				   description: "A dílereknek is vannak elveik. David csak rászoruló családanyáknak vagy szorgos éttermi alkalmazottaknak árul, de gyerekeknek soha. És bízik benne, hogy ha mindig kispályás marad, nem érheti baj. De persze téved. Méghozzá nagyon nagyot. Egyszer, egyetlen egyszer néhány környékbeli kamasznak segít megszabadulni az elvonási tünetektől, azok erre kirabolják, és ő nem tud elszámolni sem az anyaggal, sem a pénzzel. Hogy jóvá tegye a hibáját kénytelen egy nagy szállítmányt áthozni Mexikóból. Szerencsére a jó szomszédja, egy cinikus sztriptíztáncosnő és két züllött kiskorú segít neki: úgy tesznek, mintha családi túrán járnának, de a lakókocsi csempészáruval van tele. Az ötlet jó - a kivitelezés viszont elképesztő következményekkel jár...",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239851&hd=1&autoplay=1"
+			},
+			{
+			      title: "A csajom apja ideges",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7dePavboBqNePbr18b8VgZA4hwk.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/20cb3571ccc247360cc23f6f829ae5551d242a77569941d2de71acc4923c1092._SX1080_FMjpg_.jpg",
+				  description: "Simon egész életében nem gondolt még semmit komolyan, de most közel jár hozzá. Új barátnőjével, Theresával hosszú távra tervez, lehet, hogy hamarosan megkéri a kezét. De mielőtt az ember elvesz egy lányt, kénytelen alaposan megnézni az apját, aki eddig nem is sejtette, hogy féltett leánykája egy fehér sráccal kavar. Simon összeszedi minden bátorságát, és igyekszik elkápráztatni a családot. Persze semmi esélye. Egy rendes lányos apa eleve szívből utál minden udvarlót, de hogy a kiválasztott még fehér is legyen, akinek fogalma sincs a sportról, sőt talán állása sincs, azt már tűrhetetlen.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239864&hd=1&autoplay=1"
+			},
+			{
+			      title: "Négybalkéz",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kjUAu4hOWx0wmBu1W0xD1h2zA0E.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/718bb745f3801d265dddf28fafece5be3c6d3070eb67280216b1fc90c1b3b14a.jpg",
+				  description: "Az egyik szegény, a másik dúsgazdag. Az egyik betör a másikhoz, de mégis őt rabolják ki: a gazdag tulajdonos elveszi szegény betörőtől a kabalagyűréjét, amely mindennél fontosabb a számára. Megkezdődik a harc a gyűrűért: mindkét félnek az a feltett szándéka, hogy megkeserítse a másik életét. De azért mindketten nagyon jól szórakoznak.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239865&hd=1&autoplay=1"
+			},
+			{
+			      title: "A kiütés",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2wAkyBfwN5CjvL7lqQZ1FIkK9kF.jpg",
+				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/d5202e2938865359085db7da9ecc29da0960ac39d422b648e68e1f5c5da3bc39.jpg",
+				  description: "Henry Sharp, a Borotva és Billy McDonnen, a Kölyök ezelőtt 30 évvel csaptak össze utoljára, a ringben. Most a két korosodó sztár visszatér a nyugdíjazásból és újra összeáll egy végső bokszmérkőzés erejéig.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239888&hd=1&autoplay=1"
+			},
+			{
+			        title: "A fehér csóka",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ilnJvu3X97apuTb7n3lBFD0LVV8.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/f1e37f6137836af7cc76fa5642b38886b16d959857b7d915b9f8b1429c4651e0.jpg",
+					description: "Brad - azaz B-Rad, a tesó - a gazdag negyedbõl másra sem vágyik, csak arra, hogy Dr. Dre-vel rappelhessen és a malibui haverokkal lógjon. Csakhogy Brad, bárhogy is szeretné az ellenkezõjét, még sötétben sem fekete, apja ráadásul Kalifornia állam új kormányzó-jelöltje, épp a választási kampány kellõs közepén. Úgy vélik, Brad túl sok vizet zavar, ezért a kampánystáb felbérel két finom lelkû színészt, akik eljátsszák a nagymenõ gengszter szerepét, és elrabolják B-Radet, hogy rendes fehér csókát faragjanak belõle Snoop Dogg zenéjére!",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456239937&hd=1&autoplay=1"
+			},
+			{
+			       title: "Tök állat",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kDMZ0wKz3N608NhHHw08mnHd92H.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/82601e56720a0ab2292ce1b56420833900a122fd6c6acbff969db9d97b10867e.png",
+				   description: "A helyi rendőrőrsön írnokként dolgozó, kétbalkezes Marvin (Rob Schneider) nyomozó szeretne lenni. Amikor egy éjjel véletlenül egyedül felügyeli a körzetet, kis híján az életével fizet. Megmentőjének, a bogaras Dr. Wildernek (Michael Caton) szerencséjére sikerül feltörnie a genetikai kódját, és kis házi laboratóriumában különféle állatok szerveit ültetve megmenti Marvint. Amikor az állati rendőr visszatér az őrsre, újonnan dagadó izmait és kiváló szaglását egy új energiaitalnak tulajdonítja. Noha külsőleg Marvin régi csetlő-botló önmaga, soha nem tudni, belül melyik vadállat lesz éppen úrrá rajta.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239938&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Kegyenc fegyenc",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/j42QU2m13Bp0O7WiltEEVCegwWK.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/ca164327d111671e085c3bb887a2df39d701da20c12548c13800e266bd290950.jpg",
+				   description: "Stan Mintont a kisstílű szélhámost csalásért elítélik. Agyafúrt ügyvédje segítségével azonban sikerül időt nyernie, így van némi esélye túlélni a börtön kegyetlenségét. Stan úgy dönt, hogy kiképezteti magát. A titokzatos Mester segítségét kéri, faragjon belőle rettenetes harcművészt, hogy képes legyen állni a sarat, mire eljön az idő. A hónapok során Stan valóban kíméletlen harcossá válik, s mikor bevonul a börtönbe, rá kell jönnie, hogy a dutyi egyáltalán nem olyan, mint amilyennek elképzelte.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239939&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Sonic, A sündisznó",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nQWiyObNhMly8fJRttmFDTJ4uvK.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/517c5a0519a01b540ebd8aa14ad0c14fe3e159eb7a513fba4cca75bfbff7f114.jpg",
+				   description: "Sonic, a sündisznó véletlenül hihetetlen erő birtokosa lesz, ami ő maga sem ért teljesen. A saját védelme érdekében a Földön rejtőzik el, és egyetlen szabályt kell betartania: nem szabad, hogy a világ tudomást szerezzen a létezéséről. Ám ez nem könnyű feladat egy 15 évesnek, főleg ha az a 15 éves Sonic képességeivel és habitusával van megáldva. Így aztán nem kell hozzá sok, hogy felfedezze őt Tom, a szarkasztikus, ám áldott jó szívű kisvárosi zsaru. Ők ketten összeállnak, és egy hihetetlenül akciódús kalandba keverednek, miközben átszelik a fél világot úgy, hogy üldözi őket a mániákus Dr. Robotnyik és robotszerkentyűi...",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239961&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Sonic, A sündisznó 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/imvQliNlY6CG3Hp2cXpIinWLEFV.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/e4acfe046d5ddee75d55b6c5a77c6d3e4ef3b3c37b1946faa354a1697faba3f2.jpg",
+				   description: "Miután letelepedett Green Hillsben, Sonic minden vágya, hogy bebizonyítsa: megvan benne az, ami ahhoz kell, hogy igazi hős legyen. Nem kell sokat várnia, hogy próbára tegye magát, ugyanis Dr. Robotnyik visszatér, ezúttal új társával, Knucklesszel, és egy smaragdot keresnek, amelynek ereje civilizációkat képes elpusztítani. Sonic összeáll saját segítőjével, Tailsszel, és együtt vágnak neki a világkörüli útnak, hogy megtalálják a smaragdot, mielőtt rossz kezekbe kerülne...",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239962&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Sonic, A sündisznó 3",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bjfxe9MCAaA4F7lIpLF31ZrnzxK.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/3b7c1f9506e2900d87ea8eafe5584777f9eb41a8c93338a9eb4662187fa806d4.jpg",
+				   description: "Sonic, Knuckles és Tails újra összeállnak egy új, hatalmas ellenféllel, Shadow-val, a titokzatos gonosztevővel, akinek olyan ereje van, amilyennel eddig még nem találkoztak. Mivel képességeik minden tekintetben felülmúlják őket, a Team Sonic csapatának egy szokatlan összefogást kell keresnie annak reményében, hogy megállítsák Shadowt és megvédjék a bolygót.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239963&hd=2&autoplay=1"
+			},
+			{
+			       title: "Dick és Jane trükkjei",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/g2Id1MWxafN2pvTwUocTQPzsqbN.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/844cfda44c5a3f03d07ad03f622a7660977ac0ce560bca70524d41d758056091.jpg",
+				   description: "Az éveken át tartó kitartó munka meghozza gyümölcsét, Dick Harper a média óriáscég alelnöke lesz. Ám a cég váratlanul összeomlik és Dicknek mennie kell. Még pénzt sem tudott félretenni a borús napokra. Most viszont zuhog, mintha dézsából öntenék. Dick és neje, Jane rettegve nézi, amint a csinos külvárosi otthonuk és az autóik elúsznak, az érdekbarátaik eltűnnek mellőlük. A korrupt munkaadója példáján felbuzdulva Dicknek ragyogó ötlete támad: ha a főnöke lopott, talán ő is célt érhet hasonló módszerrel. Frissen szerzett tudományával Dick és Jane kacagtató bosszúhadjáratba kezd.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239964&hd=1&autoplay=1" 
+				   
+			},
+			{
+			       title: "Minden6ó",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dZQlg17ezm19jHVtFs5E3GqzSI5.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/0b0207e49d7ea0c592aa76a66e9a5a540320ff71b2ac71882e6593f3ed41084d.jpg",
+				   description: "Bruce Nolan (Jim Carrey) népszerű tévébemondó a Channel 7 esti híradójában. Barátnője, Grace (Jennifer Aniston) rajong érte. Mindezek ellenére a férfi örökké elégedetlenkedik sorsával. Egy új műsorhoz keresnek vezetőt, de végül is nem őt választják. Elszabadul a pokol: kirúgatja magát, verekedik és egy nap alatt tönkremegy magánélete is. Istent kezdi el hibáztatni mindezért. Az Úr (Morgan Freeman) megjelenik előtte egy érdekes ember képében és okulásul átadja minden hatalmát a káromló tévésnek. Bruce-nak tetszik a korlátlan hatalom lehetősége és elfogadja az ajánlatot. A városban mindenki hozzá imádkozik és neki mondja el lelke legsötétebb titkait! Bruce megpróbál minden igényt kielégíteni, de hamar rájön, hogy Isten feladata nem is olyan könnyű! Grace elköltözik tőle és Bruce megtapasztalja, hogy sok mindent megváltoztathat, de a szabad akarat ellen nem tehet semmit. Azaz csak őszinte emberként, kemény munkával hódíthatja vissza szerelmét.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239969&hd=1&autoplay=1" 
+			},
+			{
+			       title: "Doktor szöszi",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/rCsJUmz1kGoLE88suis0AaAYkvY.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/c5a930250c729de3ef1398f820a291c22d1b463e11b03085997fe2adb50f78bb.jpg",
+				   description: "Elle, a gimi legszőkébb és legcserfesebb nője rájön, hogy a szőke bombázók élete sem könnyű. A szerelme elhagyja, mert politikusi pályára készül, és komoly joghallgató csak komoly barátnővel mutatkozhat. Elle elhatározza, hogy bosszút áll. Felvételizik Amerika legnevesebb jogi egyetemére, hogy megmutassa, mit tud. Igaz, a rózsaszín micisapkái, magassarkú cipői, rúzsa és az illatos papíron beadott dolgozatai kissé megzavarják a tekintélyes intézményt, ám amikor egy gyilkossággal vádolt oktató ügyében jól ápolt kezébe veszi a nyomozást, minden megváltozik körülötte.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239971&hd=2&autoplay=1" 
+			},
+			{
+			       title: "Doktor szöszi 2",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/i24THc5EM6bCnM98PbFETu01upj.jpg",
+				   previewImage: "https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/7bf53f52-3eef-4cad-821d-cf4c7aa20280/c5504ad60aa90f01477908c7920342c90b27d616.jpg?host=wbd-images.prod-vod.h264.io&partner=beamcom",
+				   description: "A Harvard Egyetem befejezése után Elle az egyik nagyvállalatnál helyezkedik el. Miközben a karrierjét építgeti, az álmai férfijával kötendő közelgő esküvőjére készül. A véletlen azonban közbeszól. Megtudja, hogy szeretett kutyájának, Gyilkosnak a rokonait az egyik kliensének cége kozmetikai tesztelésekhez használja. Természetesen kiáll a négylábúak jogaiért, mire rögvest kirúgják a munkahelyéről. Ez érthető módon kissé megviseli, ám az optimizmusát nem veszíti el. Elle Washingtonba indul, hogy francia manikűrös kezébe vegye a dolgok irányítását.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239972&hd=1&autoplay=1"				   
+			},
+			{
+			        title: "Kellékfeleség",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/g2OJmdWNTK2Ew1XvCXdLDi82rji.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/5cf64f41e6ae745595577a4885d178001862ef4e996b690138bd5c7bf92dc493.jpg",
+					description: "Danny megrögzött agglegény és jegygyűrű-viselő: a gyűrű ereje óvja meg őt a tartós kapcsolatoktól, és biztosít mindig hihető ürügyet, ha le akar lépni. Ám amikor végre rátalál álmai nőjére, ki kell valamit találnia, amivel lezárhatja eddigi füllentései sorát. Megkéri a titkárnőjét és a gyerekeit, hogy adják ki magukat jövendőbeli ex-családjának. Egyik hazugság követi a másikat, mígnem egy nagy közös családi utazáson találják magukat Hawaiin. Az önfeledt nyaraláson mindenki igyekszik a kitalált történethez tartani magát, de végül már senki nem tudja, mi igaz, vagy mi nem az.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456240015&hd=2&autoplay=1" 
+			},
+			{
+			        title: "Evan, a minden6ó",
+					image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/9uI8GrafqWM3y1PozhquKdopgq1.jpg",
+					previewImage: "https://m.media-amazon.com/images/S/pv-target-images/b5eb53c6a140dd80cf2988e177d9482158a3cf4ca7f4abfe0aa4e5f1cc4b3d37.jpg",
+					description: "Az immár képviselővé választott Evan Baxter Virginiába költözik a családjával. Az első hivatali napjára készülve Istenhez imádkozik, hogy segítse őt a munkájában. A képviselőház egyik befolyásos tagja, Chuck Long azzal keresi meg Evant, hogy támogasson egy törvénytervezetet. Miután rááll a dologra, különös események történnek körülötte. Evan azt hiszi, hogy elment az esze. Különösen, amikor egyik nap beállít hozzá egy idegen. Azt állítja, hogy ő az Úristen és fontos dolga van vele. Egy bárkát kell építenie a családja és a barátai számára, mert a világot özönvíz fogja elpusztítani.",
+					link: "https://vk.com/video_ext.php?oid=1037217102&id=456240019&hd=2&autoplay=1" 
+			},
+			{
+			       title: "Karate kölyök: Legendák",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yTIGOT6tGHTM1QD5efj8Oo9PClc.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/18721a3f40e70851f7e7e54a4add5ec241c852015ed799bc64397d3ef8136ed6._UR1920,1080_.jpg",
+				   description: "A Kungfu mesterei legyőzhetetlenek. De a mesterek ritkák: hosszú és fáradságos út vezet a csúcsra. És általában kell hozzá egy mester. A fiatal, és szupertehetséges kungfus, Li Fong (Ben Wang) és az édesanyja egy családi tragédia után kénytelen Pekingből New Yorkba költözni. A srácot egyszerre gyötri a maga mögött hagyott múlt és az új környezet: új osztálytársaival nem találja meg a hangot, folyton bajba keveredik – bármit csinál, botrány és felfordulás kíséri. Amikor egy új barátja bajba kerül, ő azzal segít rajta, hogy indul egy karatebajnokságon: de ehhez nem elég jó. Az edzője, Mr. Han (Jackie Chan) segítségül hívja az eredeti Karate Kölyköt (Raph Macchio), és kettejük segítségével Li két stílust keverve próbál helyt állni a harcművészek között – a végső nagy összecsapás során.",
+				   link: "https://vk.com/video_ext.php?oid=1037217102&id=456240020&hd=2&autoplay=1" 
+			},
+			{
+			      title: "A hullahó-akció",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dKSwjhRemOYbUn1qV5KqyFSZyaB.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p26548425_v_h8_aa.jpg?w=1280&h=720",
+				  description: "Van az Északi-sarkon egy titkos bázis. Különlegesen kiképzett szolgálat őrzi, high-tech kütyük segítségével irányítják, és a személyzete csupán egyetlen, pontosan meghatározott célra koncentrál. De szerencsére nem katonák, nem deszantosok és nem titkosügynökök. Hanem manók. Főnökük pedig a Mikulás (J. K. Simmons), akinek – bármilyen jóságos – megvan az oka az óvatosságra. Ezért van mindig mellette a hű testőre, a világ legnagyobb manója, a kősziklakeménységű Dwayne Johnson.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239512&hd=2&autoplay=1"
+			},
+			{
+			      title: "Seveled",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yQuPzr8RBaiIkrZvYz6fOc8aCN0.jpg",
+				  previewImage: "https://images-fio.6play.fr/v2/images/3881815/raw?auto=avif&blur=0&fit=scale_crop&height=630&interlace=1&optimize=high&width=1200&hash=10c1cf9460c09b2efadea9ce2213de9b1caa14f3",
+				  description: "Elsőre jó ötletnek látszott. Gergő (Mészáros Béla), a csajozógép filmkritikus szeretne beteg édesanyja (Básti Juli) kedvében járni, és a jó ügy érdekében hazudik egy nagyot. Csak egyetlen egyet: beviszi hozzá a kórházba a szomszédját (Tenki Réka), a nagyszájú ex-sztriptíztáncosnőt, akinek van egy nagy előnye: öt hónapos terhes. Az unokamániás anyuka boldogan látja, hogy a fia révbe ért, elbúcsúzik mindenkitől – és meggyógyul. Ettől kezdve Gergő és Saci kénytelen újabb és újabb hazugságokkal tartani a frontot. Bár alig bírják egymást elviselni, ha jön a „nagyi”, úgy tesznek, mintha boldog, fiatal pár volnának. Az átverések persze sosem tökéletesek, és a bonyodalom Saci pocakjával együtt terebélyesedik: pedig előbb-utóbb meg kell születnie a megoldásnak.",
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239712&hd=1&autoplay=1"
+			},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		];
+
+        // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>
