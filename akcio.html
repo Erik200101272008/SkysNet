@@ -1,4 +1,3 @@
-
 <script type="text/javascript">
         var gk_isXlsx = false;
         var gk_xlsxFileLookup = {};
@@ -277,24 +276,15 @@
         }
 
     </style>
-
 </head>
-	<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-BLN73N32GS');
-</script>
-	
 <body>
     <!-- Navigációs sáv -->
     <div class="navbar">
-        <a href="index.html">Filmek</a>
+        <a href="index (3).html">Filmek</a>
         <a href="sorozatok.html">Sorozatok</a>
     </div>
+	
+	
 
     <!-- Logó -->
     <div class="logo">
@@ -305,11 +295,10 @@
     <div class="slider-container">
         <div class="slider" id="slider">
             <div class="slide">
-                <img src="https://m.media-amazon.com/images/S/pv-target-images/f88dcfc4e91ee92c30207ff65378038aa7a91a6f550402d55954412e882b6b10.jpg" alt="Slide 1">
+                <img src= "https://m.media-amazon.com/images/M/MV5BNTc0YWE5NGYtMDMyZC00M2UwLTk4NjAtOTM1OGFkYmMwYmQxXkEyXkFqcGc@._V1_QL75_UX500_CR0,26,500,281_.jpg"alt="Slide 1">
                 <div class="slide-caption">
-                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240251&hd=2&autoplay=1">Nézd meg most
-                
-		</div>
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
             </div>
             <div class="slide">
                 <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
@@ -331,40 +320,27 @@
     <!-- Keresőmező -->
     <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
 
+    <!-- Kategóriák -->
+    <div class="categories-container">
+        <a href="akcio.html" onclick="filterByCategory('Akció'); return false;">Akció</a>
+        <a href="animációs.html" onclick="filterByCategory('Animációs'); return false;">Animációs</a>
+        <a href="drama.html" onclick="filterByCategory('Dráma'); return false;">Dráma</a>
+        <a href="thriller.html" onclick="filterByCategory('Thriller'); return false;">Thriller</a>
+        <a href="horror.html" onclick="filterByCategory('Horror'); return false;">Horror</a>
+        <a href="romantikus.html" onclick="filterByCategory('Romantikus'); return false;">Romantikus</a>
+        <a href="sport.html" onclick="filterByCategory('Sport'); return false;">Sport</a>
+        <a href="vigjatek.html" onclick="filterByCategory('Vígjáték'); return false;">Vígjáték</a>
+        <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz'); return false;">Önéletrajz</a>
+        <a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy'); return false;">Sci-fi/Fantasy</a>
+        <a href="marvel.html" onclick="filterByCategory('Marvel'); return false;">Marvel</a>
+        <a href="dc.html" onclick="filterByCategory('DC'); return false;">DC</a>
+    </div>
+
     <!-- Filmek listája -->
     <div id="movie-list">
         <!-- A filmek dinamikusan kerülnek ide -->
+		 },
     </div>
-	
-	
-	<div class="navbar">
-    
-	<li><a href="index.html">Filmek</a></li>
-   <ul>
-   <li><a href="sorozatok.html">Sorozatok</a></li>
-    
-	<a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
-   <a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
-    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
-    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
-    <a href="horror.html" onclick="filterByCategory('Horror')" class="break-after">Horror</a>
-
-    <a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
-    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
-    <a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
-    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
-    <a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
-    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
-    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
-</div>
-	
-	
-	
-	
-	
-	
-	
-	
 
     <script>
         // Slider vezérlése
@@ -389,9 +365,7 @@
 
         // Film adatbázis
         const movies = [
-		
-		
-		{
+			{
                 title: "Különösen veszélyes bűnözők",
                 image: "https://image.tmdb.org/t/p/original/zBHOCEThPrXTju8fhNsLwGS1fj9.jpg",
                 previewImage: "https://i0.wp.com/s3.amazonaws.com/assets.liffafi.com/wp-content/uploads/2021/11/19131628/images-17.jpeg?fit=764%2C401&ssl=1",
@@ -2416,15 +2390,7 @@
 
 
 
-
-
-
-		
-		
-		
-		
-		
-		];
+			 ];
 
         // Kereső funkció előnézet támogatással
         function filmKereses() {
@@ -2453,24 +2419,63 @@
             });
         }
 
-        // Filmek kezdeti betöltése
-        filmKereses();
+        // Kategória szűrés funkció (implementáld a logikát movies alapján)
+        function filterByCategory(category) {
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.category === category);
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+
+            // Megakadályozza a link követését, ha onclick van
+            return false;
+        }
+
+        // Filmek kezdeti betöltése (minden film)
+        function loadAllMovies() {
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            movies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Kezdeti betöltés
+        loadAllMovies();
 		
     </script>
 </body>
 </html>
-		
-		
-		
-		
-
-
-
-
-
-
-
-
-
-
-
