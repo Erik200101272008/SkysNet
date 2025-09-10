@@ -1,49 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script>
-		<script>
-(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-</script>
-
-		
-		<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
@@ -51,7 +6,8 @@
     <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
     <style>
-        * {
+        /* A CSS változatlan marad */
+		* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -274,28 +230,25 @@
             font-size: 14px;
             color: #ccc;
         }
-
     </style>
 </head>
 <body>
     <!-- Navigációs sáv -->
     <div class="navbar">
-        <a href="index (3).html">Filmek</a>
+        <a href="filmek.html">Filmek</a>
         <a href="sorozatok.html">Sorozatok</a>
     </div>
-	
-	
 
     <!-- Logó -->
     <div class="logo">
-        <img src="skysnet.png" alt="SkysNet">
+        <img src="skysnet.png" alt="SkysNet logó">
     </div>
 
     <!-- Slider -->
     <div class="slider-container">
         <div class="slider" id="slider">
             <div class="slide">
-                <img src= "https://m.media-amazon.com/images/M/MV5BNTc0YWE5NGYtMDMyZC00M2UwLTk4NjAtOTM1OGFkYmMwYmQxXkEyXkFqcGc@._V1_QL75_UX500_CR0,26,500,281_.jpg"alt="Slide 1">
+                <img src="https://m.media-amazon.com/images/M/MV5BNTc0YWE5NGYtMDMyZC00M2UwLTk4NjAtOTM1OGFkYmMwYmQxXkEyXkFqcGc@._V1_QL75_UX500_CR0,26,500,281_.jpg" alt="Slide 1">
                 <div class="slide-caption">
                     <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1">Nézd meg most!</a>
                 </div>
@@ -313,8 +266,8 @@
                 </div>
             </div>
         </div>
-        <button class="prev" onclick="moveSlide(-1)">❮</button>
-        <button class="next" onclick="moveSlide(1)">❯</button>
+        <button class="prev" onclick="moveSlide(-1)" aria-label="Előző dia">❮</button>
+        <button class="next" onclick="moveSlide(1)" aria-label="Következő dia">❯</button>
     </div>
 
     <!-- Keresőmező -->
@@ -337,16 +290,15 @@
     </div>
 
     <!-- Filmek listája -->
-    <div id="movie-list">
-        <!-- A filmek dinamikusan kerülnek ide -->
-		 },
-    </div>
+    <div id="movie-list"></div>
 
     <script>
         // Slider vezérlése
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
         const slider = document.getElementById('slider');
+        const sliderContainer = document.querySelector('.slider-container');
+        let slideInterval = setInterval(() => moveSlide(1), 5000);
 
         function moveSlide(direction) {
             currentSlide += direction;
@@ -358,22 +310,22 @@
             slider.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // Automatikus váltás 5 másodpercenként
-        setInterval(() => {
-            moveSlide(1);
-        }, 5000);
+        // Szüneteltetés egérinterakcióra
+        sliderContainer.addEventListener('mouseenter', () => clearInterval(slideInterval));
+        sliderContainer.addEventListener('mouseleave', () => {
+            slideInterval = setInterval(() => moveSlide(1), 5000);
+        });
 
         // Film adatbázis
         const movies = [
             {
-			
                 title: "Különösen veszélyes bűnözők",
                 image: "https://image.tmdb.org/t/p/original/zBHOCEThPrXTju8fhNsLwGS1fj9.jpg",
                 previewImage: "https://i0.wp.com/s3.amazonaws.com/assets.liffafi.com/wp-content/uploads/2021/11/19131628/images-17.jpeg?fit=764%2C401&ssl=1",
                 description: "Az FBI profilkészítője üldözése során vonakodva csatlakozik a világ legkeresettebb műkincstolvajához, hogy elkapják a csalót, aki mindig egy lépéssel előttük jár.",
                 link: "https://vk.com/video_ext.php?oid=1037217102&id=456239532&hd=2&autoplay=1"
             },
-            {
+			{
                 title: "Ponyvaregény",
                 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/i8N31RHT6WaBXSicxABMRyBH4yQ.jpg",
                 previewImage: "https://static.posters.cz/image/hp/47521.jpg",
@@ -2392,92 +2344,66 @@
 			
 			
 			
-];
+            // További filmek itt
+        ];
 
-        // Kereső funkció előnézet támogatással
-        function filmKereses() {
-            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+        // Filmek betöltése
+        function loadMovies() {
             const movieList = document.getElementById('movie-list');
             movieList.innerHTML = '';
-
-            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
-            filteredMovies.forEach(movie => {
-                const movieDiv = document.createElement('div');
-                movieDiv.classList.add('movie-container');
-                movieDiv.innerHTML = `
-                    <a href="${movie.link}">
-                        <img src="${movie.image}" alt="${movie.title}">
-                        <div class="preview">
-                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
-                            <div class="preview-content">
-                                <h3>${movie.title}</h3>
-                                <p>${movie.description}</p>
-                            </div>
-                        </div>
-                    </a>
-                    <p>${movie.title}</p>
-                `;
-                movieList.appendChild(movieDiv);
-            });
-        }
-
-        // Kategória szűrés funkció (implementáld a logikát movies alapján)
-        function filterByCategory(category) {
-            const movieList = document.getElementById('movie-list');
-            movieList.innerHTML = '';
-
-            const filteredMovies = movies.filter(movie => movie.category === category);
-            filteredMovies.forEach(movie => {
-                const movieDiv = document.createElement('div');
-                movieDiv.classList.add('movie-container');
-                movieDiv.innerHTML = `
-                    <a href="${movie.link}">
-                        <img src="${movie.image}" alt="${movie.title}">
-                        <div class="preview">
-                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
-                            <div class="preview-content">
-                                <h3>${movie.title}</h3>
-                                <p>${movie.description}</p>
-                            </div>
-                        </div>
-                    </a>
-                    <p>${movie.title}</p>
-                `;
-                movieList.appendChild(movieDiv);
-            });
-
-            // Megakadályozza a link követését, ha onclick van
-            return false;
-        }
-
-        // Filmek kezdeti betöltése (minden film)
-        function loadAllMovies() {
-            const movieList = document.getElementById('movie-list');
-            movieList.innerHTML = '';
-
             movies.forEach(movie => {
                 const movieDiv = document.createElement('div');
-                movieDiv.classList.add('movie-container');
+                movieDiv.className = 'movie-container';
                 movieDiv.innerHTML = `
-                    <a href="${movie.link}">
-                        <img src="${movie.image}" alt="${movie.title}">
-                        <div class="preview">
-                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
-                            <div class="preview-content">
-                                <h3>${movie.title}</h3>
-                                <p>${movie.description}</p>
-                            </div>
-                        </div>
-                    </a>
+                    <img src="${movie.image}" alt="${movie.title}">
                     <p>${movie.title}</p>
+                    <div class="preview">
+                        <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                        <div class="preview-content">
+                            <h3>${movie.title}</h3>
+                            <p>${movie.description}</p>
+                            <a href="${movie.link}">Nézd meg most!</a>
+                        </div>
+                    </div>
                 `;
                 movieList.appendChild(movieDiv);
             });
         }
 
-        // Kezdeti betöltés
-        loadAllMovies();
-		
+        // Keresés
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.className = 'movie-container';
+                movieDiv.innerHTML = `
+                    <img src="${movie.image}" alt="${movie.title}">
+                    <p>${movie.title}</p>
+                    <div class="preview">
+                        <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                        <div class="preview-content">
+                            <h3>${movie.title}</h3>
+                            <p>${movie.description}</p>
+                            <a href="${movie.link}">Nézd meg most!</a>
+                        </div>
+                    </div>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Kategóriaszűrés (példa, további adatok szükségesek)
+        function filterByCategory(category) {
+            console.log(`Szűrés a következő kategóriára: ${category}`);
+            // Implementálj szűrőt a kategóriákhoz
+        }
+
+        // Oldal betöltése
+        document.addEventListener('DOMContentLoaded', loadMovies);
     </script>
 </body>
 </html>
+
