@@ -72,30 +72,6 @@
             width: 150px;
         }
 
-        .navbar {
-            background-color: #000;
-            padding: 10px 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .navbar a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .navbar a:hover {
-            color: #e50914;
-        }
-
         .slider-container {
             position: relative;
             max-width: 1200px;
@@ -320,21 +296,6 @@
     <!-- Keresőmező -->
     <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
 
-    <!-- Kategóriák -->
-    <div class="categories-container">
-        <a href="akcio.html" onclick="filterByCategory('Akció'); return false;">Akció</a>
-        <a href="animációs.html" onclick="filterByCategory('Animációs'); return false;">Animációs</a>
-        <a href="drama.html" onclick="filterByCategory('Dráma'); return false;">Dráma</a>
-        <a href="thriller.html" onclick="filterByCategory('Thriller'); return false;">Thriller</a>
-        <a href="horror.html" onclick="filterByCategory('Horror'); return false;">Horror</a>
-        <a href="romantikus.html" onclick="filterByCategory('Romantikus'); return false;">Romantikus</a>
-        <a href="sport.html" onclick="filterByCategory('Sport'); return false;">Sport</a>
-        <a href="vigjatek.html" onclick="filterByCategory('Vígjáték'); return false;">Vígjáték</a>
-        <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz'); return false;">Önéletrajz</a>
-        <a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy'); return false;">Sci-fi/Fantasy</a>
-        <a href="marvel.html" onclick="filterByCategory('Marvel'); return false;">Marvel</a>
-        <a href="dc.html" onclick="filterByCategory('DC'); return false;">DC</a>
-    </div>
 
     <!-- Filmek listája -->
     <div id="movie-list">
@@ -5909,4 +5870,5 @@
     </script>
 </body>
 </html>
+
 
