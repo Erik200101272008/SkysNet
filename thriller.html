@@ -1,51 +1,4 @@
-
-
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script>
-		<script>
-(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="S0pkPYf7JDaXKq4OO8uqu";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-</script>
-
-		
-		<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
@@ -53,7 +6,8 @@
     <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
     <style>
-        * {
+        /* A CSS változatlan marad */
+		* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -276,40 +230,28 @@
             font-size: 14px;
             color: #ccc;
         }
-
     </style>
 </head>
-	<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-BLN73N32GS');
-</script>
-	
 <body>
     <!-- Navigációs sáv -->
     <div class="navbar">
-        <a href="index.html">Filmek</a>
+        <a href="filmek.html">Filmek</a>
         <a href="sorozatok.html">Sorozatok</a>
     </div>
 
     <!-- Logó -->
     <div class="logo">
-        <img src="skysnet.png" alt="SkysNet">
+        <img src="skysnet.png" alt="SkysNet logó">
     </div>
 
     <!-- Slider -->
-     <div class="slider-container">
+    <div class="slider-container">
         <div class="slider" id="slider">
             <div class="slide">
-                <img src="https://m.media-amazon.com/images/S/pv-target-images/f88dcfc4e91ee92c30207ff65378038aa7a91a6f550402d55954412e882b6b10.jpg" alt="Slide 1">
+                <img src="https://m.media-amazon.com/images/M/MV5BNTc0YWE5NGYtMDMyZC00M2UwLTk4NjAtOTM1OGFkYmMwYmQxXkEyXkFqcGc@._V1_QL75_UX500_CR0,26,500,281_.jpg" alt="Slide 1">
                 <div class="slide-caption">
-                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456240251&hd=2&autoplay=1">Nézd meg most
-						
-		</div>
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
             </div>
             <div class="slide">
                 <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
@@ -324,50 +266,39 @@
                 </div>
             </div>
         </div>
-        <button class="prev" onclick="moveSlide(-1)">❮</button>
-        <button class="next" onclick="moveSlide(1)">❯</button>
+        <button class="prev" onclick="moveSlide(-1)" aria-label="Előző dia">❮</button>
+        <button class="next" onclick="moveSlide(1)" aria-label="Következő dia">❯</button>
     </div>
 
     <!-- Keresőmező -->
     <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
 
+    <!-- Kategóriák -->
+    <div class="categories-container">
+        <a href="akcio.html" onclick="filterByCategory('Akció'); return false;">Akció</a>
+        <a href="animációs.html" onclick="filterByCategory('Animációs'); return false;">Animációs</a>
+        <a href="drama.html" onclick="filterByCategory('Dráma'); return false;">Dráma</a>
+        <a href="thriller.html" onclick="filterByCategory('Thriller'); return false;">Thriller</a>
+        <a href="horror.html" onclick="filterByCategory('Horror'); return false;">Horror</a>
+        <a href="romantikus.html" onclick="filterByCategory('Romantikus'); return false;">Romantikus</a>
+        <a href="sport.html" onclick="filterByCategory('Sport'); return false;">Sport</a>
+        <a href="vigjatek.html" onclick="filterByCategory('Vígjáték'); return false;">Vígjáték</a>
+        <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz'); return false;">Önéletrajz</a>
+        <a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy'); return false;">Sci-fi/Fantasy</a>
+        <a href="marvel.html" onclick="filterByCategory('Marvel'); return false;">Marvel</a>
+        <a href="dc.html" onclick="filterByCategory('DC'); return false;">DC</a>
+    </div>
 
     <!-- Filmek listája -->
-    <div id="movie-list">
-        <!-- A filmek dinamikusan kerülnek ide -->
-    </div>
-	
-	
-	<div class="navbar">
-    
-	<li><a href="index.html">Filmek</a></li>
-   <ul>
-   <li><a href="sorozatok.html">Sorozatok</a></li>
-    
-	<a href="akcio.html" onclick="filterByCategory('Akció')">Akció</a>
-   <a href="animációs.html" onclick="filterByCategory('Animációs')">Animációs</a>
-    <a href="drama.html" onclick="filterByCategory('Dráma')">Dráma</a>
-    <a href="thriller.html" onclick="filterByCategory('Thriller')">Thriller</a>
-    <a href="horror.html" onclick="filterByCategory('Horror')" class="break-after">Horror</a>
+    <div id="movie-list"></div>
 
-    <a href="romantikus.html" onclick="filterByCategory('Romantikus')">Romantikus</a>
-    <a href="sport.html" onclick="filterByCategory('Sport')">Sport</a>
-    <a href="vigjatek.html" onclick="filterByCategory('Vígjáték')">Vígjáték</a>
-    <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz')">Önéletrajz</a>
-    <a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy')">Sci-fi/Fantasy</a>
-    <a href="marvel.html" onclick="filterByCategory('Marvel')">Marvel</a>
-    <a href="dc.html" onclick="filterByCategory('DC')">DC</a>
-</div>
-	
-	
-	
-	
-	
-	 <script>
+    <script>
         // Slider vezérlése
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
         const slider = document.getElementById('slider');
+        const sliderContainer = document.querySelector('.slider-container');
+        let slideInterval = setInterval(() => moveSlide(1), 5000);
 
         function moveSlide(direction) {
             currentSlide += direction;
@@ -379,19 +310,14 @@
             slider.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // Automatikus váltás 5 másodpercenként
-        setInterval(() => {
-            moveSlide(1);
-        }, 5000);
+        // Szüneteltetés egérinterakcióra
+        sliderContainer.addEventListener('mouseenter', () => clearInterval(slideInterval));
+        sliderContainer.addEventListener('mouseleave', () => {
+            slideInterval = setInterval(() => moveSlide(1), 5000);
+        });
 
         // Film adatbázis
         const movies = [
-	
-	
-	
-
-    
-		
 		{
                 title: "Meg ne mozdulj",
                 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/a5c0dP7qVrLuHOIh3RpLgvKLtak.jpg",
@@ -963,34 +889,3 @@
     </script>
 </body>
 </html>
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
