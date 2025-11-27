@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <style>
+        /* A CSS változatlan marad */
+		* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .logo {
+            padding: 5px 0;
+        }
+
+        .logo img {
+            width: 300px;
+        }
+
+        .navbar {
+            background-color: #000;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #e50914;
+        }
+
+        .slider-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .slide-caption a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .slide-caption a:hover {
+            color: #e50914;
+        }
+
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .prev:hover, .next:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        #kereso {
+            width: 60%;
+            max-width: 600px;
+            padding: 12px;
+            margin: 20px auto;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            display: block;
+        }
+
+        #kereso::placeholder {
+            color: #999;
+        }
+
+        .categories-container {
+            background-color: #000;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .categories-container a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+            margin: 0 15px;
+            display: inline-block;
+        }
+
+        .categories-container a:hover {
+            color: #e50914;
+        }
+
+        .movie-container {
+            display: inline-block;
+            position: relative;
+            margin: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .movie-container img {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-container p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .preview {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 300px;
+            background: #181818;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .movie-container:hover .preview {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .preview-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .preview-content p {
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigációs sáv -->
+    <div class="navbar">
+        <a href="filmek.html">Filmek</a>
+        <a href="sorozatok.html">Sorozatok</a>
+    </div>
+
+    <!-- Logó -->
+    <div class="logo">
+        <img src="skysnet.png" alt="SkysNet logó">
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/M/MV5BNTc0YWE5NGYtMDMyZC00M2UwLTk4NjAtOTM1OGFkYmMwYmQxXkEyXkFqcGc@._V1_QL75_UX500_CR0,26,500,281_.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239911&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
+                </div>
+            </div>
+        </div>
+        <button class="prev" onclick="moveSlide(-1)" aria-label="Előző dia">❮</button>
+        <button class="next" onclick="moveSlide(1)" aria-label="Következő dia">❯</button>
+    </div>
+
+    <!-- Keresőmező -->
+    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
+
+    <!-- Kategóriák -->
+    <div class="categories-container">
+        <a href="akcio.html" onclick="filterByCategory('Akció'); return false;">Akció</a>
+        <a href="animációs.html" onclick="filterByCategory('Animációs'); return false;">Animációs</a>
+        <a href="drama.html" onclick="filterByCategory('Dráma'); return false;">Dráma</a>
+        <a href="thriller.html" onclick="filterByCategory('Thriller'); return false;">Thriller</a>
+        <a href="horror.html" onclick="filterByCategory('Horror'); return false;">Horror</a>
+        <a href="romantikus.html" onclick="filterByCategory('Romantikus'); return false;">Romantikus</a>
+        <a href="sport.html" onclick="filterByCategory('Sport'); return false;">Sport</a>
+        <a href="vigjatek.html" onclick="filterByCategory('Vígjáték'); return false;">Vígjáték</a>
+        <a href="oneletrajz.html" onclick="filterByCategory('Önéletrajz'); return false;">Önéletrajz</a>
+        <a href="sci-fi fantasy.html" onclick="filterByCategory('Sci-fi/Fantasy'); return false;">Sci-fi/Fantasy</a>
+        <a href="marvel.html" onclick="filterByCategory('Marvel'); return false;">Marvel</a>
+        <a href="dc.html" onclick="filterByCategory('DC'); return false;">DC</a>
+    </div>
+
+    <!-- Filmek listája -->
+    <div id="movie-list"></div>
+
+    <script>
+        // Slider vezérlése
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+        const sliderContainer = document.querySelector('.slider-container');
+        let slideInterval = setInterval(() => moveSlide(1), 5000);
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Szüneteltetés egérinterakcióra
+        sliderContainer.addEventListener('mouseenter', () => clearInterval(slideInterval));
+        sliderContainer.addEventListener('mouseleave', () => {
+            slideInterval = setInterval(() => moveSlide(1), 5000);
+        });
+
+        // Film adatbázis
+        const movies = [
+		{
+                title: "Megjött apuci 2",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/i2kcNR8onxmNUlDYK6b0ugudwdl.jpg",
+				previewImage: "https://ntvb.tmsimg.com/assets/p13783983_v_h10_aa.jpg?w=960&h=540",
+				description: "Brad és Dusty elérték a lehetetlent: barátok és apatársak lettek. Minden simán megy, amíg Dusty régi motoros, macsó faterja, Kurt és Brad ultraérzékeny és érzelmes apja, Don meg nem érkeznek a karácsonyi ünnepekre. Kurtnak feltett szándéka, hogy éket verjen Dusty és Brad közé. Vajon a fiúk össze tudnak-e dolgozni, hogy bebizonyítsák Kurtnak, hogy működik a modern nevelésük, és sikerül összehozniuk a nagy családi karácsonyt?",
+				link: "https://vk.com/video_ext.php?oid=1037217102&id=456239243&hd=1&autoplay=1"
+            },
+			{
+			      title: "A hullahó-akció",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dKSwjhRemOYbUn1qV5KqyFSZyaB.jpg",
+				  previewImage: "https://ntvb.tmsimg.com/assets/p26548425_v_h8_aa.jpg?w=1280&h=720",
+				  description: "Van az Északi-sarkon egy titkos bázis. Különlegesen kiképzett szolgálat őrzi, high-tech kütyük segítségével irányítják, és a személyzete csupán egyetlen, pontosan meghatározott célra koncentrál. De szerencsére nem katonák, nem deszantosok és nem titkosügynökök. Hanem manók. Főnökük pedig a Mikulás (J. K. Simmons), akinek – bármilyen jóságos – megvan az oka az óvatosságra. Ezért van mindig mellette a hű testőre, a világ legnagyobb manója, a kősziklakeménységű Dwayne Johnson.",
+				  link: "https://videa.hu/player?f=8.3054407.2107401.0&enableJsApi=1&videoFinishedEvent=1&versionChangeCompleteEvent=1&enableAnimGif=1&enableSnapshotApi=1&lang=en&s=%7B"
+			},
+			{
+			   title: "Utánunk a tűzözön",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mjf2Lz2WpL5peTVtos5RNkBoQ58.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p18583_v_h8_ak.jpg?w=1280&h=720",
+			   description: "Samantha Caine (Gena Davis) boldog családi életet él. Csak egy dolog hiányzik a tökéletes idillből: a múlt. Egy majdnem végzetes autóbaleset azonban mindent megváltoztat. Megdöbbenve fedezi fel, hogy nyolc évvel ezelőtt ő Charly Baltimore volt, egy szupertitkos kormányzati szervezet profi ügynöke. Samantha felbérel egy magánnyomozót, Mitch Henesseyt (Samuel L. Jackson), hogy derítse ki a múltját. Samantha otthagyja családját, hogy befejezze a nyolc évvel korábban kudarcba fulladt akciót.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239063"
+			},
+			{
+			  title: "A Mikulás segédje ",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/zD1TndkICERNbgqipU4UBxqFgk1.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/89422280a71a06ef439b7c16584adbdd01d1d46dfe93ba44ac7f44fd8a21a76c.jpg",
+			  description: "Kirúgják az állásából Daxot, a dörzsölt, gyors beszédű üzletembert. Hamarosan vonzó lehetőség nyílik előtte, egy életre a Mikulás jobb keze lehetne. Az állást azonban nem olyan egyszerű megkapni, lévén arra más jelentkező is pályázik. Daxnek egy elffel kell megküzdenie, aki természetesen azt hiszi, hogy ő az érdemesebb a pozícióra. Miközben a verseny egyre forróbb lesz, Dax megtanulja a karácsony igazi jelentését. De vajon melyikőjük lesz a Mikulás jobb keze?",
+			  link: "https://videa.hu/player?v=w5QhIYJdr5jKGiCW"
+			},
+			{
+			     title: "Sólyomszem",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nPJhedYlpqZGwV4PRc5FxdLkGeD.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/iXCuYBDEMX22Wpwx3whhOidLfJI.jpg",
+				 description: "A sorozat története Kate Bishopra, arra a fiatal lányra koncentrál, aki átvette Clint Bartontól Sólyomszem szerepét.",
+				 link: "https://erik200101272008.github.io/SkysNet/solyomszem.html"
+			},
+			{
+			  title: "Már megint péntek",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/70F2kpcyq0Zp0JMK7PLm4onRPnR.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/eb9f93043d777a3abd8d0e2616afe023b7f4e094096b64fc22773c4b97bf44da.jpg",
+			  description: "Craig és Day-Day végre állást kap, mint biztonsági õr, és beköltöznek új kéglijükbe. De a boldogság nem felhõtlen, karácsony estéjén egy áltélapó lepi meg õket otthonukban, és meglép az összes ajándékkal. Az újdonsült õrök azonban nem hagyják annyiban az ügyet, és mindent megtesznek, hogy visszaszerezzék a lopott szajrét. Csakhogy ez korántsem megy olyan egyszerűen - úton útfélen ártatlan hölgyekkel, környékbeli kölykökkel és a rendõrséggel akadnak össze...",
+			  link: "https://videa.hu/player?v=KqFh4n0tEOAzu9CT&autoplay=1&enableJsApi=1&apiKey=PKeut6dEjAJYKYRp"
+			},
+			{
+			  title: "Vérapó",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/ieDHyNW46YJ9qPjMxDc2QFlz66.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/76bd4c10df0678f7c920418b76cd895adc78da3884e3c9d63682827b065c9c26.jpg",
+			  description: "Amikor karácsony estéjén egy zsoldoscsapat betör egy gazdag családhoz, és mindenkit túszul ejt, a csapat nincs felkészülve a meglepetésre: a Télapó a helyszínen van, és meg akarja mutatni, hogy ez a név nem egy szentet takar.",
+			  link: "https://videa.hu/player?v=kuS2MtkmQzP2ESMs"
+			},
+			{
+			  title: "Mária",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/7eDk9KMko5ouRcnyraR4m5QByOL.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/x5XjkN2m6XMsQlWN5fxZNBFwZ0.jpg",
+			  description: "Egy csodálatos fogantatás. Egy kegyetlen király. Egy gyilkos hajsza. Ez a felnőtté válásról szóló bibliai történet Mária utazását mutatja be, hogy életet adjon Jézusnak.",
+			  link: "https://videa.hu/player?v=Ws4nafv8zISqzl4H"
+			},
+			{
+			  title: "Rossz anyák karácsonya",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/s1DXORnQ8RnvVpIoYL0JdOoG3kv.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/9102b3d26731d850d0a56c22b7789ae61410ce5bd6cd5b144ef6ca89626106f9.jpg",
+			  description: "Az év legvarázslatosabb ünnepén, mikor minden pillanat csupa öröm és boldogság... na, ilyenkor köthetik csak fel igazán a gatyájukat az anyukák: jön a rohangálás az ajándékok után, a dekorálás és a napokon át tartó főzés. Nem is csoda, hogy Amy, Kiki és Carla ismét fellázad. A túlhajszolt trió megint szembe megy az árral, és magasról tesz a karácsonyi hagyományokra. A szabadelvű anyák ezúttal is a kimenőre hajtanak, a lehető legkevesebb energiából akarják kihozni a leglazább, legbulisabb karácsonyi ünnepet. Egy dologgal azonban nem számolnak: a saját édesanyáik felbukkanásával. A tökéletes karácsony bűvöletében szocializálódott mamák ugyanis ragaszkodnak a jól bevált mazochista anyaszerephez és az ünnep szentségéhez. És ekkor elszabadulnak a rénszarvasok és kinyílik pár vodkásüveg. Innentől kezdve már csak egy dolog biztos: ez az éj nem lesz csendes..",
+			  link: "https://videa.hu/player?v=fSry5omqhtGjLAEn"
+			},
+			{
+			   title: "Négy tesó",
+			   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/khyFiUDNmYCY1V71PZ479xwIde5.jpg",
+			   previewImage: "https://ntvb.tmsimg.com/assets/p36171_v_h10_ap.jpg?w=1280&h=720",
+			   description: "Valakik kirabolnak egy élelmiszerboltot. Mindennapos eset. Ám a brutális támadók akciója áldozatot követel: egy asszonyt, akinek négy gyermeke van. Négy örökbefogadott fia, akik a saját anyjukként szerették őt. Így a Mercer-fivérek, a forrófejű Bobby, a kőkemény Angel, a családapa és üzletember Jeremiah és a kemény rocker Jack összejönnek, hogy anyjuk halálának ügyét a saját kezükbe vegyék. Azonban a gyilkos után nyomozva hamarosan rájönnek, hogy ügyintézésük megszokott, régi módszerei újfajta következményekkel járnak.",
+			   link: "https://vk.com/video_ext.php?oid=1037217102&id=456239103&hd=1&autoplay=1"
+			},
+			{
+			  title: "A Grincs",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/iliMvoTM7iMozPyoyURM5p1xYNl.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/32e844074a71131f2123f5552d0adfba1fd8ebcc553eb19cc18dc9a994ea26e2.jpg",
+			  description: "Egy aprócska hópihében, a havas táj rejtekében bújik meg Kifalva, a pisze orrú Kik birodalma. A Kik kedvenc ünnepe a Karácsony, lázasan készülődnek hát a Szentséges Éjre. Az utcák és a házak díszben állnak, mindenki ajándékokért rohangál. A kis Cindy nem érti, minek ez a nagy felhajtás...Ám van valaki, aki ferde szemmel nézi a nagy nyüzsgést. Elég a nevét kimondani, és máris a hideg futkos minden Ki hátán. Fenn lakik a közeli Kobak-hegyen, a barlangjában, ki nem állhatja a Karácsonyt. Ő a Grincs! A kis Cindy azonban nem hisz a Grincsről szóló legendáknak, és azt akarja, hogy a rettegett zöld mumust válasszák meg Kifalva Karácsonyi Mókamajszterének. Felkerekedik hát, hogy ő maga adja át a meghívót a mogorva, morc manónak.",
+			  link: "https://vk.com/video_ext.php?oid=1037217102&id=456240859&autoplay=1" 
+			},
+		
+        	
+        ];
+          // Kereső funkció előnézet támogatással
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
+            filteredMovies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.classList.add('movie-container');
+                movieDiv.innerHTML = `
+                    <a href="${movie.link}">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <div class="preview">
+                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
+                            <div class="preview-content">
+                                <h3>${movie.title}</h3>
+                                <p>${movie.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <p>${movie.title}</p>
+                `;
+                movieList.appendChild(movieDiv);
+            });
+        }
+
+        // Filmek kezdeti betöltése
+        filmKereses();
+		
+    </script>
+</body>
+</html>
