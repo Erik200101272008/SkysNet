@@ -14,16 +14,16 @@
             align-items: center;
             background-color: #000;
             overflow: hidden;
+            position: relative;
         }
-
         .logo-container {
             position: relative;
             width: 400px;
             height: 100px;
             display: flex;
             align-items: center;
+            z-index: 10;
         }
-
         .logo {
             width: 100%;
             height: auto;
@@ -31,7 +31,6 @@
             transform: scale(0.8);
             animation: fadeIn 2s ease-in-out forwards;
         }
-
         /* A "NET" rész villogó hatása */
         .net-highlight {
             position: absolute;
@@ -43,7 +42,6 @@
             opacity: 0;
             animation: highlight 1.5s ease-in-out 2s forwards;
         }
-
         /* Fade-in animáció a logóhoz */
         @keyframes fadeIn {
             0% {
@@ -55,7 +53,6 @@
                 transform: scale(1);
             }
         }
-
         /* Villogó highlight a "NET" részen */
         @keyframes highlight {
             0% {
@@ -70,15 +67,51 @@
                 transform: translateX(100%);
             }
         }
+        /* Hóesés háttérben */
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: #fff;
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+            animation: fall linear infinite;
+            font-size: 20px;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        /* Végtelen hóesés generálása JS-sel */
     </style>
 </head>
 <body>
     <div class="logo-container">
-        <img src="skysnet.png" alt="SkyNet Logo" class="logo">
+        <img src="téliskysnet.png" alt="SkyNet Logo" class="logo">
         <div class="net-highlight"></div>
     </div>
-
     <script>
+        // Hóesés generálása
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.innerHTML = '❄';
+            snowflake.classList.add('snowflake');
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            snowflake.style.opacity = Math.random();
+            snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+            document.body.appendChild(snowflake);
+
+            // Eltávolítás animáció vége után
+            setTimeout(() => {
+                snowflake.remove();
+            }, 5000);
+        }
+
+        // Hóesés indítása
+        setInterval(createSnowflake, 200);
+
         // Az animáció teljes időtartama: 2s (fadeIn) + 2s (highlight késleltetés) + 1.5s (highlight) = 3.5s
         // Az átirányítás 3.5 másodperc (3500 ms) után történik
         setTimeout(function() {
