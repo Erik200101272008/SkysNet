@@ -6552,8 +6552,64 @@
             }
         })();
     </script>
+	<script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function updateSlideContent() {
+            const slide = slides[currentSlide];
+            const title = slide.querySelector('.slide-title');
+            const desc = slide.querySelector('.slide-description');
+            const playBtn = slide.querySelector('.btn-play');
+            title.textContent = slide.dataset.title;
+            desc.textContent = slide.dataset.desc;
+            // Play gomb link frissítése dinamikusan, ha kell
+        }
+
+        function updateIndicators() {
+            const indicators = document.getElementById('indicators');
+            indicators.innerHTML = '';
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('indicator-dot');
+                if (i === currentSlide) dot.classList.add('active');
+                dot.onclick = () => moveToSlide(i);
+                indicators.appendChild(dot);
+            }
+        }
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide >= totalSlides) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = totalSlides - 1;
+            const slider = document.getElementById('slider');
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            updateSlideContent();
+            updateIndicators();
+        }
+
+        function moveToSlide(index) {
+            currentSlide = index;
+            moveSlide(0);
+        }
+
+        // Inicializálás
+        updateSlideContent();
+        updateIndicators();
+
+        // Automatikus váltás minden 7 másodpercben (Netflix-szerű hosszabb idő)
+        setInterval(() => moveSlide(1), 7000);
+
+        // Videók automatikus némítása és lejátszása (böngésző függő)
+        slides.forEach(slide => {
+            const iframe = slide.querySelector('iframe');
+            iframe.src += '&mute=1'; // Ha még nem hozzáadva
+        });
+    </script>
 </body>
 </html>
+
 
 
 
