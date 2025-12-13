@@ -52,113 +52,53 @@
             color: #e50914;
         }
 
-        }
         .slider-container {
             position: relative;
-            width: 100%;
-            height: 100vh; /* Teljes képernyő magasság Netflix-stílusban */
+            max-width: 1200px;
+            margin: 80px auto 20px;
             overflow: hidden;
-            margin: 0;
+            border-radius: 8px;
         }
+
         .slider {
             display: flex;
-            transition: transform 0.8s ease-in-out; /* Lassabb átmenet Netflix-szerűen */
-            height: 100vh;
+            transition: transform 0.5s ease-in-out;
         }
+
         .slide {
             min-width: 100%;
             position: relative;
-            height: 100vh;
-            display: flex;
-            align-items: flex-end; /* Tartalom alulra igazítva */
-            justify-content: flex-start;
         }
-        .slide iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+
+        .slide img {
             width: 100%;
-            height: 100%;
-            object-fit: cover; /* Videó kitölti a területet */
-            border: none;
-            z-index: -1; /* Háttérként */
-        }
-        .slide::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 20%, rgba(0, 0, 0, 0.8) 100%); /* Netflix-szerű gradiens overlay */
-            z-index: 1;
-        }
-        .slide-content {
-            position: relative;
-            z-index: 2;
-            padding: 0 60px 80px 60px; /* Netflix-szerű margók */
-            max-width: 600px;
-            text-align: left;
-            background: rgba(0, 0, 0, 0.5); /* Féltransparent háttér a szövegnek */
+            height: 600px;
+            object-fit: cover;
             border-radius: 8px;
-            padding: 40px;
-            margin-bottom: 40px;
         }
-        .slide-title {
-            font-size: 3.5rem; /* Nagy Netflix-cím */
-            font-weight: 300;
-            margin-bottom: 20px;
-            letter-spacing: -1px;
+
+        .slide-caption {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
-        .slide-description {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            line-height: 1.4;
-            color: #ccc;
-        }
-        .slide-buttons {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        .btn-play {
-            background-color: #fff;
-            color: #000;
-            border: none;
-            padding: 12px 26px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .btn-play:hover {
-            background-color: #e6e6e6;
-        }
-        .btn-info {
-            background: transparent;
+
+        .slide-caption a {
             color: #fff;
-            border: 1px solid #fff;
-            padding: 12px 26px;
-            font-size: 1.1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
+            text-decoration: none;
+            transition: color 0.3s;
         }
-        .btn-info:hover {
-            background-color: rgba(255, 255, 255, 0.2);
+
+        .slide-caption a:hover {
+            color: #e50914;
         }
-        .btn-play::before {
-            content: '▶'; /* Play ikon */
-            font-size: 1.2rem;
-        }
-        .btn-info::before {
-            content: 'ℹ'; /* Info ikon */
-            margin-right: 5px;
-        }
+
         .prev, .next {
             position: absolute;
             top: 50%;
@@ -304,45 +244,30 @@
         <img src="téliskysnet.png" alt="SkysNet logó">
     </div>
 
+    <!-- Slider -->
     <div class="slider-container">
         <div class="slider" id="slider">
-            <div class="slide" data-title="Mozi Cím 1" data-desc="Rövid leírás a filmről. Izgalmas történet, lenyűgöző látványeffektek.">
-                <iframe src="https://youtu.be/Dwkw4Q4CO-U?si=hiMhQZMmrVGSl7-4" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-                <div class="slide-content">
-                    <img src="https://lumiere-a.akamaihd.net/v1/images/image_e55a9767.png">
-                    <p class="slide-description">A Mennydörgők*-ben a Marvel Studios merőben szokatlan antihős-csapatot toboroz össze: ők Jelena Belova, Bucky Barnes, Vörös Őr, Szellem, Kiképző és John Walker. </p>
-                    <div class="slide-buttons">
-                        <button class="btn-play" onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1', '_blank')">Lejátszás</button>
-                        
-                    </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/M/MV5BNTc0YWE5NGYtMDMyZC00M2UwLTk4NjAtOTM1OGFkYmMwYmQxXkEyXkFqcGc@._V1_QL75_UX500_CR0,26,500,281_.jpg" alt="Slide 1">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1">Nézd meg most!</a>
                 </div>
             </div>
-            <div class="slide" data-title="Mozi Cím 2" data-desc="Második film leírása. Akciódús kalandok várnak rád.">
-                <iframe src="https://youtu.be/mBMqLf6zL_s?si=qRyMjUGXMRxpua0e" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-                <div class="slide-content">
-                    <img src="https://image.tmdb.org/t/p/original/iR1Q7cmOizueCLE27aof5gQgPe3.png">
-                    <p class="slide-description">Harminc évvel ezelőtt Jor-El és Lara Lor-Van útnak indították újszülött fiukat, Kal-Elt a Földre, hogy megmentsék a Krypton bolygó pusztulásától. A fiú Smallville-ben nőtt fel, ahol Jonathan és Martha Kent nevelték fel Clark Kentként. A Napból származó energiának köszönhetően a kryptonit fiú rendkívüli képességekre tett szert.</p>
-                    <div class="slide-buttons">
-                        <button class="btn-play" onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456240251&hd=2&autoplay=1', '_blank')">Lejátszás</button>
-                        
-                    </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg" alt="Slide 2">
+                <div class="slide-caption">
+                    <a href="https://player.vimeo.com/video/1144456506?h=4e23fb42b2">Nézd meg most!</a>
                 </div>
             </div>
-            <div class="slide" data-title="Mozi Cím 3" data-desc="Harmadik film: Misztikus thriller, amit nem hagyhatsz ki.">
-                <iframe src="https://youtu.be/pk9Oxa5CRak?si=Uje17Uq9KEtXw5Kx" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-                <div class="slide-content">
-                    <img src="https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/2a072173-2bac-43ba-9933-10eba021ed96/e279a2ec-58c1-11f0-a15b-0affc01eaf4b?host=wbd-images.prod-vod.h264.io&partner=beamcom&w=4320" height="300" width="500">
-                    <p class="slide-description">Az ikertestvérek visszatérnek szülővárosukba, hogy újrakezdjék az életüket. Ott azonban egy gonosz lény várja őket vissza...</p>
-                    <div class="slide-buttons">
-                        <button class="btn-play" onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1', '_blank')">Lejátszás</button>
-                        
-                    </div>
+            <div class="slide">
+                <img src="https://m.media-amazon.com/images/S/pv-target-images/8f27d58f6c578eb48cdeff8703520c361744ccdc1f656e4340fd0667c9fa6b19.jpg" alt="Slide 3">
+                <div class="slide-caption">
+                    <a href="https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1">Nézd meg most!</a>
                 </div>
             </div>
         </div>
         <button class="prev" onclick="moveSlide(-1)" aria-label="Előző dia">❮</button>
         <button class="next" onclick="moveSlide(1)" aria-label="Következő dia">❯</button>
-        <div class="slide-indicator" id="indicators"></div>
 	</div>
     <!-- Keresőmező -->
     <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
@@ -1173,6 +1098,7 @@
     </script>
 </body>
 </html>
+
 
 
 
