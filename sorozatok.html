@@ -776,6 +776,38 @@
             });
         }
 		
+         let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const slider = document.getElementById('slider');
+const backgroundVideo = document.getElementById('background-video');
+
+const videoSources = [
+    "solysz.mp4",    // első slide videója
+    "teds.mp4",     // második
+    "boys.mp4"      // harmadik
+];
+
+function moveSlide(direction) {
+    currentSlide += direction;
+    if (currentSlide < 0) {
+        currentSlide = slides.length - 1;
+    } else if (currentSlide >= slides.length) {
+        currentSlide = 0;
+    }
+    slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+    // Videó forrás váltása (folyamatos lejátszással)
+    const newSrc = videoSources[currentSlide];
+    if (backgroundVideo.querySelector('source').src !== newSrc) {
+        backgroundVideo.querySelector('source').src = newSrc;
+        backgroundVideo.load(); // új videó betöltése
+        backgroundVideo.play(); // folytatja a lejátszást
+    }
+}
+
+// Kezdetben az első videó betöltése
+backgroundVideo.querySelector('source').src = videoSources[0];
+backgroundVideo.load();
 
         // Initial movie load
         filmKereses();
@@ -829,4 +861,5 @@
 	
 </body>
 </html>
+
 
