@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
     <style>
-        * {
+        /* A CSS változatlan marad */
+		* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -50,53 +52,113 @@
             color: #e50914;
         }
 
+        }
         .slider-container {
             position: relative;
-            max-width: 1200px;
-            margin: 80px auto 20px;
+            width: 100%;
+            height: 100vh; /* Teljes képernyő magasság Netflix-stílusban */
             overflow: hidden;
-            border-radius: 8px;
+            margin: 0;
         }
-
         .slider {
             display: flex;
-            transition: transform 0.5s ease-in-out;
+            transition: transform 0.8s ease-in-out; /* Lassabb átmenet Netflix-szerűen */
+            height: 100vh;
         }
-
         .slide {
             min-width: 100%;
             position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: flex-end; /* Tartalom alulra igazítva */
+            justify-content: flex-start;
         }
-
-        .slide img {
-            width: 100%;
-            height: 600px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .slide-caption {
+        .slide iframe {
             position: absolute;
-            bottom: 40px;
-            left: 40px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 25px;
-            border-radius: 5px;
-            font-size: 24px;
-            font-weight: bold;
-            text-transform: uppercase;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Videó kitölti a területet */
+            border: none;
+            z-index: -1; /* Háttérként */
         }
-
-        .slide-caption a {
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 20%, rgba(0, 0, 0, 0.8) 100%); /* Netflix-szerű gradiens overlay */
+            z-index: 1;
+        }
+        .slide-content {
+            position: relative;
+            z-index: 2;
+            padding: 0 60px 80px 60px; /* Netflix-szerű margók */
+            max-width: 600px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.5); /* Féltransparent háttér a szövegnek */
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        .slide-title {
+            font-size: 3.5rem; /* Nagy Netflix-cím */
+            font-weight: 300;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        .slide-description {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            color: #ccc;
+        }
+        .slide-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .btn-play {
+            background-color: #fff;
+            color: #000;
+            border: none;
+            padding: 12px 26px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-play:hover {
+            background-color: #e6e6e6;
+        }
+        .btn-info {
+            background: transparent;
             color: #fff;
-            text-decoration: none;
-            transition: color 0.3s;
+            border: 1px solid #fff;
+            padding: 12px 26px;
+            font-size: 1.1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
-
-        .slide-caption a:hover {
-            color: #e50914;
+        .btn-info:hover {
+            background-color: rgba(255, 255, 255, 0.2);
         }
-
+        .btn-play::before {
+            content: '▶'; /* Play ikon */
+            font-size: 1.2rem;
+        }
+        .btn-info::before {
+            content: 'ℹ'; /* Info ikon */
+            margin-right: 5px;
+        }
         .prev, .next {
             position: absolute;
             top: 50%;
@@ -138,6 +200,26 @@
 
         #kereso::placeholder {
             color: #999;
+        }
+
+        .categories-container {
+            background-color: #000;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .categories-container a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s;
+            margin: 0 15px;
+            display: inline-block;
+        }
+
+        .categories-container a:hover {
+            color: #e50914;
         }
 
         .movie-container {
@@ -208,65 +290,86 @@
             font-size: 14px;
             color: #ccc;
         }
+		.background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  /* kitölti a területet, levágja a széleket ha kell */
+    z-index: -1;
+}
     </style>
 </head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-BLN73N32GS"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-BLN73N32GS');
-</script>
-	
 <body>
-    <!-- SkyShowtime logo -->
-    <div class="logo">
-        <a href="filmek.html">
-            <img src="téliskysnet.png" alt="SkyShowtime">
-        </a>
-    </div>
-
-    <!-- Navbar -->
+    <!-- Navigációs sáv -->
     <div class="navbar">
-        
         <a href="filmek.html">Filmek</a>
         <a href="sorozatok.html">Sorozatok</a>
     </div>
 
-    <!-- Slider -->
-     <div class="slider-container">
-        <div class="slider" id="slider">
-            <div class="slide">
-                <img src="https://image.tmdb.org/t/p/original/iXCuYBDEMX22Wpwx3whhOidLfJI.jpg"  alt="Slide 1">
-                <div class="slide-caption">
-                    <a href="https://erik200101272008.github.io/SkysNet/solyomszem.html">Sólyomszem</a>
-                </div>
-            </div>
-			
-			
-			
-            <div class="slide">
-                <img src="https://image.tmdb.org/t/p/original/h09ctGPyUsdgesg2rVkoOLbhTlO.jpg" alt="Slide 2">
-                <div class="slide-caption">
-                    <a href="Smallville.html">Smallville</a>
-                </div>
-            </div>
-			
-			
-			
-            <div class="slide">
-                <img src="https://image.tmdb.org/t/p/original/qsNMPrSsQajp7GfrR6apApjiSQZ.jpg" alt="Slide 3">
-                <div class="slide-caption">
-                    <a href="teenwolf.html">Teen Wolf: Farkasbőrben</a>
+    <!-- Logó -->
+    <div class="logo">
+        <img src="téliskysnet.png" alt="SkysNet logó">
+    </div>
+	
+<!-- Slider -->
+<div class="slider-container">
+    <div class="slider" id="slider">
+        <!-- Első slide: Sólyomszem -->
+        <div class="slide">
+            <video autoplay muted loop playsinline class="background-video">
+                <source src="solysz.mp4" type="video/mp4">
+            </video>
+            <div class="slide-content">
+                <img src="https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/e490ab5a-8552-455b-a69d-ac0c464fcf2d/compose?format=webp" height="300" width="400">
+                <p class="slide-description">A történet a Bosszúállók: Végjáték eseményei után játszódik. Clint Barton nyugodt életet él családjával, amíg a múltja utol nem éri. Roninként sok ellenséget szerzett, és amikor valaki újra használja egykori identitását, közbeavatkozik. Így találkozik Kate Bishoppal, akivel együtt szállnak szembe a gonosztevőkkel.</p>
+                <div class="slide-buttons">
+                    <button class="btn-play" onclick="window.open('https://erik200101272008.github.io/SkysNet/solyomszem.html', '_blank')">
+                        ▶ Lejátszás
+                    </button>                  
                 </div>
             </div>
         </div>
-        <button class="prev" onclick="moveSlide(-1)">❮</button>
-        <button class="next" onclick="moveSlide(1)">❯</button>
+
+        <!-- Második slide: Ted sorozat -->
+        <div class="slide">
+            <video autoplay muted loop playsinline class="background-video">
+                <source src="teds.mp4" type="video/mp4">
+            </video>
+            <div class="slide-content">
+                <img src="https://pixel.disco.skyshowtime.com/uuid/193b4746-33e3-3c98-8205-d8100a324f79/LOGO_TITLE_WIDE?language=hu-HU&proposition=SKYSHOWTIME&version=6e121448-9e20-38b8-8a9b-0e51b400a896" height="300" width="400">
+                <p class="slide-description">1993-ban járunk, és Ted, a medve hírességének pillanata már elmúlt. Otthon él legjobb barátjával, John Bennett-tel és családjával. Bár Ted rossz hatással van Johnra, hűséges cimborája, aki a barátságért akár a végsőkig is elmegy.</p>
+                <div class="slide-buttons">
+                    <button class="btn-play" onclick="window.open('https://erik200101272008.github.io/SkysNet/ted.html', '_blank')">
+                        ▶ Lejátszás
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Harmadik slide: The Boys (A fiúk) -->
+        <div class="slide">
+            <video autoplay muted loop playsinline class="background-video">
+                <source src="boys.mp4" type="video/mp4">
+            </video>
+            <div class="slide-content">
+                <img src="https://logos-world.net/wp-content/uploads/2024/01/The-Boys-Symbol.png" height="300" width="400">
+                <p class="slide-description">A sorozat egy olyan korban játszódik, ahol a szuperhősök többsége el van telve celeb státuszával, és ez gyakran felelőtlen viselkedéssel párosul, ami a világ biztonságát is veszélyezteti. Egy renegát csapat száll szembe a korrupt, elkanászodott hősökkel – ha kell, akár likvidálják is őket.</p>
+                <div class="slide-buttons">
+                    <button class="btn-play" onclick="window.open('https://erik200101272008.github.io/SkysNet/theboys.html', '_blank')">
+                        ▶ Lejátszás
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Navigációs nyilak -->
+    <button class="prev" onclick="moveSlide(-1)">❮</button>
+    <button class="next" onclick="moveSlide(1)">❯</button>
+</div>
+    
     <!-- Search input -->
     <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Írd be a sorozat címét...">
 
@@ -301,7 +404,7 @@
             {
                 title: "Alkonyattól pirkadatig",
                 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zfwaTgJ7uQ9PM4qMQG1vOyxRHBQ.jpg",
-                previewImage: "https://image.tmdb.org/t/p/original/9UrIPMX5tSdXjrlCaDyxEoIwWLz.jpg",
+                previewImage: "https://static.wikia.nocookie.net/dusktilldawn/images/5/5d/Season_One_promo.png/revision/latest?cb=20140504022706",
                 description: "A sorozat Seth Gecko (D.J. Cotrona) és erőszakos, kiszámíthatatlan testvére, Richard Richie Gecko (Zane Holtz) történetét meséli el, akiket nem csak az FBI, hanem két texas ranger, Earl McGraw (Don Johnson) és Freddie Gonzalez (Jesse Garcia) is üldöz, miután kiraboltak néhány bankot és hátrahagytak néhány hullát. A fivérek Mexikó felé veszi az irányt, ám útközben belebotlanak egy korábbi miniszterbe, Jacob Fullerbe, akit családjával együtt túszul ejtenek. Az ő hathatós közreműködésükkel szeretnének átjutni a határon, ám előtte még megállnak egy sztriptízbárban, amely nem várt meglepetéseket tartogat számukra.",
                 link: "https://erik200101272008.github.io/SkysNet/alkonyattol.html"
             },
@@ -508,19 +611,19 @@
 				   description: "Az ördög megunta, hogy a pokol ura legyen, ezért Los Angelesbe költözik, ahol egy éjszakai klubbot nyit, és kapcsolatot alakít ki egy gyilkossági nyomozóval.",
 				   link: "https://erik200101272008.github.io/SkysNet/lucifer.html"
 			},
-		        {
+			{
 			       title: "Visszaszámlálás",
 				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yCkQtV4zA6uIIj9xLYfmsmf6f2X.jpg",
 				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/4a8cfddb0e6360845dc2d6c69ff81ba1e333bb506934e9f5cb8631cdfb84891e.jpg",
 				   description: "Mikor a Belbiztonsági Minisztérium egyik alkalmazottját fényes nappal megölik, Mark Meachum Los Angeles-i rendőrnyomozót a bűnüldözés más területein dolgozó titkos ügynökökkel együtt bevonják az ügyben nyomozó akciócsoportba. Ám a gyilkos utáni hajtóvadászat egy minden képzeletet felülmúlóan veszélyes tervre derít fényt, és versenyt kell futniuk az idővel, hogy megmentsék a többmilliós nagyvárost.",
 				   link: "visszaszámlálás.html"
 			},
-		        {
+			{
 			       title: "Pingvin",
 				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2rkXHbaHWfCOHWWEmVdxFA8NL4E.jpg",
 				   previewImage: "https://image.tmdb.org/t/p/original/qVCQE7WYyXn9vucIN53MSCYFwNq.jpg",
 				   description: "A Batman-univerzum következő fejezetéből feltárul Oswald „Oz” Cobb története, ahogy magához ragadta a hatalmat Gotham Cityben.",
-				   link: "Pingvin.html"
+				   link: "pingvin.html"
 			},
 			{
 			       title: "Clark",
@@ -536,7 +639,7 @@
 				   description: "Megtörtént események alapján készült sorozat Rocco Siffredi történetéről, aki kitörve egyszerű hétköznapjaiból a világ egyik legnevesebb pornócsillagává vált.",
 				   link: "supersex.html"
 			},
-		        {
+			{
 			       title: "Daredevil",
 				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2qfaHJaodEbMmj9GXMvj84mbpy3.jpg",
 				   previewImage: "https://image.tmdb.org/t/p/original/cqo3JDg04R8otm6rFQPcxsLz4yw.jpg",
@@ -593,18 +696,18 @@
 				   link: "twistedmetal.html"
 			},
 			{
-			       title: "Smallville",
-				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/r9K5QQv1o9pLKSEEbfoMWOQwLl5.jpg",
-				   previewImage: "https://image.tmdb.org/t/p/original/h09ctGPyUsdgesg2rVkoOLbhTlO.jpg",
-				   description: "1989-ben egy hatalmas meteor-eső pusztította el Smallville, a kansasi városka nagy részét. A katasztrófa sok-sok ember halálát okozta, Jonathan és Martha Kentet azonban egy kisfiúval ajándékozta meg, amire mindig olyan nagyon vágytak. 2001-ben fiuk, Clarke már felnőtt, és két közeli barátja van: Pete és Chloe. Szülei azonban elrejtik előle származásának titkát: azt, hogy egy űrhajó belsejében találtak rá, amikor hullott a meteoreső. Ahogy Clarknak kiteljesedik az ereje, lassanként Superman lesz belőle, és fel kell vennie a harcot a gonosszal szemben, az emberek védelmében.",
-				   link: "Smallville.html"
-			},
-			{
 			       title: "Kemény motorosok",
 				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8ioVi2WBwD2ybg7vcSwI1wDbHkN.jpg",
 				   previewImage: "https://image.tmdb.org/t/p/original/fG7s0Y907y9NgNyYPrwrMMcnjYC.jpg",
 				   description: "Az Anarchia Gyermekei motoros bandát Jax apja alapította, azzal a szándékkal, hogy a bandatagok lázadó mivoltukat így is kifejezhessék. Az évek során azonban a fegyverek, a kábítószer és a bűnözés minden válfaja megjelent a motorosok világában is. Árulással, bosszúval átszőtt, bandaháborúk tarkította világ a kemény motorosoké.",
 				   link: "Son of Anarchy.html"
+			},
+			{
+			       title: "Smallville",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/r9K5QQv1o9pLKSEEbfoMWOQwLl5.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/h09ctGPyUsdgesg2rVkoOLbhTlO.jpg",
+				   description: "1989-ben egy hatalmas meteor-eső pusztította el Smallville, a kansasi városka nagy részét. A katasztrófa sok-sok ember halálát okozta, Jonathan és Martha Kentet azonban egy kisfiúval ajándékozta meg, amire mindig olyan nagyon vágytak. 2001-ben fiuk, Clarke már felnőtt, és két közeli barátja van: Pete és Chloe. Szülei azonban elrejtik előle származásának titkát: azt, hogy egy űrhajó belsejében találtak rá, amikor hullott a meteoreső. Ahogy Clarknak kiteljesedik az ereje, lassanként Superman lesz belőle, és fel kell vennie a harcot a gonosszal szemben, az emberek védelmében.",
+				   link: "Smallville.html"
 			},
 			{
 			       title: "Szörnyeteg: Az Ed Gein story",
@@ -642,9 +745,9 @@
 			  link: "gothamknights.html"
 			},
 		
-		
 			
         ];
+		
 
         // Search function with preview support
         function filmKereses() {
@@ -672,6 +775,38 @@
                 movieList.appendChild(movieDiv);
             });
         }
+		let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const slider = document.getElementById('slider');
+const backgroundVideo = document.getElementById('background-video');
+
+const videoSources = [
+    "solysz.mp4",    // első slide videója
+    "teds.mp4",     // második
+    "boys.mp4"      // harmadik
+];
+
+function moveSlide(direction) {
+    currentSlide += direction;
+    if (currentSlide < 0) {
+        currentSlide = slides.length - 1;
+    } else if (currentSlide >= slides.length) {
+        currentSlide = 0;
+    }
+    slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+    // Videó forrás váltása (folyamatos lejátszással)
+    const newSrc = videoSources[currentSlide];
+    if (backgroundVideo.querySelector('source').src !== newSrc) {
+        backgroundVideo.querySelector('source').src = newSrc;
+        backgroundVideo.load(); // új videó betöltése
+        backgroundVideo.play(); // folytatja a lejátszást
+    }
+}
+
+// Kezdetben az első videó betöltése
+backgroundVideo.querySelector('source').src = videoSources[0];
+backgroundVideo.load();
 
         // Initial movie load
         filmKereses();
@@ -706,24 +841,22 @@
             }
         })();
     </script>
+	<script>
+    // Slider control
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const slider = document.getElementById('slider');
+
+    function moveSlide(direction) {
+        currentSlide += direction;
+        if (currentSlide < 0) {
+            currentSlide = slides.length - 1;
+        } else if (currentSlide >= slides.length) {
+            currentSlide = 0;
+        }
+        slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+	</script>
+	
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
