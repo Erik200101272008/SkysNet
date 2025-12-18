@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hu">
 <head>
@@ -52,53 +53,113 @@
             color: #e50914;
         }
 
+        }
         .slider-container {
             position: relative;
-            max-width: 1200px;
-            margin: 80px auto 20px;
+            width: 100%;
+            height: 100vh; /* Teljes képernyő magasság Netflix-stílusban */
             overflow: hidden;
-            border-radius: 8px;
+            margin: 0;
         }
-
         .slider {
             display: flex;
-            transition: transform 0.5s ease-in-out;
+            transition: transform 0.8s ease-in-out; /* Lassabb átmenet Netflix-szerűen */
+            height: 100vh;
         }
-
         .slide {
             min-width: 100%;
             position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: flex-end; /* Tartalom alulra igazítva */
+            justify-content: flex-start;
         }
-
-        .slide img {
-            width: 100%;
-            height: 600px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .slide-caption {
+        .slide iframe {
             position: absolute;
-            bottom: 40px;
-            left: 40px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 25px;
-            border-radius: 5px;
-            font-size: 24px;
-            font-weight: bold;
-            text-transform: uppercase;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Videó kitölti a területet */
+            border: none;
+            z-index: -1; /* Háttérként */
         }
-
-        .slide-caption a {
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 20%, rgba(0, 0, 0, 0.8) 100%); /* Netflix-szerű gradiens overlay */
+            z-index: 1;
+        }
+        .slide-content {
+            position: relative;
+            z-index: 2;
+            padding: 0 60px 80px 60px; /* Netflix-szerű margók */
+            max-width: 600px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.5); /* Féltransparent háttér a szövegnek */
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        .slide-title {
+            font-size: 3.5rem; /* Nagy Netflix-cím */
+            font-weight: 300;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        .slide-description {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            color: #ccc;
+        }
+        .slide-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .btn-play {
+            background-color: #fff;
+            color: #000;
+            border: none;
+            padding: 12px 26px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-play:hover {
+            background-color: #e6e6e6;
+        }
+        .btn-info {
+            background: transparent;
             color: #fff;
-            text-decoration: none;
-            transition: color 0.3s;
+            border: 1px solid #fff;
+            padding: 12px 26px;
+            font-size: 1.1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
-
-        .slide-caption a:hover {
-            color: #e50914;
+        .btn-info:hover {
+            background-color: rgba(255, 255, 255, 0.2);
         }
-
+        .btn-play::before {
+            content: '▶'; /* Play ikon */
+            font-size: 1.2rem;
+        }
+        .btn-info::before {
+            content: 'ℹ'; /* Info ikon */
+            margin-right: 5px;
+        }
         .prev, .next {
             position: absolute;
             top: 50%;
@@ -242,7 +303,7 @@
     </style>
 </head>
 <body>
-  <!-- Navigációs sáv -->
+    <!-- Navigációs sáv -->
     <div class="navbar">
         <a href="filmek.html">Filmek</a>
         <a href="sorozatok.html">Sorozatok</a>
@@ -298,6 +359,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Navigációs gombok -->
+    <button class="prev" onclick="moveSlide(-1)" aria-label="Előző dia">❮</button>
+    <button class="next" onclick="moveSlide(1)" aria-label="Következő dia">❯</button>
 
     <!-- Keresőmező -->
     <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
@@ -6618,6 +6683,7 @@
     </script>
 </body>
 </html>
+
 
 
 
