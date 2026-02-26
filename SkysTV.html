@@ -56,9 +56,36 @@
       #guide-content { padding: 16px; }
       table, th, td { font-size: 0.95rem; padding: 8px; }
     }
+	#logo-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 25;
+  pointer-events: none; /* ne zavarja a kattintásokat */
+  opacity: 0.85;
+  transition: opacity 0.3s;
+}
+
+#logo-overlay:hover {
+  opacity: 1.0;
+}
+
+#logo-overlay img {
+  height: 100px;          /* állítsd a kívánt méretre */
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
+}
+@media (max-width: 700px) {
+  #logo-overlay img {
+    height: 36px;
+  }
+}
   </style>
 </head>
 <body>
+<div id="logo-overlay">
+  <img src="SkysTV.png" alt="SkysTV">
+</div>
 
 <div id="container">
   <iframe id="player" src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
@@ -92,103 +119,43 @@
 // ────────────────────────────────────────────────
 const playlist = [
   
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239532&hd=2&autoplay=1", duration: 7078, title: "Különösen veszélyes bűnözők" },
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241050&autoplay=1", duration: 120, title: "Reklám"},
- { utl: "https://vk.com/video_ext.php?oid=1037217102&id=456241051&autoplay=1", duration: 30, title: "Reklám"},
- 
   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239039&hd=2",  duration: 3046, title: "Ted 1.évad 1.rész" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241052&autoplay=1", duration: 146, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241053&autoplay=1", duration: 146 , title:"Reklám"},
-
-
-
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239541&hd=2&autoplay=1", duration: 7343, title: "Sikoly 6" },
   
   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239207&hd=1&autoplay=1",   duration: 5826, title: "Társ" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241054&autoplay=1", duration: 132, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241055&autoplay=1", duration: 152, title: "Reklám"},
-
-
-
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239241&hd=1&autoplay=1", duration: 6976, title: "Pancser Police"},
   
   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239064", duration: 6044, title: "Borderlands" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241056&autoplay=1", duration: 138,  title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241057&autoplay=1", duration: 143, title: "Reklám"},
-  
+  { url: "https://vk.com/video_ext.php?oid=749867145&id=456245768&hash=ab046f70de9bcf6a&hd=3", duration: 6233, title: "Ölj meg, ha tudsz!"},
   
   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239066", duration: 6228, title: "Oldboy" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241058&autoplay=1", duration: 126, title: "Reklám"},
-   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241059&autoplay=1", duration: 146, title: "Reklám"},
-  
-   
-   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239101&hd=1&autoplay=1",   duration: 6213, title: "Imádlak utálni" },
-   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241060&autoplay=1", duration: 122, title: "Reklám"},
-   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241061&autoplay=1", duration: 150, title: "Reklám"},
- 
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239130&hd=2&autoplay=1",   duration: 7680, title: "Aladdin" },
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239560&hd=1&autoplay=1",   duration: 7680, title: "Nyomd bébi,nyomd" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241062&autoplay=1", duration: 122, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241063&autoplay=1", duration: 114, title: "Reklám"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1",   duration: 7672, title: "Mennydörgők" },
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241064&autoplay=1", duration: 124, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241065&autoplay=1", duration: 180, title: "Reklám"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240251&hd=2&autoplay=1",   duration: 7672, title: "Superman" },
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241066&autoplay=1", duration: 162, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241067&autoplay=1", duration: 140, title: "Reklám"},
- 
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1",   duration: 8259, title: "Bűnösök" },
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241068&autoplay=1", duration: 102, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241069&autoplay=1", duration: 120, title: "Reklám"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239544&hd=2&autoplay=1",   duration: 6560, title: "Bloodshot" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241070&autoplay=1", duration: 120, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241071&autoplay=1", duration: 158, title: "Reklám"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239553&hd=2&autoplay=1",   duration: 6414, title: "Erőszakik" },
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241072&autoplay=1", duration: 200, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241073&autoplay=1", duration: 146, title: "Reklám"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239563&hd=1&autoplay=1",   duration: 5114, title: "Babysitter" },
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241074&autoplay=1", duration: 140, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241075&autoplay=1", duration: 112, title: "Reklám"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240738&hd=1&autoplay=1",   duration: 5364, title: "Senki 2" },
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241076&autoplay=1", duration: 154, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241077&autoplay=1", duration: 120, title: "Reklám"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239543&hd=2&autoplay=1",   duration: 7182, title: "Kézipoggyász" },
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241078&autoplay=1", duration: 122, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241079&autoplay=1", duration: 146, title: "Reklám"},
- 
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239165&hd=2&autoplay=1",   duration: 7616,  title: "Kraven, a vadász" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241080&autoplay=1", duration: 136, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241081&autoplay=1", duration: 92, title: "Reklám"},
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240973&autoplay=1", duration: 5476, title: "Diablo"},
 
   { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239345&hd=1&autoplay=1", duration: 5766, title: "A csúf igazság"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241082&autoplay=1", duration: 152, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241083&autoplay=1", duration: 164, title: "Reklám"},
+  { url: "https://vk.com/video_ext.php?oid=-229926412&id=456240994&hash=54598dd636557039&hd=3", duration: 7674, title: "A könyvelő"},
+  
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
+  { url: "https://vk.com/video_ext.php?oid=-229926412&id=456240993&hash=6e42bcd4493790d2&hd=3", duration: 8060, title: "A könyvelő 2"},
+  
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239817&hd=1&autoplay=1", duration: 7413, title: "Megtorló"},
+ 
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239188&hd=2&autoplay=1", duration: 6510, title: "Családi bunyó"},
+ 
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239353&hd=2&autoplay=1", duration: 7598, title: "A védelmező"},
+ 
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239797&hd=1&autoplay=1", duration: 6250, title: "Morbius"},
+
+ 
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239112&hd=2&autoplay=1", duration: 7754, title: "Deadpool és Rozsomák"},
+ 
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
+ { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239739&hd=2&autoplay=1", duration: 7986, title: "Creed"},
+
 ];
 
 
