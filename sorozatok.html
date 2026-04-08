@@ -5,404 +5,254 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
-    <style>
-        /* A CSS változatlan marad */
-		* {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         body {
+            font-family: 'Inter', system-ui, sans-serif;
             background-color: #141414;
             color: #fff;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            text-align: center;
         }
 
-        .logo {
-            padding: 5px 0;
-        }
-
-        .logo img {
-            width: 300px;
-        }
-
-        .navbar {
-            background-color: #000;
-            padding: 10px 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .navbar a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .navbar a:hover {
-            color: #e50914;
-        }
-
-        }
+        /* SLIDER */
         .slider-container {
             position: relative;
-            width: 100%;
-            height: 100vh; /* Teljes képernyő magasság Netflix-stílusban */
+            height: 100vh;
             overflow: hidden;
-            margin: 0;
         }
+
         .slider {
             display: flex;
-            transition: transform 0.8s ease-in-out; /* Lassabb átmenet Netflix-szerűen */
-            height: 100vh;
+            height: 100%;
+            transition: transform 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
+
         .slide {
             min-width: 100%;
+            background-size: cover;
+            background-position: center;
             position: relative;
-            height: 100vh;
             display: flex;
-            align-items: flex-end; /* Tartalom alulra igazítva */
-            justify-content: flex-start;
+            align-items: flex-end;
         }
-        .slide iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Videó kitölti a területet */
-            border: none;
-            z-index: -1; /* Háttérként */
-        }
+
         .slide::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 20%, rgba(0, 0, 0, 0.8) 100%); /* Netflix-szerű gradiens overlay */
-            z-index: 1;
+            inset: 0;
+            background: linear-gradient(to top, rgba(20,20,20,0.95) 0%, rgba(20,20,20,0.6) 40%, transparent 70%);
         }
+
         .slide-content {
             position: relative;
-            z-index: 2;
-            padding: 0 60px 80px 60px; /* Netflix-szerű margók */
-            max-width: 600px;
-            text-align: left;
-            background: rgba(0, 0, 0, 0.5); /* Féltransparent háttér a szövegnek */
-            border-radius: 8px;
-            padding: 40px;
-            margin-bottom: 40px;
+            z-index: 10;
+            max-width: 680px;
+            padding: 0 60px 120px 60px;
         }
+
         .slide-title {
-            font-size: 3.5rem; /* Nagy Netflix-cím */
-            font-weight: 300;
+            font-size: 4.5rem;
+            font-weight: 700;
+            line-height: 1.05;
             margin-bottom: 20px;
-            letter-spacing: -1px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.9);
         }
+
         .slide-description {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            line-height: 1.4;
-            color: #ccc;
+            font-size: 1.35rem;
+            line-height: 1.45;
+            color: #ddd;
+            margin-bottom: 35px;
         }
-        .slide-buttons {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
+
         .btn-play {
             background-color: #fff;
             color: #000;
-            border: none;
-            padding: 12px 26px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: flex;
+            font-weight: 600;
+            padding: 14px 32px;
+            border-radius: 6px;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            transition: all 0.3s;
         }
+
         .btn-play:hover {
-            background-color: #e6e6e6;
+            background-color: #e50914;
+            color: white;
+            transform: scale(1.05);
         }
-        .btn-info {
-            background: transparent;
-            color: #fff;
-            border: 1px solid #fff;
-            padding: 12px 26px;
-            font-size: 1.1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-info:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        .btn-play::before {
-            content: '▶'; /* Play ikon */
-            font-size: 1.2rem;
-        }
-        .btn-info::before {
-            content: 'ℹ'; /* Info ikon */
-            margin-right: 5px;
-        }
+
         .prev, .next {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
+            background: rgba(0, 0, 0, 0.65);
+            color: white;
             border: none;
-            padding: 15px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 28px;
             cursor: pointer;
-            font-size: 24px;
-            border-radius: 5px;
-            transition: background 0.3s;
+            z-index: 30;
+            transition: all 0.3s;
         }
 
-        .prev {
-            left: 10px;
-        }
-
-        .next {
-            right: 10px;
-        }
-
-        .prev:hover, .next:hover {
-            background: rgba(0, 0, 0, 0.9);
-        }
-
-        #kereso {
-            width: 60%;
-            max-width: 600px;
-            padding: 12px;
-            margin: 20px auto;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            background-color: #333;
-            color: #fff;
-            display: block;
-        }
-
-        #kereso::placeholder {
-            color: #999;
-        }
-
-        .categories-container {
-            background-color: #000;
-            padding: 20px 0;
-            margin-bottom: 20px;
-        }
-
-        .categories-container a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 500;
-            transition: color 0.3s;
-            margin: 0 15px;
-            display: inline-block;
-        }
-
-        .categories-container a:hover {
-            color: #e50914;
-        }
-
-        .movie-container {
-            display: inline-block;
-            position: relative;
-            margin: 15px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .movie-container img {
-            width: 200px;
-            height: 300px;
-            object-fit: cover;
-            border-radius: 8px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .movie-container:hover img {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-        }
-
-        .movie-container p {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #fff;
-        }
-
-        .preview {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%) scale(0);
-            width: 300px;
-            background: #181818;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            z-index: 10;
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            overflow: hidden;
-        }
-
-        .movie-container:hover .preview {
-            transform: translateX(-50%) scale(1);
-            opacity: 1;
-        }
-
-        .preview img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .preview-content {
-            padding: 10px;
-            text-align: left;
-        }
-
-        .preview-content h3 {
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .preview-content p {
-            font-size: 14px;
-            color: #ccc;
-        }
-		.background-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;  /* kitölti a területet, levágja a széleket ha kell */
-    z-index: -1;
-}
+        .prev:hover, .next:hover { background: #e50914; }
+        .prev { left: 40px; }
+        .next { right: 40px; }
     </style>
 </head>
 <body>
-    <!-- Navigációs sáv -->
-    <div class="navbar">
-        <a href="fooldal.html">Filmek</a>
-        <a href="sorozatok.html">Sorozatok</a>
-		<a href="SkysTV.html">SkysTV</a>
-    </div>
 
-    <!-- Logó -->
-    <div class="logo">
-        <img src="skysnet.png" alt="SkysNet logó">
-    </div>
-	
-<!-- Slider -->
-<div class="slider-container">
-    <div class="slider" id="slider">
-        <!-- Első slide: Sólyomszem -->
-        <div class="slide">
-            <video autoplay muted loop playsinline class="background-video">
-                <source src="solysz.mp4" type="video/mp4">
-            </video>
-            <div class="slide-content">
-                <img src="https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/e490ab5a-8552-455b-a69d-ac0c464fcf2d/compose?format=webp" height="300" width="400">
-                <p class="slide-description">A történet a Bosszúállók: Végjáték eseményei után játszódik. Clint Barton nyugodt életet él családjával, amíg a múltja utol nem éri. Roninként sok ellenséget szerzett, és amikor valaki újra használja egykori identitását, közbeavatkozik. Így találkozik Kate Bishoppal, akivel együtt szállnak szembe a gonosztevőkkel.</p>
-                <div class="slide-buttons">
-                    <button class="btn-play" onclick="window.open('https://erik200101272008.github.io/SkysNet/solyomszem.html', '_blank')">
-                        ▶ Lejátszás
-                    </button>                  
-                </div>
+    <!-- NAVIGÁCIÓ -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-screen-2xl mx-auto px-10 py-5 flex items-center justify-between">
+            <img src="skysnet.png" alt="SkysNet" class="h-20">
+            <div class="flex gap-9 text-sm font-medium">
+                <a href="fooldal.html" class="hover:text-red-600 transition">Főoldal</a>
+                <a href="fooldal.html" class="hover:text-red-600 transition">Filmek</a>
+                <a href="sorozatok.html" class="hover:text-red-600 transition">Sorozatok</a>
+                <a href="SkysTV.html" class="hover:text-red-600 transition">SkysTV</a>
             </div>
         </div>
+    </nav>
 
-        <!-- Második slide: Ted sorozat -->
-        <div class="slide">
-            <video autoplay muted loop playsinline class="background-video">
-                <source src="teds.mp4" type="video/mp4">
-            </video>
-            <div class="slide-content">
-                <img src="https://pixel.disco.skyshowtime.com/uuid/193b4746-33e3-3c98-8205-d8100a324f79/LOGO_TITLE_WIDE?language=hu-HU&proposition=SKYSHOWTIME&version=6e121448-9e20-38b8-8a9b-0e51b400a896" height="300" width="400">
-                <p class="slide-description">1993-ban járunk, és Ted, a medve hírességének pillanata már elmúlt. Otthon él legjobb barátjával, John Bennett-tel és családjával. Bár Ted rossz hatással van Johnra, hűséges cimborája, aki a barátságért akár a végsőkig is elmegy.</p>
-                <div class="slide-buttons">
-                    <button class="btn-play" onclick="window.open('https://erik200101272008.github.io/SkysNet/ted.html', '_blank')">
-                        ▶ Lejátszás
+    <!-- SLIDER - KÉPEKKEL -->
+    <div class="slider-container">
+        <div class="slider" id="slider">
+
+            <!-- 1. slide -->
+            <div class="slide" style="background-image: url('https://image.tmdb.org/t/p/original/7UiEfbGsqM64WvuaUHW1KLm3ONU.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">TED</h1>
+                    <p class="slide-description">1993-ban járunk, és Ted, a medve hírességének pillanata már elmúlt. Otthon él legjobb barátjával, John Bennett-tel és családjával. Bár Ted rossz hatással van Johnra, hűséges cimborája, aki a barátságért akár a végsőkig is elmegy.</p>
+                    <button onclick="window.open('https://erik200101272008.github.io/SkysNet/ted.html', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Harmadik slide: The Boys (A fiúk) -->
-        <div class="slide">
-            <video autoplay muted loop playsinline class="background-video">
-                <source src="boys.mp4" type="video/mp4">
-            </video>
-            <div class="slide-content">
-                <img src="https://logos-world.net/wp-content/uploads/2024/01/The-Boys-Symbol.png" height="300" width="400">
-                <p class="slide-description">A sorozat egy olyan korban játszódik, ahol a szuperhősök többsége el van telve celeb státuszával, és ez gyakran felelőtlen viselkedéssel párosul, ami a világ biztonságát is veszélyezteti. Egy renegát csapat száll szembe a korrupt, elkanászodott hősökkel – ha kell, akár likvidálják is őket.</p>
-                <div class="slide-buttons">
-                    <button class="btn-play" onclick="window.open('https://erik200101272008.github.io/SkysNet/theboys.html', '_blank')">
-                        ▶ Lejátszás
+            <!-- 2. slide -->
+            <div class="slide" style="background-image: url('https://image.tmdb.org/t/p/original/sluu3iq8EdlRfwCwxtF7WUyuy0b.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">Daredevil újjászületés</h1>
+                    <p class="slide-description">Matt Murdock, a különleges képességekkel rendelkező vak ügyvéd folyton az igazság oldalán harcol az ügyvédi irodájában, miközben Wilson Fisk, a volt maffiafőnök politikai karrierbe kezd New Yorkban. Amikor újra a felszínre tör a korábbi énjük, rá kell jönniük, hogy muszáj lesz megküzdeniük egymással.</p>
+                    <button onclick="window.open('https://erik200101272008.github.io/SkysNet/daredevil.html', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
                     </button>
                 </div>
             </div>
+
+            <!-- 3. slide -->
+            <div class="slide" style="background-image: url('https://image.tmdb.org/t/p/original/n6vVs6z8obNbExdD3QHTr4Utu1Z.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">A fiúk</h1>
+                    <p class="slide-description">A sorozat egy olyan korban játszódik, ahol a szuperhősök többsége el van telve celeb státuszával, és ez gyakran felelőtlen viselkedéssel párosul, ami a világ biztonságát is veszélybe sodorja. A középpontban egy renegát csapat áll, amely ezekkel a korrupt, elkanászodott hősökkel foglalkozik, s ha kell, likvidálja őket.</p>
+                    <button onclick="window.open('https://erik200101272008.github.io/SkysNet/theboys.html', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. slide -->
+            <div class="slide" style="background-image: url('https://media.themoviedb.org/t/p/w533_and_h300_face/wJSkauLkCeDY6FfaKopCn3HaIxZ.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">Mike</h1>
+                    <p class="slide-description">A sorozat Mike Tysont a fókuszba helyezve veszi górcső alá Amerika társadalmi osztályait, a faji hovatartozás kérdését, a hírnév jelenségét és a média hatalmát, a nőgyűlöletet, a vagyoni különbségeket, az amerikai álom ígéretét, és végül a saját szerepünket Mike történetének formálásában.</p>
+                    <button onclick="window.open('mike.html', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
+                    </button>
+                </div>
+            </div>
+
         </div>
+
+        <!-- Navigációs gombok -->
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
     </div>
 
-    <!-- Navigációs nyilak -->
-    <button class="prev" onclick="moveSlide(-1)">❮</button>
-    <button class="next" onclick="moveSlide(1)">❯</button>
-</div>
-    
-    <!-- Search input -->
-    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Írd be a sorozat címét...">
+    <!-- KERESŐ -->
+    <div class="max-w-2xl mx-auto -mt-8 relative z-10 px-6">
+        <input 
+            type="text" 
+            id="kereso" 
+            onkeyup="filmKereses()" 
+            placeholder="Keresés filmek és sorozatok között..." 
+            class="w-full bg-zinc-900 border border-zinc-700 focus:border-red-600 rounded-full py-4 px-8 text-lg focus:outline-none shadow-2xl">
+    </div>
 
-    <h2>Sorozatok</h2>
+    <!-- KATEGÓRIÁK ÉS FILM LISTA -->
+    <!-- Ide másold be a korábbi kategória linkeket és a #movie-list részt a te eredeti kódodból -->
 
-    <!-- Movie list container -->
-    <div id="movie-list"></div>
+    <div id="movie-list" class="max-w-screen-2xl mx-auto px-8 py-12 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        <!-- A filmek ide fognak betöltődni a JavaScript által -->
+    </div>
 
     <script>
-        // Slider control
+        // ====================== SLIDER MŰKÖDÉS ======================
         let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
         const slider = document.getElementById('slider');
+        const totalSlides = 4;
 
         function moveSlide(direction) {
             currentSlide += direction;
-            if (currentSlide < 0) {
-                currentSlide = slides.length - 1;
-            } else if (currentSlide >= slides.length) {
-                currentSlide = 0;
-            }
+            if (currentSlide >= totalSlides) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = totalSlides - 1;
             slider.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // Automatic slide change every 5 seconds
-        setInterval(() => {
-            moveSlide(1);
-        }, 5000);
+        // Automatikus váltás 6 másodpercenként
+        setInterval(() => moveSlide(1), 6000);
 
-        // Movie database
+        // ====================== KERESÉS ======================
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => 
+                movie.title.toLowerCase().includes(searchTerm)
+            );
+
+            filteredMovies.forEach(movie => {
+                const div = document.createElement('div');
+                div.className = "movie-container group cursor-pointer";
+                div.innerHTML = `
+                    <a href="${movie.link}" target="_blank">
+                        <div class="relative overflow-hidden rounded-xl aspect-[2/3]">
+                            <img src="${movie.image}" alt="${movie.title}" 
+                                 class="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+                                 loading="lazy">
+                        </div>
+                        <p class="mt-3 text-center font-medium">${movie.title}</p>
+                    </a>
+                `;
+                movieList.appendChild(div);
+            });
+        }
+
+        // ====================== FILMEK BETÖLTÉSE ======================
+        // IDE MÁSOLJ BE A TELJES `movies` TÖMBÖDET AZ EREDETI KÓDBÓL!
         const movies = [
-            {
+            // ... a te összes filmed (a korábbi üzenetből)
+            // pl.:
+			{
                 title: "Alkonyattól pirkadatig",
                 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zfwaTgJ7uQ9PM4qMQG1vOyxRHBQ.jpg",
                 previewImage: "https://static.wikia.nocookie.net/dusktilldawn/images/5/5d/Season_One_promo.png/revision/latest?cb=20140504022706",
@@ -753,7 +603,7 @@
 			  link: "kiut.html"
 			},
 			{
-			  title: "A 3-test-probléma",
+			  title: "A 3-test-probléma ",
 			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/91OmDL2PWQnd4Pm9hXLwrfn3Ql3.jpg",
 			  previewImage: "https://images.ottplay.com/images/character-posters-3-body-problem-netflix-1710754153.png?impolicy=ottplay-202501_high&width=1200&height=675",
 			  description: "Öt briliáns jó barát kontinenseken és évtizedeken átívelő, világnézetünket alapjaiban megrengető felfedezést tesz, amely felfedi egy közelgő fenyegetés jelenlétét is.",
@@ -788,6 +638,20 @@
 			  link: "euforia.html"
 			},
 			{
+			  title: "Brooklyn 99 - Nemszázas körzet",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/5lPsBgrwBka0pU3mcDnm7offbaq.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/52371036368023ea0560a34366bd4669914e282c55166c1952e9393acf5b22cd.jpg",
+			  description: "A New York 99. számú rendőrőrsén játszódó, poénokkal tűzdelt sorozat a tehetséges, ám gyerekes módon viselkedő Jake Peralta nyomozó (Andy Samberg) és újdonsült főnöke, a mogorva Ray Holt (Andre Braugher) közötti konfliktusokat mutatja be rendkívül vicces formában, amihez persze az őrs többi, nem kevésbé defektes munkatársa is asszisztál. A káoszt csak fokozza, hogy az új vezető döntései nem könnyítik meg a szolgálati szabályzatot igencsak lazán kezelő Peralta életét.",
+			  link: "Brooklyn99.html"
+			},
+			{
+			  title: "Shaolin leszámolás",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/tAzY37ss5HGvpxLvO4giWcKwy7l.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/dhLi5XTGrj9R2aQa9XXfZnDhT1N.jpg",
+			  description: "Omi egy robbanékony, ifjú szerzetesnövendék és egyben a Shaolin csapat nem hivatalos vezetője. Az őselemek közül a vizet uralja, emellett teljes valójával azon van, hogy megtalálja a Shen-Gong-Wu hiányzó részeit és leszámoljon bármilyen ellenséggel, aki akadályozni próbálja őt ebben. Miközben új tanulóit oktatja a Shen-Gong-Wu részeiről és harcművészetekről, Omi is mindig tanul tőlük valamit.",
+			  link: "shaolinlesz.html"
+			},
+			{
 			  title: "A törvény nevében",
 			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/mV16EBXQ6kDWpj31P6BEhmzTTkd.jpg",
 			  previewImage: "https://image.tmdb.org/t/p/original/1zevVLM24guH38aDI5QSrcheUOW.jpg",
@@ -800,13 +664,6 @@
 			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/hmNihHmvYZjCcb6c8RRKDXSx8EW.jpg",
 			  description: "Egy első generációs elemző rájön, hogy az agyát feltörték, és így hozzáférhet az érzékeihez. Az ügynökség és a hackerek közé szorulva normálisan viselkedik, hogy felfedje a tetteseket.",
 			  link: "coppenh.html",
-			},
-			{
-			  title: "Shaolin leszámolás",
-			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/tAzY37ss5HGvpxLvO4giWcKwy7l.jpg",
-			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/dhLi5XTGrj9R2aQa9XXfZnDhT1N.jpg",
-			  description: "Omi egy robbanékony, ifjú szerzetesnövendék és egyben a Shaolin csapat nem hivatalos vezetője. Az őselemek közül a vizet uralja, emellett teljes valójával azon van, hogy megtalálja a Shen-Gong-Wu hiányzó részeit és leszámoljon bármilyen ellenséggel, aki akadályozni próbálja őt ebben. Miközben új tanulóit oktatja a Shen-Gong-Wu részeiről és harcművészetekről, Omi is mindig tanul tőlük valamit.",
-			  link: "shaolinlesz.html"
 			},
 			{
 			  title: "56 nap",
@@ -823,6 +680,13 @@
 			  link: "xmenevol.html"
 			},
 			{
+			  title: "Pókember",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/wXthtEN5kdWA1bHz03lkuCJS6hA.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/kDTn0caV1hd7qxMDxyXco9A6Auo.jpg",
+			  description: "Minden idők egyik legnépszerűbb akcióhőse, Spider-man, vagyis a Pókember szembeszáll a világ legveszélyesebb gonosztevőivel és gazembereivel. Hősünk emberfeletti, pókokra jellemző képességeivel, hihetetlen elszántsággal küzd a bűnözők ellen. A Spider-man epizódjai során részesei lehetünk a szuperhős kalandjainak. A pókember hatalmas erővel, gyors reflexekkel, hihetetlen egyensúlyérzékkel rendelkezik, és bármely felületre képes rátapadni. E tulajdonságok megkönnyítik a New York városának legveszélyesebb bűnözőivel való szembeszállást.",
+			  link: ""
+			},
+			{
 			  title: "A fény hercegnője",
 			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/kJw73nXlDxooReri4hW5gC48Dou.jpg",
 			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/mwRswiiDVqqlJlD9pez4CbANLn8.jpg",
@@ -837,7 +701,7 @@
 			  link: "kedvesh.html"
 			},
 			{
-			  title: "Megtévesztés",
+			  title: "Megtévesztés ",
 			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/AnJBeMJdIw9umj958VRCyz7PWrI.jpg",
 			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/A5fmBpqyn0lnrChoAQGkM3hSbAl.jpg",
 			  description: "Egy nyomozónő titkos küldetésben visszatér ahhoz a gazdag családhoz, ahol egykoron a cseléd lányaként nevelkedett, hogy kiderítse, ki gyilkolta meg a közismert örökösnőt, aki egykor a legjobb barátja volt.",
@@ -864,105 +728,16 @@
 			  description: "A nyugat-texasi Boomtownban játszódó Landman egy modern történet a szerencsevadászatról az olajfúrótornyok világában. A sorozat egy olyan hatalmas fellendülést gerjesztő, az éghajlatot, a gazdaságot és a geopolitikát is átformáló, az emeletről emeletre haladó és a földszintről lefelé bukó, durva csavargókról és vad milliárdosokról szóló történet, amely egy olyan hatalmas fellendülést táplál, ami átformálja éghajlatunkat, gazdaságunkat és geopolitikánkat.", 
 			  link: "olajü.html"
 			},
-		
 			
-        ];
-		
+			
+			
+			
+			];
 
-        // Search function with preview support
-        function filmKereses() {
-            const searchTerm = document.getElementById('kereso').value.toLowerCase();
-            const movieList = document.getElementById('movie-list');
-            movieList.innerHTML = '';
-
-            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
-            filteredMovies.forEach(movie => {
-                const movieDiv = document.createElement('div');
-                movieDiv.classList.add('movie-container');
-                movieDiv.innerHTML = `
-                    <a href="${movie.link}">
-                        <img src="${movie.image}" alt="${movie.title}">
-                        <div class="preview">
-                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
-                            <div class="preview-content">
-                                <h3>${movie.title}</h3>
-                                <p>${movie.description}</p>
-                            </div>
-                        </div>
-                    </a>
-                    <p>${movie.title}</p>
-                `;
-                movieList.appendChild(movieDiv);
-            });
-        }
-		
-        
-        // Initial movie load
-        filmKereses();
+        // Oldal betöltésekor
+        window.onload = () => {
+            filmKereses();        // kezdetben az összes filmet mutatja
+        };
     </script>
-
-    <!-- Chatbase integration -->
-    <script>
-        (function(){
-            if(!window.chatbase||window.chatbase("getState")!=="initialized"){
-                window.chatbase=(...arguments)=>{
-                    if(!window.chatbase.q){window.chatbase.q=[]}
-                    window.chatbase.q.push(arguments)
-                };
-                window.chatbase=new Proxy(window.chatbase,{
-                    get(target,prop){
-                        if(prop==="q"){return target.q}
-                        return(...args)=>target(prop,...args)
-                    }
-                })
-            }
-            const onLoad=function(){
-                const script=document.createElement("script");
-                script.src="https://www.chatbase.co/embed.min.js";
-                script.id="S0pkPYf7JDaXKq4OO8uqu";
-                script.domain="www.chatbase.co";
-                document.body.appendChild(script)
-            };
-            if(document.readyState==="complete"){
-                onLoad()
-            }else{
-                window.addEventListener("load",onLoad)
-            }
-        })();
-    </script>
-	<script>
-    // Slider control
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.slide');
-    const slider = document.getElementById('slider');
-
-    function moveSlide(direction) {
-        currentSlide += direction;
-        if (currentSlide < 0) {
-            currentSlide = slides.length - 1;
-        } else if (currentSlide >= slides.length) {
-            currentSlide = 0;
-        }
-        slider.style.transform = `translateX(-${currentSlide * 100}%)`;
-    }
-	</script>
-	
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
