@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hu">
 <head>
@@ -6,204 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="skysnet.png">
     <title>SkysNet</title>
-    <style>
-        /* A CSS változatlan marad */
-		* {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         body {
+            font-family: 'Inter', system-ui, sans-serif;
             background-color: #141414;
             color: #fff;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            text-align: center;
         }
 
-        .logo {
-            padding: 5px 0;
-        }
-
-        .logo img {
-            width: 300px;
-        }
-
-        .navbar {
-            background-color: #000;
-            padding: 10px 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .navbar a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .navbar a:hover {
-            color: #e50914;
-        }
-
-        }
+        /* SLIDER */
         .slider-container {
             position: relative;
-            width: 100%;
-            height: 100vh; /* Teljes képernyő magasság Netflix-stílusban */
+            height: 100vh;
             overflow: hidden;
-            margin: 0;
         }
+
         .slider {
             display: flex;
-            transition: transform 0.8s ease-in-out; /* Lassabb átmenet Netflix-szerűen */
-            height: 100vh;
+            height: 100%;
+            transition: transform 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
+
         .slide {
             min-width: 100%;
+            background-size: cover;
+            background-position: center;
             position: relative;
-            height: 100vh;
             display: flex;
-            align-items: flex-end; /* Tartalom alulra igazítva */
-            justify-content: flex-start;
+            align-items: flex-end;
         }
-        .slide iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Videó kitölti a területet */
-            border: none;
-            z-index: -1; /* Háttérként */
-        }
+
         .slide::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 20%, rgba(0, 0, 0, 0.8) 100%); /* Netflix-szerű gradiens overlay */
-            z-index: 1;
+            inset: 0;
+            background: linear-gradient(to top, rgba(20,20,20,0.95) 0%, rgba(20,20,20,0.6) 40%, transparent 70%);
         }
+
         .slide-content {
             position: relative;
-            z-index: 2;
-            padding: 0 60px 80px 60px; /* Netflix-szerű margók */
-            max-width: 600px;
-            text-align: left;
-            background: rgba(0, 0, 0, 0.5); /* Féltransparent háttér a szövegnek */
-            border-radius: 8px;
-            padding: 40px;
-            margin-bottom: 40px;
+            z-index: 10;
+            max-width: 680px;
+            padding: 0 60px 120px 60px;
         }
+
         .slide-title {
-            font-size: 3.5rem; /* Nagy Netflix-cím */
-            font-weight: 300;
+            font-size: 4.5rem;
+            font-weight: 700;
+            line-height: 1.05;
             margin-bottom: 20px;
-            letter-spacing: -1px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.9);
         }
+
         .slide-description {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            line-height: 1.4;
-            color: #ccc;
+            font-size: 1.35rem;
+            line-height: 1.45;
+            color: #ddd;
+            margin-bottom: 35px;
         }
-        .slide-buttons {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
+
         .btn-play {
             background-color: #fff;
             color: #000;
-            border: none;
-            padding: 12px 26px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: flex;
+            font-weight: 600;
+            padding: 14px 32px;
+            border-radius: 6px;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            transition: all 0.3s;
         }
+
         .btn-play:hover {
-            background-color: #e6e6e6;
+            background-color: #e50914;
+            color: white;
+            transform: scale(1.05);
         }
-        .btn-info {
-            background: transparent;
-            color: #fff;
-            border: 1px solid #fff;
-            padding: 12px 26px;
-            font-size: 1.1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-info:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        .btn-play::before {
-            content: '▶'; /* Play ikon */
-            font-size: 1.2rem;
-        }
-        .btn-info::before {
-            content: 'ℹ'; /* Info ikon */
-            margin-right: 5px;
-        }
+
         .prev, .next {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
+            background: rgba(0, 0, 0, 0.65);
+            color: white;
             border: none;
-            padding: 15px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 28px;
             cursor: pointer;
-            font-size: 24px;
-            border-radius: 5px;
-            transition: background 0.3s;
+            z-index: 30;
+            transition: all 0.3s;
         }
 
-        .prev {
-            left: 10px;
-        }
-
-        .next {
-            right: 10px;
-        }
-
-        .prev:hover, .next:hover {
-            background: rgba(0, 0, 0, 0.9);
-        }
-
-        #kereso {
-            width: 60%;
-            max-width: 600px;
-            padding: 12px;
-            margin: 20px auto;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            background-color: #333;
-            color: #fff;
-            display: block;
-        }
-
-        #kereso::placeholder {
-            color: #999;
-        }
-
-        .categories-container {
+        .prev:hover, .next:hover { background: #e50914; }
+        .prev { left: 40px; }
+        .next { right: 40px; }
+		.categories-container {
             background-color: #000;
             padding: 20px 0;
             margin-bottom: 20px;
@@ -222,171 +126,96 @@
         .categories-container a:hover {
             color: #e50914;
         }
-
-        .movie-container {
-            display: inline-block;
-            position: relative;
-            margin: 15px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .movie-container img {
-            width: 200px;
-            height: 300px;
-            object-fit: cover;
-            border-radius: 8px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .movie-container:hover img {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-        }
-
-        .movie-container p {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #fff;
-        }
-
-        .preview {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%) scale(0);
-            width: 300px;
-            background: #181818;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            z-index: 10;
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            overflow: hidden;
-        }
-
-        .movie-container:hover .preview {
-            transform: translateX(-50%) scale(1);
-            opacity: 1;
-        }
-
-        .preview img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .preview-content {
-            padding: 10px;
-            text-align: left;
-        }
-
-        .preview-content h3 {
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .preview-content p {
-            font-size: 14px;
-            color: #ccc;
-        }
-		.background-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;  /* kitölti a területet, levágja a széleket ha kell */
-    z-index: -1;
-}
     </style>
 </head>
 <body>
-    <!-- Navigációs sáv -->
-    <div class="navbar">
-        <a href="fooldal.html">Filmek</a>
-        <a href="sorozatok.html">Sorozatok</a>
-		<a href="SkysTV.html">SkysTV</a>
-    </div>
 
-    <!-- Logó -->
-    <div class="logo">
-        <img src="skysnet.png" alt="SkysNet logó">
-    </div>
-	
+    <!-- NAVIGÁCIÓ -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-screen-2xl mx-auto px-10 py-5 flex items-center justify-between">
+            <img src="skysnet.png" alt="SkysNet" class="h-20">
+            <div class="flex gap-9 text-sm font-medium">
+                <a href="újskysnet2.0.html" class="hover:text-red-600 transition">Főoldal</a>
+                <a href="újskysnet2.0.html" class="hover:text-red-600 transition">Filmek</a>
+                <a href="sorozatok.html" class="hover:text-red-600 transition">Sorozatok</a>
+                <a href="SkysTV.html" class="hover:text-red-600 transition">SkysTV</a>
+            </div>
+        </div>
+    </nav>
 
+    <!-- SLIDER - KÉPEKKEL -->
     <div class="slider-container">
-    <div class="slider" id="slider">
-        <!-- Első slide -->
-        <div class="slide" data-title="Mennydörgők" data-desc="A Mennydörgők*-ben a Marvel Studios merőben szokatlan antihős-csapatot toboroz össze...">
-            <video autoplay muted loop playsinline class="background-video">
-                <source src="mennyd.mp4" type="video/mp4">
-            </video>
-            <div class="slide-content">
-                <img src="https://lumiere-a.akamaihd.net/v1/images/image_e55a9767.png" alt="Mennydörgők címkép">
-                <p class="slide-description">A Mennydörgők*-ben a Marvel Studios merőben szokatlan antihős-csapatot toboroz össze: ők Jelena Belova, Bucky Barnes, Vörös Őr, Szellem, Kiképző és John Walker.</p>
-                <div class="slide-buttons">
-                    <button class="btn-play" onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1', '_blank')">Lejátszás</button>
+        <div class="slider" id="slider">
+
+            <!-- 1. slide -->
+            <div class="slide" style="background-image: url('https://media.themoviedb.org/t/p/w500_and_h282_face/mRLoD607hI2c5fNfCEuqPTFBzM3.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">Mennydörgők</h1>
+                    <p class="slide-description">A Marvel Studios merőben szokatlan antihős-csapatot toboroz össze: Jelena Belova, Bucky Barnes, Vörös Őr, Szellem, Kiképző és John Walker.</p>
+                    <button onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
+                    </button>
                 </div>
             </div>
+
+            <!-- 2. slide -->
+            <div class="slide" style="background-image: url('https://image.tmdb.org/t/p/original/ApRxyHFuvv5yghedxXPJSm9FEDe.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">Superman</h1>
+                    <p class="slide-description">Harminc évvel ezelőtt Jor-El és Lara Lor-Van útnak indították újszülött fiukat, Kal-Elt a Földre, hogy megmentsék a Krypton pusztulásától.</p>
+                    <button onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456240251&hd=2&autoplay=1', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. slide -->
+            <div class="slide" style="background-image: url('https://image.tmdb.org/t/p/original/wHhXxZcmF29hZUoRsUOqmGdNNma.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">Bűnösök</h1>
+                    <p class="slide-description">Az ikertestvérek visszatérnek szülővárosukba, hogy újrakezdjék az életüket. Ott azonban egy gonosz lény várja őket vissza...</p>
+                    <button onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. slide -->
+            <div class="slide" style="background-image: url('https://image.tmdb.org/t/p/original/yBDvgpyynDsbMyK21FoQu1c2wYR.jpg');">
+                <div class="slide-content">
+                    <h1 class="slide-title">A könyvelő 2</h1>
+                    <p class="slide-description">Amikor egy pénzügyekkel foglalkozó titkosügynök főnökével ismeretlen bérgyilkosok végeznek, a nő kénytelen megkeresni a titokzatos könyvelőt...</p>
+                    <button onclick="window.open('https://videa.hu/videok/film-animacio/filmvilag2-the-accountant-2-2025-79j6iYQCGM6$IuwXd', '_blank')" 
+                            class="btn-play">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Lejátszás</span>
+                    </button>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Második slide -->
-        <div class="slide" data-title="Superman" data-desc="Harminc évvel ezelőtt Jor-El és Lara Lor-Van útnak indították újszülött fiukat...">
-            <video autoplay muted loop playsinline class="background-video">
-                <source src="sup.mp4" type="video/mp4">
-            </video>
-            <div class="slide-content">
-                <img src="https://image.tmdb.org/t/p/original/iR1Q7cmOizueCLE27aof5gQgPe3.png" alt="Superman címkép">
-                <p class="slide-description">Harminc évvel ezelőtt Jor-El és Lara Lor-Van útnak indították újszülött fiukat, Kal-Elt a Földre, hogy megmentsék a Krypton bolygó pusztulásától. A fiú Smallville-ben nőtt fel, ahol Jonathan és Martha Kent nevelték fel Clark Kentként. A Napból származó energiának köszönhetően a kryptonit fiú rendkívüli képességekre tett szert.</p>
-                <div class="slide-buttons">
-                    <button class="btn-play" onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456240251&hd=2&autoplay=1', '_blank')">Lejátszás</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Harmadik slide -->
-        <div class="slide" data-title="Bűn" data-desc="Az ikertestvérek visszatérnek szülővárosukba, hogy újrakezdjék az életüket...">
-            <video autoplay muted loop playsinline class="background-video">
-                <source src="bün.mp4" type="video/mp4">
-            </video>
-            <div class="slide-content">
-                <img src="https://beam-images.warnermediacdn.com/BEAM_LWM_DELIVERABLES/2a072173-2bac-43ba-9933-10eba021ed96/e279a2ec-58c1-11f0-a15b-0affc01eaf4b?host=wbd-images.prod-vod.h264.io&partner=beamcom&w=4320" alt="Bűn címkép" height="300">
-                <p class="slide-description">Az ikertestvérek visszatérnek szülővárosukba, hogy újrakezdjék az életüket. Ott azonban egy gonosz lény várja őket vissza...</p>
-                <div class="slide-buttons">
-                    <button class="btn-play" onclick="window.open('https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1', '_blank')">Lejátszás</button>
-                </div>
-            </div>
-        </div>
-   
-	
-	<!-- Negyedik slide -->
-        <div class="slide" data-title="könyveló2" data-desc="Az ikertestvérek visszatérnek szülővárosukba, hogy újrakezdjék az életüket...">
-            <video autoplay muted loop playsinline class="background-video">
-                <source src="könyv2.mp4" type="video/mp4">
-            </video>
-            <div class="slide-content">
-                <img src="https://m.media-amazon.com/images/S/pv-target-images/d38633452ce960d8205a98ccb49f4c95f6126e3bcf2b47818cead9226ea35784.png" alt="könyvelő2 címkép" height="300">
-                <p class="slide-description">Amikor egy pénzügyekkel foglalkozó titkosügynök főnökével ismeretlen bérgyilkosok végeznek, a nő kénytelen megkeresni a titokzatos könyvelőt, hogy segítsen neki a tettesek nyomára jutni. Ő pedig bevonja rég nem látott, de veszélyes életet élő öccsét , és hárman indulnak a titokzatos ellenfél után.Chris kiismerhetetlen működésű agya minden kérdésre megtalálja a választ, ha pedig cselekednie kell, nem nagyon törődik a törvénnyel.</p>
-                    <button class="btn-play" onclick="window.open('https://videa.hu/videok/film-animacio/filmvilag2-the-accountant-2-2025-79j6iYQCGM6$IuwXd', '_blank')">Lejátszás</button>
-                </div>
-            </div>
-        </div>
+        <!-- Navigációs gombok -->
+        <button class="prev" onclick="moveSlide(-1)">❮</button>
+        <button class="next" onclick="moveSlide(1)">❯</button>
     </div>
-	
-	
-	
 
-    <!-- Navigációs gombok -->
-    <button class="prev" onclick="moveSlide(-1)" aria-label="Előző dia">❮</button>
-    <button class="next" onclick="moveSlide(1)" aria-label="Következő dia">❯</button>
-    
-    <!-- Keresőmező -->
-    <input type="text" id="kereso" onkeyup="filmKereses()" placeholder="Keresés filmek és sorozatok között...">
-
-    <!-- Kategóriák -->
-    <div class="categories-container">
+    <!-- KERESŐ -->
+    <div class="max-w-2xl mx-auto -mt-8 relative z-10 px-6">
+        <input 
+            type="text" 
+            id="kereso" 
+            onkeyup="filmKereses()" 
+            placeholder="Keresés filmek és sorozatok között..." 
+            class="w-full bg-zinc-900 border border-zinc-700 focus:border-red-600 rounded-full py-4 px-8 text-lg focus:outline-none shadow-2xl">
+    </div>
+	 <div class="categories-container">
         <a href="akcio.html" onclick="filterByCategory('Akció'); return false;">Akció</a>
         <a href="animációs.html" onclick="filterByCategory('Animációs'); return false;">Animációs</a>
         <a href="drama.html" onclick="filterByCategory('Dráma'); return false;">Dráma</a>
@@ -402,43 +231,68 @@
 		<a href="karácsonyi.html" onclick="filterByCategory('Karácsonyi'); return false;">Karácsonyi</a>
     </div>
 
-    <!-- Filmek listája -->
-    <div id="movie-list"></div>
+    <!-- KATEGÓRIÁK ÉS FILM LISTA -->
+    <!-- Ide másold be a korábbi kategória linkeket és a #movie-list részt a te eredeti kódodból -->
+
+    <div id="movie-list" class="max-w-screen-2xl mx-auto px-8 py-12 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        <!-- A filmek ide fognak betöltődni a JavaScript által -->
+    </div>
 
     <script>
-        // Slider vezérlése
+        // ====================== SLIDER MŰKÖDÉS ======================
         let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
         const slider = document.getElementById('slider');
-        const sliderContainer = document.querySelector('.slider-container');
-        let slideInterval = setInterval(() => moveSlide(1), 5000);
+        const totalSlides = 4;
 
         function moveSlide(direction) {
             currentSlide += direction;
-            if (currentSlide < 0) {
-                currentSlide = slides.length - 1;
-            } else if (currentSlide >= slides.length) {
-                currentSlide = 0;
-            }
+            if (currentSlide >= totalSlides) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = totalSlides - 1;
             slider.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        // Szüneteltetés egérinterakcióra
-        sliderContainer.addEventListener('mouseenter', () => clearInterval(slideInterval));
-        sliderContainer.addEventListener('mouseleave', () => {
-            slideInterval = setInterval(() => moveSlide(1), 5000);
-        });
+        // Automatikus váltás 6 másodpercenként
+        setInterval(() => moveSlide(1), 6000);
 
-        // Film adatbázis
+        // ====================== KERESÉS ======================
+        function filmKereses() {
+            const searchTerm = document.getElementById('kereso').value.toLowerCase();
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+
+            const filteredMovies = movies.filter(movie => 
+                movie.title.toLowerCase().includes(searchTerm)
+            );
+
+            filteredMovies.forEach(movie => {
+                const div = document.createElement('div');
+                div.className = "movie-container group cursor-pointer";
+                div.innerHTML = `
+                    <a href="${movie.link}" target="_blank">
+                        <div class="relative overflow-hidden rounded-xl aspect-[2/3]">
+                            <img src="${movie.image}" alt="${movie.title}" 
+                                 class="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+                                 loading="lazy">
+                        </div>
+                        <p class="mt-3 text-center font-medium">${movie.title}</p>
+                    </a>
+                `;
+                movieList.appendChild(div);
+            });
+        }
+
+        // ====================== FILMEK BETÖLTÉSE ======================
+        // IDE MÁSOLJ BE A TELJES `movies` TÖMBÖDET AZ EREDETI KÓDBÓL!
         const movies = [
-		{
+            // ... a te összes filmed (a korábbi üzenetből)
+            // pl.:
+            {
                 title: "Különösen veszélyes bűnözők",
                 image: "https://image.tmdb.org/t/p/original/zBHOCEThPrXTju8fhNsLwGS1fj9.jpg",
-                previewImage: "https://i0.wp.com/s3.amazonaws.com/assets.liffafi.com/wp-content/uploads/2021/11/19131628/images-17.jpeg?fit=764%2C401&ssl=1",
-                description: "Az FBI profilkészítője üldözése során vonakodva csatlakozik a világ legkeresettebb műkincstolvajához, hogy elkapják a csalót, aki mindig egy lépéssel előttük jár.",
-                link: "https://vk.com/video_ext.php?oid=1037217102&id=456239532&hd=2&autoplay=1"
+                description: "...",
+                link: "https://vk.com/..."
             },
-            {
+			 {
                 title: "Ponyvaregény",
                 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/i8N31RHT6WaBXSicxABMRyBH4yQ.jpg",
                 previewImage: "https://static.posters.cz/image/hp/47521.jpg",
@@ -1031,7 +885,7 @@
                 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/l8BxJ1TtO7bsanBo2ZZ3b9uyBTF.jpg",
                 previewImage: "https://ntvb.tmsimg.com/assets/p169802_v_h8_an.jpg?w=1280&h=720",
                 description: "Egy Interpol-ügynök hazamegy és egy bérgyilkost talál a szobájában. A 47-es rá vár. De mielőtt végezne áldozatával, elmondja, hogy került oda. Nigériától Moszkváig mérnöki precizitással kidolgozott gyilkosságok és menekülések jelzik a 47-es útját, miközben az Interpol embere mindig a sarkában maradt: de sosem érte utol az emberét. Átverések, árulások, kettős játszmák és gyilkosságok macska-egér játékába bonyolódva élnek évek óta. Lassacskán már abban sem biztosak, melyikük üldözi melyiküket. Most azonban eljött a végső leszámolás pillanata. Ám amikor titokzatos, közös múltjuk lezárulni látszik - hiszen egyikük mindjárt meghúzza a ravaszt - egy újabb fordulat ismét mindent megváltoztat.",
-                link: "https://vk.com/video_ext.php?oid=1037217102&id=456241153&autoplay=1" 
+                link: "https://videa.hu/player?v=gaoYLub2T0y9oVWv"
             },
 			{
 			    title: "Max Payne: Egyszemélyes háború",
@@ -2508,7 +2362,7 @@
 				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7MOQjPDuunXxY3releLLAuHn9j6.jpg",
 				  previewImage: "https://ntvb.tmsimg.com/assets/p11952575_v_h8_aa.jpg?w=1280&h=720",
 				  description: "Chris Wolff a világ egyik legjobb könyvelője és kissé autista - kerüli az embereket, magányosan él és nem is vágyik másra. Amikor egy nagy, robotokat tervező gyár könyvelésében furcsa hibák tűnnek fel, természetesen hozzá fordulnak. Ő és a cég egyik munkatársa hamar új, megmagyarázhatatlan eltérésekre figyel fel, és ez valakinek nagyon nem tetszik. Egy különleges katonai egység leszerelt tisztje megbízást kap, hogy végezzen a párral. Chris és Dana kénytelen együtt bujkálni. De Chris tartogat egy-két meglepetést. Néhány közülük halálos lehet...",
-				  link: "https://vk.com/video_ext.php?oid=-229926412&id=456240994&hash=54598dd636557039&hd=3" 
+				  link: "https://vk.com/video_ext.php?oid=1037217102&id=456239500&hd=1&autoplay=1"
 			},
 			{
 			      title: "Tökös csaj",
@@ -3725,7 +3579,7 @@
 				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/x7y3ltzX3hHHntG0cc0fvjwzztf.jpg",
 				  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/0e6f81cd4a83ddcabb58cdda84122b7d88d8db22f8906ab9ddb4332363ccd844.jpg",
 				  description: "Amikor egy pénzügyekkel foglalkozó titkosügynök főnökével ismeretlen bérgyilkosok végeznek, a nő kénytelen megkeresni a titokzatos könyvelőt, hogy segítsen neki a tettesek nyomára jutni. Ő pedig bevonja rég nem látott, de veszélyes életet élő öccsét , és hárman indulnak a titokzatos ellenfél után.Chris kiismerhetetlen működésű agya minden kérdésre megtalálja a választ, ha pedig cselekednie kell, nem nagyon törődik a törvénnyel. De minél közelebb küzdik magukat a megoldáshoz, annál nehezebb titokban tartani, amit csinálnak: és vannak, akik bári áron meg szeretnék állítani őket.",
-				  link: "https://vk.com/video_ext.php?oid=-229926412&id=456240993&hash=6e42bcd4493790d2&hd=3" 
+				  link: "https://videa.hu/videok/film-animacio/filmvilag2-the-accountant-2-2025-79j6iYQCGM6$IuwXd" 
 			},
 			{
 			      title: "Until Dawn:Hajnalig",
@@ -5610,7 +5464,7 @@
 			  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7O0kcvBjbVj88CAYUuSXqYW9TVd.jpg",
 			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/96e98f59328bd6f8a93f1c601489e3851527d6a055fa96b9cdad8a14d6025a89.jpg",
 			  description: "Amikor a munkanélküli könyvelő, Brian egy másik apukával, Jeff-fel megbeszél egy közös programot fiaikkal, egy nyugodt, laza délutánra számít. Ehelyett bérgyilkosok vadásznak rájuk, és a teljesen felkészületlen Briannek egymás után kell túlélnie a legabszurdabb akadályokat. A kertvárosi apuka akciófilmes helyzetekben találja magát ebben az eszement, vicces kalandban.",
-			  link: "https://vk.com/video_ext.php?oid=-229384052&id=456242379&hash=e21dd4c5dd5f0c60&hd=3" 
+			  link: "https://vk.com/video_ext.php?oid=1037217102&id=456240815&autoplay=1" 
 			},
 			{
 			  title: "Akik az életemre törnek",
@@ -7789,142 +7643,13 @@
 		  description: "Howard Ratner, a karizmatikus New York-i ékszerész mindig a következő nagy fogást keresi. Amikor egy sor kétes kockázatú fogadás az életre szóló nyereséget jelentheti számára, a mindent elsöprő győzelem érdekében Howard kénytelen borotvaélen táncolni a vállalkozása, a családja és agresszív ellenfelei között.",
 		  link: "https://videa.hu/player?v=t9v5e75jtzhb1YFX"
 		},
-
-
-
-
-		  
-			  
-			
-			
-
-			
-				 
-			
-			
-		
-
-			
-		
-			
-	
-				  
-		
-				   
-		
-		
-			
-			
-			
-		
-		
-			
-			
-			
-		
-		
-			
-		
-				 
-			
-				
-			
-
-
-			
+            // ... és így tovább az összes filmmel
         ];
-          // Kereső funkció előnézet támogatással
-        function filmKereses() {
-            const searchTerm = document.getElementById('kereso').value.toLowerCase();
-            const movieList = document.getElementById('movie-list');
-            movieList.innerHTML = '';
 
-            const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchTerm));
-            filteredMovies.forEach(movie => {
-                const movieDiv = document.createElement('div');
-                movieDiv.classList.add('movie-container');
-                movieDiv.innerHTML = `
-                    <a href="${movie.link}">
-                        <img src="${movie.image}" alt="${movie.title}">
-                        <div class="preview">
-                            <img src="${movie.previewImage}" alt="${movie.title} előnézet">
-                            <div class="preview-content">
-                                <h3>${movie.title}</h3>
-                                <p>${movie.description}</p>
-                            </div>
-                        </div>
-                    </a>
-                    <p>${movie.title}</p>
-                `;
-                movieList.appendChild(movieDiv);
-            });
-        }
-
-        // Filmek kezdeti betöltése
-        filmKereses();
-		
-    </script>
-	 <script>
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
-        const totalSlides = slides.length;
-
-        function updateSlideContent() {
-            const slide = slides[currentSlide];
-            const title = slide.querySelector('.slide-title');
-            const desc = slide.querySelector('.slide-description');
-            const playBtn = slide.querySelector('.btn-play');
-            title.textContent = slide.dataset.title;
-            desc.textContent = slide.dataset.desc;
-            // Play gomb link frissítése dinamikusan, ha kell
-        }
-
-        function updateIndicators() {
-            const indicators = document.getElementById('indicators');
-            indicators.innerHTML = '';
-            for (let i = 0; i < totalSlides; i++) {
-                const dot = document.createElement('div');
-                dot.classList.add('indicator-dot');
-                if (i === currentSlide) dot.classList.add('active');
-                dot.onclick = () => moveToSlide(i);
-                indicators.appendChild(dot);
-            }
-        }
-
-        function moveSlide(direction) {
-            currentSlide += direction;
-            if (currentSlide >= totalSlides) currentSlide = 0;
-            if (currentSlide < 0) currentSlide = totalSlides - 1;
-            const slider = document.getElementById('slider');
-            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
-            updateSlideContent();
-            updateIndicators();
-        }
-
-        function moveToSlide(index) {
-            currentSlide = index;
-            moveSlide(0);
-        }
-
-        // Inicializálás
-        updateSlideContent();
-        updateIndicators();
-
-        // Automatikus váltás minden 7 másodpercben (Netflix-szerű hosszabb idő)
-        setInterval(() => moveSlide(1), 7000);
-
-        // Videók automatikus némítása és lejátszása (böngésző függő)
-        slides.forEach(slide => {
-            const iframe = slide.querySelector('iframe');
-            iframe.src += '&mute=1'; // Ha még nem hozzáadva
-        });
+        // Oldal betöltésekor
+        window.onload = () => {
+            filmKereses();        // kezdetben az összes filmet mutatja
+        };
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
