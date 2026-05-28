@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet - Sorozatok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    body { 
+        font-family: 'Inter', sans-serif; 
+        background: #141414; 
+        color: #fff; 
+    }
+    
+    .movie-row { margin-bottom: 50px; }
+    .row-title { font-size: 1.5rem; font-weight: 600; margin: 0 0 15px 20px; }
+    
+    /* Normál méret (Népszerű tartalmak) */
+    .movie-card {
+        position: relative;
+        transition: all 0.4s ease;
+        cursor: pointer;
+        width: 100%;
+        max-width: 180px;
+    }
+    .movie-card:hover { transform: scale(1.12); z-index: 20; }
+    .movie-card img { 
+        border-radius: 8px; 
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        transition: all 0.4s;
+    }
+
+    /* Kisebb méret a Continue és My List sorokhoz */
+    .small-card {
+        max-width: 140px;
+    }
+    .small-card img {
+        aspect-ratio: 2 / 3;
+    }
+
+    .movie-info {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.95));
+        padding: 16px 10px 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border-radius: 0 0 8px 8px;
+        font-size: 0.95rem;
+    }
+    .movie-card:hover .movie-info { opacity: 1; }
+    
+    .btn { padding: 5px 12px; border-radius: 4px; font-size: 0.85rem; }
+    .btn-play { background: #e50914; }
+    .btn-list { background: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body class="pb-12">
+
+    <!-- NAVIGÁCIÓ -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-screen-2xl mx-auto px-10 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <img src="skysnet.png" alt="SkysNet" class="h-12">
+                <div class="flex gap-8 text-sm font-medium">
+                    <a href="szemszab.html" class="hover:text-red-600 transition">Főoldal</a>
+                    <a href="szemszab..html" class="hover:text-red-600 transition">Filmek</a>
+                    <a href="privsori.html" class="text-red-600">Sorozatok</a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <input id="kereso" type="text" placeholder="Keresés sorozatok között..." 
+                       onkeyup="filmKereses()" 
+                       class="bg-zinc-900 border border-zinc-700 focus:border-red-600 rounded-full py-2 px-6 w-80 focus:outline-none">
+
+                <div onclick="toggleProfileMenu()" class="flex items-center gap-3 cursor-pointer hover:bg-zinc-800 px-3 py-1 rounded-lg transition">
+                    <img id="profilePic" src="https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg" 
+                         alt="Profilkép" class="w-9 h-9 rounded-full object-cover border-2 border-white/40">
+                    <div class="flex items-center gap-1">
+                        <span id="currentProfile" class="text-sm font-medium">Erik</span>
+                        <i class="fas fa-caret-down text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20"></div>
+
+    <!-- Continue Watching -->
+    <div class="max-w-screen-2xl mx-auto px-8 movie-row">
+        <h2 class="row-title">Folytasd, ahol abbahagytad</h2>
+        <div class="flex gap-4 overflow-x-auto pb-6" id="continue-row"></div>
+    </div>
+
+    <!-- My List -->
+    <div class="max-w-screen-2xl mx-auto px-8 movie-row">
+        <h2 class="row-title">Saját listám</h2>
+        <div class="flex gap-4 overflow-x-auto pb-6" id="mylist-row"></div>
+    </div>
+
+    <!-- Sorozatok lista -->
+    <div class="max-w-screen-2xl mx-auto px-8">
+        <h2 class="row-title">Népszerű sorozatok</h2>
+        <div id="movie-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6"></div>
+    </div>
+
+    <script>
+        // ==================== PROFILOK ====================
+        const profiles = {
+            "Erik": "https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg",
+            "Cinti": "https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg",
+            "Bandi": "https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg"
+        };
+
+        let currentProfile = "Erik";
+
+        function getProfileFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const profile = params.get('profile');
+            if (profile && profiles[profile]) currentProfile = profile;
+        }
+
+        function toggleProfileMenu() {
+            let options = Object.keys(profiles).join("\n");
+            const selected = prompt(`Válassz profilt:\n\n${options}`, currentProfile);
+            if (selected && profiles[selected]) {
+                currentProfile = selected;
+                document.getElementById("currentProfile").textContent = selected;
+                document.getElementById("profilePic").src = profiles[selected];
+                renderRows();
+            }
+        }
+		
+		function createMovieCard(movie, isSmall = false) {
+    const div = document.createElement('div');
+    div.className = `movie-card group ${isSmall ? 'small-card' : ''}`;
+    div.innerHTML = `
+        <div class="relative overflow-hidden rounded-xl">
+            <img src="${movie.image}" class="w-full">
+            <div class="movie-info">
+                <h3 class="font-semibold">${movie.title}</h3>
+                <div class="flex gap-2 mt-3">
+                    <button onclick="playMovie('${movie.title}')" class="btn btn-play text-xs flex-1">
+                        ▶ Lejátszás
+                    </button>
+                    <button onclick="toggleMyList(this, '${movie.title}')" class="btn btn-list text-xs">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    return div;
+}
+
+function renderRows() {
+    // Continue Watching - KISEBB
+    const contRow = document.getElementById('continue-row');
+    contRow.innerHTML = getContinueWatching().map(m => createMovieCard(m, true).outerHTML).join('');
+
+    // My List - KISEBB
+    const listRow = document.getElementById('mylist-row');
+    listRow.innerHTML = getMyList().map(m => createMovieCard(m, true).outerHTML).join('');
+
+    // Népszerű tartalmak - Normál méret
+    const allRow = document.getElementById('movie-list');
+    allRow.innerHTML = movies.map(m => createMovieCard(m, false).outerHTML).join('');
+}
+
+        // ==================== SOROZATOK ====================
+        const movies = [
+            { 
+                title: "Off-Campus", 
+                image: "https://m.media-amazon.com/images/S/pv-target-images/0e8973fa78ff1d9cedfaa507f3705ff55d9faedc7f0b4d05e923db8a0a892f4d._SX1080_FMjpg_.jpg",
+                link: "offcampus.html"
+            },
+            { 
+                title: "TED", 
+                image: "https://image.tmdb.org/t/p/original/7UiEfbGsqM64WvuaUHW1KLm3ONU.jpg",
+                link: "https://erik200101272008.github.io/SkysNet/ted.html"
+            },
+            { 
+                title: "Daredevil újjászületés", 
+                image: "https://image.tmdb.org/t/p/original/sluu3iq8EdlRfwCwxtF7WUyuy0b.jpg",
+                link: "https://erik200101272008.github.io/SkysNet/daredevil.html"
+            },
+            { 
+                title: "A fiúk", 
+                image: "https://image.tmdb.org/t/p/original/n6vVs6z8obNbExdD3QHTr4Utu1Z.jpg",
+                link: "https://erik200101272008.github.io/SkysNet/theboys.html"
+            },
+			{
+                title: "Alkonyattól pirkadatig",
+                image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/zfwaTgJ7uQ9PM4qMQG1vOyxRHBQ.jpg",
+                previewImage: "https://static.wikia.nocookie.net/dusktilldawn/images/5/5d/Season_One_promo.png/revision/latest?cb=20140504022706",
+                description: "A sorozat Seth Gecko (D.J. Cotrona) és erőszakos, kiszámíthatatlan testvére, Richard Richie Gecko (Zane Holtz) történetét meséli el, akiket nem csak az FBI, hanem két texas ranger, Earl McGraw (Don Johnson) és Freddie Gonzalez (Jesse Garcia) is üldöz, miután kiraboltak néhány bankot és hátrahagytak néhány hullát. A fivérek Mexikó felé veszi az irányt, ám útközben belebotlanak egy korábbi miniszterbe, Jacob Fullerbe, akit családjával együtt túszul ejtenek. Az ő hathatós közreműködésükkel szeretnének átjutni a határon, ám előtte még megállnak egy sztriptízbárban, amely nem várt meglepetéseket tartogat számukra.",
+                link: "https://erik200101272008.github.io/SkysNet/alkonyattol.html"
+            },
+			{
+			    title: "A Megtorló",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/7S1uFDj5AK6TaaxexXpoFspvARW.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/4ovzHULGd6tZhHjGuffblsrtDny.jpg",
+				description: "Frank Castle után hajtóvadászatot indítanak, miután egész családjával végeznek. Az alvilág úgy kezdi emlegetni őt, mint a Megtorló, aki nem válogat az eszközökben.",
+				link: "https://erik200101272008.github.io/SkysNet/megtorlo.html"
+			},
+			{
+			    title: "Ted",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cPn71YFDENH0JkWUezlsLyWmLfN.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/cFyp7F8qiBSuSj1qhUnu8MDvubl.jpg",
+				description: "1993-ban járunk, és Ted, a medve hírességének pillanata már elmúlt. Otthon él legjobb barátjával, John Bennett-tel és családjával. Bár Ted rossz hatással van Johnra, hűséges cimborája, aki a barátságért akár a végsőkig is elmegy.",
+				link: "https://erik200101272008.github.io/SkysNet/ted.html"
+			},
+			{
+			    title: "Reacher",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/31GlRQMiDunO8cl3NxTz34U64rf.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/8QFcFUhBUxlxwsPsuaN9PztWFub.jpg",
+				description: "Amikor a volt katonai rendőrt, Jack Reachert letartóztatják egy gyilkosságért, amit el sem követett, egy korrupt zsarukkal, gyanús üzletemberekkel és cselszövő politikusokkal teli halálos összeesküvés közepébe csöppen. Muszáj neki kiderítenie, mi folyik Margrave-ben.",
+				link: "https://erik200101272008.github.io/SkysNet/reacher.html"
+			},
+			{
+			    title: "Banshee",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nQOrt4oe2akSJczGTx0aTMt9YRq.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/mo9bfYdewzmHxnaeURB2jRPvGuX.jpg",
+				description: "A volt fegyenc és mestertolvaj Lucas Hood felveszi Banshee meggyilkolt seriffjének személyazonosságát, és folytatja bűnös tevékenységét még akkor is, amikor régi bűntársai, akiket tizenöt évvel korábban elárult, vadászni kezdenek rá. A városban él régi szerelme, akit tizenöt évvel ezelőtt látott utoljára. Carrie azóta újból férjhez ment.Ez a volt fegyenc a saját igazságszolgáltatását alkalmazza, ezért a pennsylvaniai Banshee nem túl csendes amish városkájában minden sarkon kitör az erőszak.",
+				link: "https://erik200101272008.github.io/SkysNet/Banshee.html"
+			},
+			{
+			    title: "A fiúk",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/V2UjGqe24QJJHyEChd4D1AxmOB.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/n6vVs6z8obNbExdD3QHTr4Utu1Z.jpg",
+				description: "A sorozat egy olyan korban játszódik, ahol a szuperhősök többsége el van telve celeb státuszával, és ez gyakran felelőtlen viselkedéssel párosul, ami a világ biztonságát is veszélybe sodorja. A középpontban egy renegát csapat áll, amely ezekkel a korrupt, elkanászodott hősökkel foglalkozik, s ha kell, likvidálja őket.",
+				link: "https://erik200101272008.github.io/SkysNet/theboys.html"
+			},
+			{
+			    title: "V Generáció",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/95C6G2hSSc5QUvHsA5ddhNs7ShI.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/rgjfGaI3mCmTcVm0X0AIfClKJmC.jpg",
+				description: "A V generáció visszarepít A fiúk világába. Az új sorozat Amerika egyetlen szuperhős-egyetemén játszódik. A tehetséges hallgatók feszegetik az erkölcsi határaikat, versengenek azért, hogy az egyetem ranglistáján emelkedjenek, és csatlakozhassanak a Hetekhez, a Vought International elit szuperhőscsapatához. Amikor az iskola sötét titkaira fény derül, el kell dönteniük, milyen hősök lesznek.",
+				link: "https://erik200101272008.github.io/SkysNet/genv.html"
+			},
+			{
+			    title: "Tulsa királya",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wJsdLZFUNe4qP3EHLJE02YKGkq2.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/wlfXCsdiNRRo1ek3pRAytQuYBgy.jpg",
+				description: "Dwight Manfredit 25 év után kiengedik a börtönből, maffiájának főnöke viszont nemes egyszerűséggel száműzi őt: Tulsába küldi, hogy ott alapítson új üzletet. Dwight felismerve, hogy „családjára” innentől nem számíthat, új birodalom építésébe kezd, egy számára teljesen ismeretlen helyen.",
+				link: "https://erik200101272008.github.io/SkysNet/tulsa%20king.html"
+			},
+			{
+			     title: "Fekete hó",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/5ZCD1hK7vPUy1s7kBKMkduAoQha.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/zqkqT0JGAz1x5cRhyOB069bV6ap.jpg",
+				 description: "1994-ben brutális bűncselekmény sokkolta Ashford városát, amikor meggyilkolták a 17 éves Isabel Bakert. Az ügyet nem sikerült megoldani, nem kapták el a gyilkost, azonban huszonöt évvel később egy időkapszula felnyitásakor olyan titok lát napvilágot, ami által James Cormack nyomozó újra a gyilkos nyomába eredhet. A városlakók által felépített idilli hangulatot egy csapásra romba dönti a mindenkire rávetülő gyanú. A sorozat a karakterközpontú történetmesélést ötvözi a klasszikus felnövéstörténettel, megfűszerezve egy érdekfeszítő gyilkossági rejtéllyel, aminek egyedülálló helyszínt biztosít Észak-Ausztrália.",
+				 link: "https://erik200101272008.github.io/SkysNet/feketeho.html"
+			},
+			{
+			     title: "Szörnyetegek: Lyle és Erik Menendez story",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/x9YC2rpXHUFMqI1hCekKDm9UE4w.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/qCwwDtel7IavzeZ8r7AWC9LgSGi.jpg",
+				 description: "Megtörtént bűnesetet feldolgozó lebilincselő dráma a Menendez fivérek életéről, akiket börtönbüntetésre ítéltek szüleik brutális 1989-es Beverly Hills-i meggyilkolásáért.",
+				 link: "https://erik200101272008.github.io/SkysNet/szornyetegek%20Lyle%20és%20Erik%20Menendez.html"
+			},
+			{
+			     title: "Sólyomszem",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nPJhedYlpqZGwV4PRc5FxdLkGeD.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/iXCuYBDEMX22Wpwx3whhOidLfJI.jpg",
+				 description: "A sorozat története Kate Bishopra, arra a fiatal lányra koncentrál, aki átvette Clint Bartontól Sólyomszem szerepét.",
+				 link: "https://erik200101272008.github.io/SkysNet/solyomszem.html"
+			},
+			{
+			     title: "Echo",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4m2kop1q6OLnOz7MWZmdzZbSNkh.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/gLhIOXqplNLKQbSaX39yi8LTnQ7.jpg",
+				 description: "A Marvel Studios bemutatja az „Echo” című sorozatot, amelynek főhősét, Maya Lopezt Wilson Fisk bűnszervezete üldözi. Amikor Maya útja hazavezet, szembe kell néznie a családjával és a múltjával.",
+				 link: "https://erik200101272008.github.io/SkysNet/echo.html"
+			},
+			{
+			    title: "Daredevil: Újjászületés",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/tCIp6MemHKBeDwskcFJFFUODUMh.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/h6JF8zcQRui8bt1As1q4orfxsHc.jpg",
+				description: "Matt Murdock, a különleges képességekkel rendelkező vak ügyvéd folyton az igazság oldalán harcol az ügyvédi irodájában, miközben Wilson Fisk, a volt maffiafőnök politikai karrierbe kezd New Yorkban. Amikor újra a felszínre tör a korábbi énjük, rá kell jönniük, hogy muszáj lesz megküzdeniük egymással.",
+				link: "https://erik200101272008.github.io/SkysNet/daredevil.html"
+			},
+			{
+			    title: "Alice határországban",
+				image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/cjWju9BjElQ7K3ObpPylOpkFkSj.jpg",
+				previewImage: "https://image.tmdb.org/t/p/original/bKxiLRPVWe2nZXCzt6JPr5HNWYm.jpg",
+				description: "A céltalan gamer két barátjával együtt egy alternatív Tokióban találja magát, ahol az életben maradásért kénytelenek egy sor szadista játékban részt venni.",
+				link: "https://erik200101272008.github.io/SkysNet/aliceinborderlands.html"
+			},
+			{
+			     title: "Squid Game: Nyerd meg az életed",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/bPfRo3aKQ69VGb4j6J2p1BI3lOE.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/5aE1kxWg6RhgQxJTXTxifv4uq7P.jpg",
+				 description: "Több száz pénztelen játékos elfogad egy különös meghívást, hogy gyerekeknek való játékokban mérjék össze a tudásukat. Csábító díj – és halálos veszedelem – vár rájuk.",
+				 link: "https://erik200101272008.github.io/SkysNet/nyerdmeg.html"
+			},
+			{
+			     title: "Miénk a város",
+				 image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/h2bbL597GXyth8rYG6b3FEK3G8z.jpg",
+				 previewImage: "https://image.tmdb.org/t/p/original/vpYWIFS0hBNWCv0U6apvtkOIZRa.jpg",
+				 description: "A Miénk a város 2015-ben játszódik Baltimore-ban. A városban zavargások törnek ki, mivel a polgárok igazságot követelnek Freddie Gray, a 25 éves fekete férfi miatt, aki gyanús körülmények között halt meg, miközben a rendőrség őrizetében volt. A drogok és az erőszakos bűncselekmények gyakorisága növekszik, és a városban több mint két évtizede a legmagasabb a gyilkosságok száma: egyetlen év alatt 342 gyilkosság történt a mindössze 600 000 lakosú városban. A polgármesteri hivatal nyomására - valamint a Gray halála miatt a rendőrség ellen indított szövetségi vizsgálat miatt - a baltimore-i rendőrparancsnokok egy egyszerű hőshöz, Wayne Jenkins őrmesterhez és elit civil ruhás egységéhez, a Gun Trace Task Force-hoz fordulnak, hogy segítsenek eltüntetni a fegyvereket és a drogokat az utcákról.",
+				 link: "https://erik200101272008.github.io/SkysNet/miénkaváros.html"
+			},
+			{
+			      title: "Amerikai Gigoló",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/m0nRFOLYUju4XHG7v2jZZf3n6vs.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/2qr7smlDfzAIIJ12anzceFhi830.jpg",
+				  description: "Julian Kaye 15 évvel azután, hogy gyilkosságért letartóztatták, visszatér Los Angelesbe és a szexiparban próbálja megtalálni a helyét. Igyekszik felgöngyölíteni annak a bűncselekménynek a szálait, ami miatt évekkel ezelőtt börtönbe került. Reméli, hogy újra kapcsolatba kerülhet egyetlen igaz szerelmével, Michelle-lel.",
+				  link: "https://erik200101272008.github.io/SkysNet/amerikai%20gigolo.html"
+			},
+			{
+			      title: "Kettős szerepben",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8Y137iEKnlBtfBWHRi7aAODdD9Z.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/qJ8s45eO9tEgBAtLYnTBkI0pBx9.jpg",
+				  description: "Az izraeli titkosszolgálat tudomást szerez arról, hogy merényletre készül az arab terroristák egyik csoportja. Hogy ezt megakadályozzák, az amerikai színésznő segítségét kérik. Különös és roppant veszélyes feladat vár Charlie-ra, be kell épülnie a csoportba. El kell játszania a palesztinok ügyének tántoríthatatlan képviselőjét, csak így juthatnak el a terroristák vezetőjéhez. Ám ebben a játékban minden összekeveredik: a jó és a rossz, az élet és a halál, a szerep és a valóságos személyiség.",
+				  link: "https://erik200101272008.github.io/SkysNet/little.html"
+			},
+			{
+			      title: "Sikoly",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gJLQcK4U7b03yFkLhdwwsHwUBzK.jpg",
+				  previewImage: "https://resizing.flixster.com/PfBqMJu8OWyRlvbQMI62syMg8yk=/fit-in/705x460/v2/https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p17113352_b_h9_aa.jpg",
+				  description: "A Sikoly-filmek tévés folytatása, amelyben a gyilkos hajlamú fiatalok ismét magukra öltik az ijesztő Szellempofa-hacukát, hogy a diáktársaik közül is elsősorban ártatlan fiatal lányokat tegyenek el láb alól.",
+				  link: "https://erik200101272008.github.io/SkysNet/sikolysorozat.html"
+			},
+			{
+			      title: "Citadel",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/AcrDB32TqpAGwvQFbICALGxSzn3.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/ogYqBqJqrOfKQgNItianpmgOvzU.jpg",
+				  description: "A Citadel globális kémügynökség elbukott, és ügynökeinek törölték az emlékeit. Most a Manticore nevű hatalmas szindikátus kerül hatalomra. Vajon a Citadel ügynökei fel tudják-e idézni a múltjukat, és össze tudják-e gyűjteni az erőt a visszavágáshoz?",
+				  link: "https://erik200101272008.github.io/SkysNet/citadel.html"
+			},
+			{
+			      title: "Citadel Honey Bunny",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/Rhem15UJMVxBngtcZXwdP7R90w.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/c1zX0L9X2UXeOemCg8FSDReMO6G.jpg",
+				  description: "A kaszkadőr Bunny felveszi a küszködő színésznőt, Honey-t egy munkára, ám az akciók, a kémkedés és az árulás világába csöppennek. Évek múlva, amikor utoléri őket veszélyes múltjuk, az elidegenedett Honey-nak és Bunnynak újra össze kell jönnie, és meg kell küzdeniük kislányuk, Nadia védelméért.",
+				  link: "https://erik200101272008.github.io/SkysNet/citadelhoneybunny.html"
+			},
+			{
+			      title: "Avatar: Az utolsó léghajlító",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/gvS8NkxCje7YKPl8nlCTB7melz.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/u62XtaV8Iski2CgAUM8Yp0ZgKxD.jpg",
+				  description: "Az Avatár néven ismert fiatal fiúnak el kell sajátítania a négy elemi erőt, hogy megmentsen egy háborúban álló világot és megküzdjön a könyörtelen ellenséggel.",
+				  link: "https://erik200101272008.github.io/SkysNet/avatar.html"
+			},
+			{
+			      title: "Dexter: Eredendő bűn",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/coES4J1bgswelJbnWj7OvE6BhpP.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/uKiqi5Ms0ve475gC7za51l7ksz2.jpg",
+				  description: "Az 1991-ben, Miamiban játszódó Dexter: Original Sin azt mutatja be, hogyan válik a diák Dexterből (Gibson) bosszúálló sorozatgyilkos. Amikor vérszomjas vágyait már nem veheti félvállról, Dexternek meg kell tanulnia uralkodni sötét belső késztetésein. Az apja, Harry (Slater) útmutatásai alapján az lesz a célja, hogy megtalálja és megölje azokat az embereket, akik rászolgáltak a társadalomból való kiiktatásra, mindezt anélkül, hogy a hatóságok célkeresztjébe kerülne. Ez komoly kihívást jelent a fiatal Dexter számára, amikor a miami rendőrségnél törvényszéki gyakornokként kezd dolgozni.   ",
+				  link: "https://erik200101272008.github.io/SkysNet/dextereredendobun.html"
+			},
+			{
+			      title: "Titánok",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2ARDMSxt67dstW3reaYKjSKLGu9.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/uRIiWJ0MrdNjykxl4mp8mXEi308.jpg",
+				  description: "Fiatal szuperhősök csapata Éjszárny vezetésével néz szembe a város alávaló gonosztevőivel és azok szövetségeseivel.",
+				  link: "https://erik200101272008.github.io/SkysNet/titans.html"
+			},
+			{
+			      title: "Wu Wei: Az öt elem küzdelme",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/nGW3ssPXvLI8ACN7swZcbklwrEq.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/cUfAQQPUINNzOdEGjtJoz2TETy4.jpg",
+				  description: "A történet San Francisco kínai negyedében játszódik. A főhősből lesz az utolsó Wu bérgyilkos, akinek a feladata, hogy gyűjtse össze egy ősi triád erejét és állítsa helyre a világ egyensúlyát.",
+				  link: "https://erik200101272008.github.io/SkysNet/wu%20assassin.html"
+			},
+			{
+			      title: "Piedone, a nápolyi zsaru",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/kghRTBchmpYPlhidkcwqHvqVfe1.jpg",
+				  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_bestv2/sIE9fqOtxCImHPdNiP4CWHheLd1.jpg",
+				  description: "A főhős egy, fegyvereket nem szívesen használó nyomozó, aki pár év távollét után visszatér Nápolyba, hogy leszámoljon a múltjával. De ehhez el kell nyernie új csapatának bizalmát, és megmutatnia, hogy nem szokványos módszerei nem hogy gondot nem jelentenek, de még előnyt is kovácsolhat belőlük.",
+				  link: "https://erik200101272008.github.io/SkysNet/piedone.html"
+			},
+			{
+			      title: "Te",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/j5tN7MThee266zvH2Qzz0y3foyI.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/gzOIymABxmetAECXtazEYCpMmfb.jpg",
+				  description: "A sorozat a főszereplője egy rendkívül intelligens könyvesboltvezető. A srácnak nagyon megtetszik az egyik vásárló, így minden eszközt bevet, hogy megszerezze és magába bolondítsa a lányt.",
+				  link: "https://erik200101272008.github.io/SkysNet/you.html"
+			},
+			{
+			      title: "Harcos a ketrecben",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/4qoqqvKbugSYYE2rfpOmLb0I5kP.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/5jjjX3oo5tY9woSGwRvFG8N8W1l.jpg",
+				  description: "A profivá válásról álmodozó fiatal harcos küszködik a rivaldafénybe kerüléssel, mígnem egy váratlan összecsapás révén kitörhet – és szembenézhet egy brutális riválissal.",
+				  link: "https://erik200101272008.github.io/SkysNet/lacage.html"
+			},
+			{
+			      title: "Megzsarolva",
+				  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/mLbFg0u2DPYuB5CILzwWk3kdI8b.jpg",
+				  previewImage: "https://image.tmdb.org/t/p/original/lUCzwRZE401Qj8TYeK1ZqhAK7wq.jpg",
+				  description: "A jogi egyetemről egyenesen a CIA-hoz kerülő vakmerő fiatal ügyvéd felkészületlenül beleveti magát a nemzetközi kémkedés veszélyes világába.",
+				  link: "https://erik200101272008.github.io/SkysNet/megzs.html",
+			},
+			{
+			       title: "Lucifer",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/lUUlUIArb0mN0dK3WrIrZbJcxF5.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/ccaZ3yyyC6rcMAQrlLZ51FpahNO.jpg",
+				   description: "Az ördög megunta, hogy a pokol ura legyen, ezért Los Angelesbe költözik, ahol egy éjszakai klubbot nyit, és kapcsolatot alakít ki egy gyilkossági nyomozóval.",
+				   link: "https://erik200101272008.github.io/SkysNet/lucifer.html"
+			},
+			{
+			       title: "Visszaszámlálás",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yCkQtV4zA6uIIj9xLYfmsmf6f2X.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/4a8cfddb0e6360845dc2d6c69ff81ba1e333bb506934e9f5cb8631cdfb84891e.jpg",
+				   description: "Mikor a Belbiztonsági Minisztérium egyik alkalmazottját fényes nappal megölik, Mark Meachum Los Angeles-i rendőrnyomozót a bűnüldözés más területein dolgozó titkos ügynökökkel együtt bevonják az ügyben nyomozó akciócsoportba. Ám a gyilkos utáni hajtóvadászat egy minden képzeletet felülmúlóan veszélyes tervre derít fényt, és versenyt kell futniuk az idővel, hogy megmentsék a többmilliós nagyvárost.",
+				   link: "visszaszámlálás.html"
+			},
+			{
+			       title: "Pingvin",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2rkXHbaHWfCOHWWEmVdxFA8NL4E.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/qVCQE7WYyXn9vucIN53MSCYFwNq.jpg",
+				   description: "A Batman-univerzum következő fejezetéből feltárul Oswald „Oz” Cobb története, ahogy magához ragadta a hatalmat Gotham Cityben.",
+				   link: "pingvin.html"
+			},
+			{
+			       title: "Clark",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/6CwcRc8zMZTXdUFU3Quws03y3To.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/l9c0dZ0HDgoAKhCpusS3WOso4iG.jpg",
+				   description: "Clark Olofsson, a Stockholm-szindróma kifejezést ihlető, ellentmondásos bűnöző hihetetlen története, saját igazságai és hazugságai alapján.",
+				   link: "clark.html"
+			},
+			{
+			       title: "Supersex",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/9tSS4VeR5lYzny2c6Fj6lgYszRP.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/fwQBZqxLkkrPuOMgYD2FXBiHrJq.jpg",
+				   description: "Megtörtént események alapján készült sorozat Rocco Siffredi történetéről, aki kitörve egyszerű hétköznapjaiból a világ egyik legnevesebb pornócsillagává vált.",
+				   link: "supersex.html"
+			},
+			{
+			       title: "Daredevil",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/2qfaHJaodEbMmj9GXMvj84mbpy3.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/cqo3JDg04R8otm6rFQPcxsLz4yw.jpg",
+				   description: "	A Fenegyerek Matt Murdock történetét tárja elénk, aki fiatal korában – egy baleset következtében – veszítette el látását, ám ezzel egyidőben a többi érzékszerve emberfeletti módon kifinomulttá vált. Az azóta férfivá cseperedett Matt nappal ügyvédként, éjszaka pedig igazságosztóként küzd New York City városának bűnözői ellen.",
+				   link: "dare.html"
+			},
+			{
+			       title: "Gengsztervilág",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/yeNjUjhOE8FMhAUK3DldgF7f2uL.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/mdkhMbqAhPf66VWDqscMAFwIEQQ.jpg",
+				   description: "A két ellenséges londoni maffiadinasztia, a Harrigan- és a Stevenson-család vérre menő, pusztító háborúba bocsátkozik, hogy eldöntsék, kié a végső hatalom. Harry Da Souza, a rafkós problémamegoldó ember, aki pont olyan veszélyes, mint amennyire jóképű, és pontosan tudja, mit számít a hűség az ilyen összecsapásokban, két tűz közé kerül. Ahogy a két birodalom a végsőkig küzd az élet-halál harcban, ahol már semmi sem szent, csak egyetlen dolog marad, amiben bízni lehet: a család mindenek felett.",
+				   link: "gengsztervilag.html"
+			},
+			{
+			       title: "Jessica Jones",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/wKr66jPIPTjcpQZcO6sVSdX4piX.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/vmslbG7wm5IZVHC9EvHeVOzzujG.jpg",
+				   description: "Jessica Jones egy emberfeletti erejű magánnyomozó, aki egykor megpróbálkozott a jelmezes igazságosztók életével is. Ám belefutott egy Kilgrave nevű, mások elméjét irányítani képes férfiba, és egy hónapig a kénye-kedvének kiszolgáltatottan, rabszolgaként élt, majd utasítására gyilkosságot is elkövetett. Most ez a halottnak hitt férfi ismét felbukkan, és megszállottan elkezdi pokollá tenni Jessica egyébként is széthullott, szorongásokkal és magánnyal teli életét.",
+				   link: "jessicajones.html"
+			},
+			{
+			       title: "Mob City",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/e8JV85MCJQTHnbX6a7W0h2hepAK.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/nywPcsxgt1PdEG7BqUYBIUTPNGx.jpg",
+				   description: "Az 1940-es évek Los Angelesének rendőreinek és gengsztereinek valós beszámolóin alapuló film Amerika legelbűvölőbb városának erőszakos bűnözéséről és az azt irányítani akarókról szóló csábító történet.",
+				   link: "mobcity.html"
+			},
+			{
+			       title: "Ricciardi főfelügyelő",
+				   image: "https://www.mafab.hu/static/2024/241/10/659161_1724919674.5921.jpg",
+				   previewImage: "https://www.politicipercaso.it/wp-content/uploads/2025/03/Il-Commissario-Ricciardi-programmazione-270325-Politicipercaso.it_.jpg",
+				   description: "A rejtélyes Ricciardi rendőrfelügyelőt átok sújtja: látja az erőszakos halált halt emberek szellemeit, és meghallgatja utolsó gondolataikat.",
+				   link: "riccardi.html"
+			},
+			{
+			       title: "Teen Wolf: Farkasbőrben",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8Ij1O2nU8exLgwPXU8Eo6PZdCDC.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/qsNMPrSsQajp7GfrR6apApjiSQZ.jpg",
+				   description: "Scott McCall átlagos középiskolás, aki másra sem vágyik, mint hogy észrevegyék, elismerjék. Ezért szó nélkül csatlakozik egy éjszakai rendőrségi akció önkénteseihez, ám az erdei kutatás közben megharapja egy vérfarkas. Élete ezután soha többé nem lehet már a régi...",
+				   link: "teenwolf.html"
+			},
+			{
+			       title: "Lazíts, Kevin",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/91sZr8mVAJkeDG47fh6KmGpoQGH.jpg",
+				   previewImage: "https://m.media-amazon.com/images/S/pv-target-images/55da2408bb4c3c323c510ae0449c3631693f3ab413cce286be447c50abaef65d.png",
+				   description: "Kevin hosszú évek rendőri munkája után éppen megkezdené gondtalan nyugdíjas életét. Családja és barátai azonban gondoskodnak arról, hogy egyetlen nyugodt perce se legyen.",
+				   link: "Lazitskevin.html"
+			},
+			{
+			       title: "Twisted Metal",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/3Zr9qJXqHQwi9IyPBDwukgg1jcZ.jpg",
+				   previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_bestv2/6XQQgp86rl6TaOpzxSUF5OHizib.jpg",
+				   description: "Egy autós srác új esélyt kap egy jobb életre, de csak azzal a feltétellel, ha egy titokzatos küldetés keretében sikeresen kézbesít egy csomagot egy posztapokaliptikus pusztaságon keresztül.",
+				   link: "twistedmetal.html"
+			},
+			{
+			       title: "Kemény motorosok",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/8ioVi2WBwD2ybg7vcSwI1wDbHkN.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/fG7s0Y907y9NgNyYPrwrMMcnjYC.jpg",
+				   description: "Az Anarchia Gyermekei motoros bandát Jax apja alapította, azzal a szándékkal, hogy a bandatagok lázadó mivoltukat így is kifejezhessék. Az évek során azonban a fegyverek, a kábítószer és a bűnözés minden válfaja megjelent a motorosok világában is. Árulással, bosszúval átszőtt, bandaháborúk tarkította világ a kemény motorosoké.",
+				   link: "Son of Anarchy.html"
+			},
+			{
+			       title: "Smallville",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/r9K5QQv1o9pLKSEEbfoMWOQwLl5.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/h09ctGPyUsdgesg2rVkoOLbhTlO.jpg",
+				   description: "1989-ben egy hatalmas meteor-eső pusztította el Smallville, a kansasi városka nagy részét. A katasztrófa sok-sok ember halálát okozta, Jonathan és Martha Kentet azonban egy kisfiúval ajándékozta meg, amire mindig olyan nagyon vágytak. 2001-ben fiuk, Clarke már felnőtt, és két közeli barátja van: Pete és Chloe. Szülei azonban elrejtik előle származásának titkát: azt, hogy egy űrhajó belsejében találtak rá, amikor hullott a meteoreső. Ahogy Clarknak kiteljesedik az ereje, lassanként Superman lesz belőle, és fel kell vennie a harcot a gonosszal szemben, az emberek védelmében.",
+				   link: "Smallville.html"
+			},
+			{
+			       title: "Szörnyeteg: Az Ed Gein story",
+				   image: "https://netmozi.com/img/7f15e732b813ae8b3d461e4c81f9e699ed6ec068/68747470733a2f2f6b6570686f73742e6e65742f702f4d6a41354e7a6b314e672e6a7067",
+				   previewImage: "https://image.tmdb.org/t/p/original/9kEIibz7t3c9KFKSk3GhhX4xqC0.jpg",
+				   description: "Ed Gein életét dolgozza fel a sorozat",
+				   link: "edgain.html"
+			},
+			{
+			       title: " A Védelmezők",
+				   image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/eOW7GzbWl6sgQEProXqpYPSRHo.jpg",
+				   previewImage: "https://image.tmdb.org/t/p/original/mCwh3Ih7KJEphHboY7l0Zkl7dCO.jpg",
+				   description: "Daredevil, Jessica Jones, Luke Cage és Iron Fist összefognak, hogy megfékezzék a bűnözést New York városában.",
+				   link: "defenders.html"
+			},
+			{
+			  title: "Vikingek",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/eggwzhTFJh18JRL6d2jRWoHKdTl.jpg",
+			  previewImage: "https://image.tmdb.org/t/p/original/54kFJxbMdlCwGZstCGGcLNXIisU.jpg",
+			  description: "A Vikingek története Ragnar Lothbrok, kora legnagyobb hősének felemelkedését meséli el, aki elsőként hajózik nyugatra és jut el Nagy-Britanniába. Ragnar-nak és bajtársaiknak már elegük van abból, hogy vezérük, Earl Haraldson (Gabriel Byrne) minden évben kelet felé, ugyanarra a vidékre küldi el a törzset hódítani. Azonban Ragnar-nak, a félelmet nem ismerő harcosnak megvan a terve, hogy mindent megváltoztasson.",
+			  link: "Vikingek.html"
+			},
+			{
+			  title: "Ravasz",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/9eDF8Z4iFFCmQROiuej54rSK9LT.jpg",
+			  previewImage: "https://www.heavenofhorror.com/wp-content/uploads/2025/07/Trigger-2025-Netflix-review.jpg",
+			  description: "Amikor illegális lőfegyverek árasztják el a fegyvermentes Dél-Koreát, egy eltökélt zsaru és titokzatos partnere egyesíti erőit a nemzetet fenyegető káosz megállítására.",
+			  link: "ravasz.html"
+			},
+			{
+			  title: "Gotham lovagjai",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/r2lF1CWoNx1OiV8Cv50jpeOkFs7.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/kQNScKH4oGjW3gPPAcJfXY5TAIK.jpg",
+			  description: "A szedett-vedett szökevények csapata hamarosan megtudja, hogy a Gotham Cityn belül létezik egy nagyobb, gonoszabb hatalom, ezért össze kell fogniuk, hogy felnőjenek a feladathoz, és ők váljanak Gotham megmentőivé Batman után.",
+			  link: "gothamknights.html"
+			},
+			{
+			  title: "Kiút",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/t6LETe9MptGIpo4vJEzrkgV4c05.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/g3JFcuQpmzVzVgSvbrmRqkjuT84.jpg",
+			  description: "Egy rémálmokba illő város Amerika közepén foglyul ejti azokat, akik belépnek. A csapdába esett lakosok igyekeznek megőrizni ép elméjüket és megpróbálják túlélni a veszélyeket, amik a közeli erdőben leselkednek rájuk - beleértve a szörnyű lényeket, melyek az éj leple alatt jönnek elő.",
+			  link: "kiut.html"
+			},
+			{
+			  title: "A 3-test-probléma ",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/91OmDL2PWQnd4Pm9hXLwrfn3Ql3.jpg",
+			  previewImage: "https://images.ottplay.com/images/character-posters-3-body-problem-netflix-1710754153.png?impolicy=ottplay-202501_high&width=1200&height=675",
+			  description: "Öt briliáns jó barát kontinenseken és évtizedeken átívelő, világnézetünket alapjaiban megrengető felfedezést tesz, amely felfedi egy közelgő fenyegetés jelenlétét is.",
+			  link: "3tp.html"
+			},
+			{
+			  title: "Minden történetnek két oldala van",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/vNFai5Xzwxq4mcrErSaVJ4VDqLx.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/rIjlsG0WZVOcSWTBhZcBNoaveni.jpg",
+			  description: "Anna, a visszahúzódó egykori híradós, megszállottan foglalkozik egy szülővárosában történt gyilkossági üggyel. Jack Harper nyomozó, aki gyanakszik Anna szerepére, a nyomozás célkeresztjébe helyezi őt.",
+			  link: "hisandhers.html"
+			},
+			{
+			  title: "Szamurájok harca: Az utolsó túlélő",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/fZlHs4kmYbQs7PaXfYRL9FMOvrJ.jpg",
+			  previewImage: "https://image.tmdb.org/t/p/original/etff0iKKmovdDb1n6gjCrCxsTkL.jpg",
+			  description: "A Meidzsi-kor kezdetén Sūdzsirō, az egykor legyőzhetetlennek tarott szamuráj úgy dönt, részt vesz egy halálos túlélési játékban, hogy megmentse a családját és a faluját.",
+			  link: "szamurájokharca.html"
+			},
+			{
+			  title: "X-Men: The Gifted - Kiválasztottak",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/67PA5KannnUdblhv8mH04QNrDm1.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/6QrZAtX840sE6WID9UGCpD8u9zf.jpg",
+			  description: "Az X-Men univerzumban játszódó Kiválasztottak című sorozat középpontjában egy átlagosnak tűnő amerikai család áll, akik nyugodt, kertvárosi életüket élik, míg ki nem derül, hogy a gyerekek nem mindennapi képességekkel rendelkeznek. Reed (Stephen Moyer) és Caitlin Strucker (Amy Acker) tipikus középosztálybeli szülők, akiknek fenekestül felfordul az élete, mikor kamaszkorú gyermekeik, Lauren (Natalie Alyn Lind) és Andy (Percy Hynes White) bajba kerülnek a középiskolában, és kiderül róluk, hogy mutánsok. A család ezután kénytelen hátrahagyni régi életét, hogy elmeneküljön a mutánsokat üldöző, fáradhatatlan kormányügynökség és Jace Turner ügynök (Coby Bell) elől. A helyzetet tovább bonyolítja, hogy a gyerekek apja, Reed, az államügyész irodájának munkatársa, és az ő feladata a mutánsok börtönbe juttatása.",
+			  link: "xmengifted.html"
+			},
+			{
+			  title: "Eufória ",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/pI3Pp5avRa1hiXVKBQfAz46l0lI.jpg",
+			  previewImage: "https://hasznaltalma.hu/upload/default/1672158983_1840_euphoria-lead-jpeg",
+			  description: "Rue 17 éves, drogfüggő, mentális problémákkal küzd, és az élete nem a tervek szerint alakul. Miután kiengedik az elvonóról, Rue hazamegy, és összebarátkozik egy Jules nevű transznemű nővel, aki mindent megváltoztat a világában. Az Eufória mélyen belemerül a szex, a drogok, a feltűnő sminkek és ha hiszed, ha nem, a középiskolák világába.",
+			  link: "euforia.html"
+			},
+			{
+			  title: "Brooklyn 99 - Nemszázas körzet",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/5lPsBgrwBka0pU3mcDnm7offbaq.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/52371036368023ea0560a34366bd4669914e282c55166c1952e9393acf5b22cd.jpg",
+			  description: "A New York 99. számú rendőrőrsén játszódó, poénokkal tűzdelt sorozat a tehetséges, ám gyerekes módon viselkedő Jake Peralta nyomozó (Andy Samberg) és újdonsült főnöke, a mogorva Ray Holt (Andre Braugher) közötti konfliktusokat mutatja be rendkívül vicces formában, amihez persze az őrs többi, nem kevésbé defektes munkatársa is asszisztál. A káoszt csak fokozza, hogy az új vezető döntései nem könnyítik meg a szolgálati szabályzatot igencsak lazán kezelő Peralta életét.",
+			  link: "Brooklyn99.html"
+			},
+			{
+			  title: "Shaolin leszámolás",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/tAzY37ss5HGvpxLvO4giWcKwy7l.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/dhLi5XTGrj9R2aQa9XXfZnDhT1N.jpg",
+			  description: "Omi egy robbanékony, ifjú szerzetesnövendék és egyben a Shaolin csapat nem hivatalos vezetője. Az őselemek közül a vizet uralja, emellett teljes valójával azon van, hogy megtalálja a Shen-Gong-Wu hiányzó részeit és leszámoljon bármilyen ellenséggel, aki akadályozni próbálja őt ebben. Miközben új tanulóit oktatja a Shen-Gong-Wu részeiről és harcművészetekről, Omi is mindig tanul tőlük valamit.",
+			  link: "shaolinlesz.html"
+			},
+			{
+			  title: "A törvény nevében",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/mV16EBXQ6kDWpj31P6BEhmzTTkd.jpg",
+			  previewImage: "https://image.tmdb.org/t/p/original/1zevVLM24guH38aDI5QSrcheUOW.jpg",
+			  description: "2012-ben Rust Cohle és Martin Hart nyomozókat, a louisianai állami rendőrség nyomozóit behívják egy 1995-ös gyilkossági ügy felgöngyölítésére. Miközben a nyomozás a jelenben, különálló kihallgatások során bontakozik ki, a két egykori nyomozó elmeséli nyomozásuk történetét, újra feltépve a be nem gyógyult sebeket, és megkérdőjelezve egy 1995-ös bizarr rituális gyilkosság feltételezett megoldását. Az idősíkok összefonódnak és összefutnak 2012-ben, ahogyan mindkét férfit visszahúzza egy olyan világ, amelyről azt hitték, hogy maguk mögött hagyták. Miközben megismerik egymást és a gyilkosukat, világossá válik, hogy a törvény mindkét oldalán sötétség él...",
+			  link: "trued.html"
+			},
+			{
+			  title: "The Copenhagen Test",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/d2EsEZXGHQTYAWROYZXgE64tNuj.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/hmNihHmvYZjCcb6c8RRKDXSx8EW.jpg",
+			  description: "Egy első generációs elemző rájön, hogy az agyát feltörték, és így hozzáférhet az érzékeihez. Az ügynökség és a hackerek közé szorulva normálisan viselkedik, hogy felfedje a tetteseket.",
+			  link: "coppenh.html",
+			},
+			{
+			  title: "56 nap",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/nYrp4RbRuGfecm1HGjUb5TSLHox.jpg",
+			  previewImage: "https://media.press.amazonmgmstudios.com/userfiles/images/image-20260120163709-1.jpeg",
+			  description: "Amikor Oliver Kennedy és a barátnője, Ciara Wyse luxuslakásában azonosítatlan holttestre bukkannak, Lee Reardon és Karl Connolly nyomozók rekonstruálják a pár halálos románcának első 56 napját.",
+			  link: "56d.html"
+			},
+			{
+			  title: "X-Men: Evolúció",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/HEzbwsX1VniBSwZ4LrxwlfWhfW.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w500_and_h282_face/eyaVqKmn5EFY30pKCmLffLUraQC.jpg",
+			  description: "Charles Francis Xavier professzor, a gondolatolvasó, új mutánsokat keres, akiket Tehetséggondozó Iskolájában kiképezhetne. A tanoncok megtanulják, hogyan alkalmazzák adottságaikat anélkül, hogy önmagukban tennének kárt? Ellenfele, Magneto, a „Mágnesesség Mestere”, ugyanezt teszi, csakhogy gonosz célokra. Létrehozta az alakváltozásra képes Mystique-et, aki a középiskola igazgatójaként gonosz mutánsokat terel egy csapatba, hogy felkészítse őket a nem-mutánsok elleni háborúra.",
+			  link: "xmenevol.html"
+			},
+			{
+			  title: "Pókember",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/wXthtEN5kdWA1bHz03lkuCJS6hA.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/kDTn0caV1hd7qxMDxyXco9A6Auo.jpg",
+			  description: "Minden idők egyik legnépszerűbb akcióhőse, Spider-man, vagyis a Pókember szembeszáll a világ legveszélyesebb gonosztevőivel és gazembereivel. Hősünk emberfeletti, pókokra jellemző képességeivel, hihetetlen elszántsággal küzd a bűnözők ellen. A Spider-man epizódjai során részesei lehetünk a szuperhős kalandjainak. A pókember hatalmas erővel, gyors reflexekkel, hihetetlen egyensúlyérzékkel rendelkezik, és bármely felületre képes rátapadni. E tulajdonságok megkönnyítik a New York városának legveszélyesebb bűnözőivel való szembeszállást.",
+			  link: "pokember.html"
+			},
+			{
+			  title: "A fény hercegnője",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/kJw73nXlDxooReri4hW5gC48Dou.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/mwRswiiDVqqlJlD9pez4CbANLn8.jpg",
+			  description: "Jungmyung hercegnő az egyetlen egyenes ági leszármazottja volt Seonjo királynak, aki még élt, amikor ő megszületett. A király halála után Gwanghae került a trónra és az első parancsa az volt, hogy eltűntesse a herceget és száműzze a királynőt a palotából. A következő célpontja a hercegnő volt. Amikor Inmok királynő megtudta, hogy lánya veszélybe került, elküldte és elbújtatta. De a bérgyilkosok a nyomára bukkantak Jungmyung hercegnőnek. A hercegnő testőrének és dadájának heroikus önfeláldozása következtében a hercegnőt sikerült egy hajóra menekíteni. A hercegnőt a tengeren sodródva egy Japán felé tartó hajó találta meg. Eladták rabszolgának. Azért, hogy túlélje az ellenséges környezetet elhallgatta azt, hogy ő egy hercegnő. Fiúnak álcázva magát, Jungmyung munkásként egy kénbányában kezdett el dolgozni. Barátra lelt, ami segítette abban, hogy túlélje a megpróbáltatásokat és megtalálta a reményt a kétségbeesés legmélyén is. De sosem adta fel, hogy egyszer újra visszatérjen Joseon városba, az otthonába és megbuktassa Gwanghaet, aki mindent elvett tőle. Hamarosan alkalom adódik és valóra válhat az álma, hogy visszatérjen",
+			  link: "Afenyh.html"
+			},
+			{
+			  title: "Kedves Hongrang", 
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/mWGil4jL1jaCoZkZuaNThh0aoVC.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/9MJilWnm6K8QKJC8SJ91u1tHTJn.jpg",
+			  description: "Amikor egy rég eltűnt örökös visszatér, de nem emlékszik semmire, felébred a szeretet és a gyanú. Valóban ő Hongrang, vagy idegen férkőzne be a szívekbe és a családba?",
+			  link: "kedvesh.html"
+			},
+			{
+			  title: "Megtévesztés ",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/AnJBeMJdIw9umj958VRCyz7PWrI.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/A5fmBpqyn0lnrChoAQGkM3hSbAl.jpg",
+			  description: "Egy nyomozónő titkos küldetésben visszatér ahhoz a gazdag családhoz, ahol egykoron a cseléd lányaként nevelkedett, hogy kiderítse, ki gyilkolta meg a közismert örökösnőt, aki egykor a legjobb barátja volt.",
+			  link: "megtév.html"
+			},
+			{
+			  title: "A csontember",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/kecfuNcEnBjuIu2xGSgNinIWkaS.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/4McksvPak5YNtZTn2xNLY2XDmJ4.jpg",
+			  description: "Lincoln Rhyme, a nyomozók körében legendásan okos nyomozó hatalmas hibát követ el, amikor megpróbálja csapdába csalni minden idők legagyafúrtabb sorozatgyilkosát, a Csontembert. Lincoln a Csontember játékszerévé válik, amikor a gyilkos életben hagyja és mozgásképtelenné teszi. A nyomozó azonban csak még elszántabb lesz a Csontember utáni hajtóvadászatban, és a rendőrség kötelékein belül megkeresi azt a rendőrt, aki bármilyen kockázatot hajlandó vállalni, hogy elkapjon egy tettest. Választása a mindig ösztönösen cselekvő, társai szerint őrült járőrre, Amelia Sachsra esik, aki ugyanolyan mániásan túlteljesít, mint ő. Amelia, aki az FBI profilozói közé jelentkezett, vállalja, hogy élő bábja és ösztönös megfigyelője lesz a bűncselekmények helyszínein az ágyhoz láncolt Lincoln Rhyme-nak.",
+			  link: "csonte.html"
+			},
+			{
+			  title: "Mike",
+			  image: "https://www.sorozatbarat.hu/img/w300/dF997CwJNM1953E45BfWPB5MffY.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w500_and_h282_face/ffZvtM3kfTNC2w263SloZHbokCE.jpg",
+			  description: "A sorozat Mike Tysont a fókuszba helyezve veszi górcső alá Amerika társadalmi osztályait, a faji hovatartozás kérdését, a hírnév jelenségét és a média hatalmát, a nőgyűlöletet, a vagyoni különbségeket, az amerikai álom ígéretét, és végül a saját szerepünket Mike történetének formálásában.",
+			  link: "mike.html"
+			},
+			{
+			  title: "Az olajügynök",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/Aj5B3qRD0UYh2pPpyKZzfIgpMcs.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w500_and_h282_face/rT6MWTMvDFkxpMPRJMKmFCVxPxr.jpg",
+			  description: "A nyugat-texasi Boomtownban játszódó Landman egy modern történet a szerencsevadászatról az olajfúrótornyok világában. A sorozat egy olyan hatalmas fellendülést gerjesztő, az éghajlatot, a gazdaságot és a geopolitikát is átformáló, az emeletről emeletre haladó és a földszintről lefelé bukó, durva csavargókról és vad milliárdosokról szóló történet, amely egy olyan hatalmas fellendülést táplál, ami átformálja éghajlatunkat, gazdaságunkat és geopolitikánkat.", 
+			  link: "olajü.html"
+			},
+			{
+			  title: "Kopók",
+			  image: "https://www.sorozatbarat.hu/img2/original/cPpO3FsWxwaw9kQP0QLLZ1Swy2R.jpg",
+			  previewImage: "https://www.sorozatbarat.hu/img/w300/hbXdJXzTcYlrQAAlXFDFqCjfHSs.jpg",
+			  description: "Hogy törleszthessék adósságukat, három vakmerő fiatal beleveti magát a pénzkölcsönzésbe, miközben szembeszállnak a gazdagokkal és a hatalmasokkal, akik a gyengékre vadásznak.",
+			  link:"kopok.html"
+			},
+			{
+			  title: "Kívánj valamit!",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/opop2u7Jav6lMNL8fSBTzOeFBDz.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/ca8VLRX9ki5xO15lxBshOflBXqJ.jpg",
+			  description: "1000 év elteltével visszatér egy szellemes dzsinn, hogy teljesítse egy érzéketlen nő kívánságait. Vajon képes szerelmet és csodát varázsolni a nő világába?",
+			  link: "makeawish.html"
+			},
+			{
+			  title: "Szeretnélek utálni",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/ifOXQyDvpVnZvKq7pR8fujtbeQk.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/gJQRSdqDiOHX3WJocTIHqqvgigy.jpg",
+			  description: "Egy ügyvéd, aki utál férfiakkal szemben veszíteni, és egy A-listás színész, aki nem bízik a nőkben, számára a szerelem semmit sem jelent – ​​amíg kénytelenek nem randizni egymással.",
+			  link: "loveto.html"
+			},
+			{
+			  title: "Off-Campus",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/tcPc5ZMBO4y2BtCJMe3o2nwZb2B.jpg",
+			  previewImage: "https://m.media-amazon.com/images/S/pv-target-images/0e8973fa78ff1d9cedfaa507f3705ff55d9faedc7f0b4d05e923db8a0a892f4d._SX1080_FMjpg_.jpg",
+			  description: "Hannah Wells a szerelméért korrepetálja a hokicsapat kapitányát, Garrett Grahamet, ám ahogy szembenéznek a múltjukkal, közelebb kerülnek egymáshoz. A barátaik, Logan, Dean, Tucker és Allie szintén próbálnak eligazodni az egyetemi élet és a szerelem ütvesztőiben.",
+			  link: "offcampus.html"
+			},
+			{
+			  title: "A Pók: Noir",
+			  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/srfFrZLnSl2wPa04OhfLq5xTaWn.jpg",
+			  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/19yUwtpsnI2o9DIvA3A2jrKJcOd.jpg",
+			  description: "Egy idősödő magánnyomozó az 1930-as évek New Yorkjában kénytelen szembenézni múltbeli életével, amikor a város egyetlen szuperhőse volt.",
+			  link: "poknoir.html"
+			},
+            // ... a többi sorozatod itt van a fájlban, megtartottam őket
+            // (a teljes tömb marad, amit korábban adtál)
+        ];
+
+        // Profil-specifikus mentés
+        function getKey(type) {
+            return `skysnet_${type}_${currentProfile}`;
+        }
+
+        function getMyList() { return JSON.parse(localStorage.getItem(getKey('mylist')) || '[]'); }
+        function getContinueWatching() { return JSON.parse(localStorage.getItem(getKey('continue')) || '[]'); }
+        function saveMyList(list) { localStorage.setItem(getKey('mylist'), JSON.stringify(list)); }
+        function saveContinueWatching(list) { localStorage.setItem(getKey('continue'), JSON.stringify(list)); }
+
+        function createMovieCard(movie) {
+            const div = document.createElement('div');
+            div.className = "movie-card group";
+            div.innerHTML = `
+                <div class="relative overflow-hidden rounded-xl">
+                    <img src="${movie.image}" class="w-full aspect-[2/3] object-cover">
+                    <div class="movie-info">
+                        <h3 class="font-semibold">${movie.title}</h3>
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="playMovie('${movie.title}')" class="btn btn-play text-xs flex-1">
+                                ▶ Lejátszás
+                            </button>
+                            <button onclick="toggleMyList(this, '${movie.title}')" class="btn btn-list text-xs">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function playMovie(title) {
+            const movie = movies.find(m => m.title === title);
+            if (movie?.link) {
+                window.open(movie.link, '_blank');
+                
+                let cont = getContinueWatching();
+                cont = cont.filter(m => m.title !== title);
+                cont.unshift(movie);
+                if (cont.length > 10) cont.pop();
+                saveContinueWatching(cont);
+                renderRows();
+            }
+        }
+
+        function toggleMyList(btn, title) {
+            let list = getMyList();
+            if (list.find(m => m.title === title)) {
+                list = list.filter(m => m.title !== title);
+                btn.innerHTML = `<i class="fas fa-plus"></i>`;
+            } else {
+                const movie = movies.find(m => m.title === title);
+                if (movie) list.push(movie);
+                btn.innerHTML = `<i class="fas fa-check"></i>`;
+            }
+            saveMyList(list);
+            renderRows();
+        }
+
+        function renderRows() {
+            document.getElementById('continue-row').innerHTML = getContinueWatching().map(m => createMovieCard(m).outerHTML).join('');
+            document.getElementById('mylist-row').innerHTML = getMyList().map(m => createMovieCard(m).outerHTML).join('');
+            document.getElementById('movie-list').innerHTML = movies.map(m => createMovieCard(m).outerHTML).join('');
+        }
+
+        function filmKereses() {
+            const term = document.getElementById('kereso').value.toLowerCase();
+            const container = document.getElementById('movie-list');
+            container.innerHTML = movies
+                .filter(m => m.title.toLowerCase().includes(term))
+                .map(m => createMovieCard(m).outerHTML)
+                .join('');
+        }
+
+        window.onload = () => {
+            getProfileFromUrl();
+            document.getElementById("currentProfile").textContent = currentProfile;
+            document.getElementById("profilePic").src = profiles[currentProfile];
+            renderRows();
+        };
+    </script>
+</body>
+</html>

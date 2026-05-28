@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkysNet – Bejelentkezés</title>
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+ 
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+        :root {
+            --red: #e50914;
+            --red-dark: #b2070f;
+            --bg: #141414;
+            --surface: rgba(20, 20, 20, 0.92);
+            --border: rgba(255,255,255,0.1);
+            --muted: #aaa;
+        }
+ 
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+ 
+        /* ── HÁTTÉR ── */
+        .bg-wrap {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+ 
+        .bg-collage {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 3px;
+            opacity: 0.18;
+            filter: saturate(0.4);
+        }
+ 
+        .bg-collage img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+ 
+        .bg-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 50%, rgba(229,9,20,0.06) 0%, transparent 70%),
+                linear-gradient(to bottom, rgba(20,20,20,0.7) 0%, rgba(20,20,20,0.55) 50%, rgba(20,20,20,0.85) 100%);
+        }
+ 
+        /* ── NAVIGÁCIÓ ── */
+        nav {
+            position: relative;
+            z-index: 10;
+            padding: 28px 60px;
+        }
+ 
+        nav img {
+            height: 72px;
+        }
+ 
+        /* ── CARD ── */
+        .page-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            padding: 20px;
+        }
+ 
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(28px) saturate(1.4);
+            -webkit-backdrop-filter: blur(28px) saturate(1.4);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 52px 48px 44px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(229,9,20,0.08);
+            animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+        }
+ 
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+ 
+        .card-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.6rem;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+ 
+        .card-sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 36px;
+        }
+ 
+        /* ── FORM ── */
+        .field {
+            position: relative;
+            margin-bottom: 18px;
+        }
+ 
+        .field label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+ 
+        .field input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.97rem;
+            padding: 14px 46px 14px 18px;
+            outline: none;
+            transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+        }
+ 
+        .field input::placeholder { color: rgba(255,255,255,0.28); }
+ 
+        .field input:focus {
+            border-color: var(--red);
+            background: rgba(229,9,20,0.06);
+            box-shadow: 0 0 0 3px rgba(229,9,20,0.15);
+        }
+ 
+        .field-icon {
+            position: absolute;
+            right: 16px;
+            bottom: 14px;
+            color: var(--muted);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+ 
+        .field-icon:hover { color: #fff; }
+ 
+        /* ── EMLÉKEZZ RÁM ── */
+        .remember-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+ 
+        .remember-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--muted);
+            cursor: pointer;
+            user-select: none;
+        }
+ 
+        .custom-check {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+ 
+        input[type="checkbox"]:checked + .custom-check {
+            background: var(--red);
+            border-color: var(--red);
+        }
+ 
+        input[type="checkbox"] { display: none; }
+ 
+        .forgot-link {
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .forgot-link:hover { color: #fff; text-decoration: underline; }
+ 
+        /* ── GOMB ── */
+        .btn-submit {
+            width: 100%;
+            background: var(--red);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.25s, transform 0.15s, box-shadow 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+ 
+        .btn-submit:hover {
+            background: var(--red-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(229,9,20,0.4);
+        }
+ 
+        .btn-submit:active { transform: translateY(0); }
+ 
+        .btn-submit::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+            pointer-events: none;
+        }
+ 
+        /* ── ELVÁLASZTÓ ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 28px 0;
+            color: rgba(255,255,255,0.2);
+            font-size: 0.75rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+ 
+        /* ── REGISZTRÁCIÓ LINK ── */
+        .register-row {
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+ 
+        .register-row a {
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+ 
+        .register-row a:hover { color: var(--red); }
+ 
+        /* ── HIBÁ ÜZENET ── */
+        .error-msg {
+            background: rgba(229,9,20,0.12);
+            border: 1px solid rgba(229,9,20,0.35);
+            border-radius: 8px;
+            color: #ff6b6b;
+            font-size: 0.84rem;
+            padding: 11px 16px;
+            margin-bottom: 18px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: shake 0.4s ease;
+        }
+        .error-msg.visible { display: flex; }
+ 
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60%  { transform: translateX(-6px); }
+            40%,80%  { transform: translateX(6px); }
+        }
+ 
+        /* ── LOADING SPINNER ── */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+ 
+        @keyframes spin { to { transform: rotate(360deg); } }
+ 
+        /* ── SIKERES BEJELENTKEZÉS ── */
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(20,20,20,0.97);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+        .success-overlay.visible { display: flex; }
+ 
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+ 
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            animation: popIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+        }
+ 
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+ 
+        .success-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+ 
+        .success-sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+ 
+        /* ── LÁBLÉC ── */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.22);
+        }
+ 
+        /* ── RESZPONZÍV ── */
+        @media (max-width: 520px) {
+            nav { padding: 20px 24px; }
+            nav img { height: 52px; }
+            .card { padding: 40px 28px 36px; }
+        }
+    </style>
+</head>
+<body>
+ 
+<!-- HÁTTÉR KOLLÁZS -->
+<div class="bg-wrap">
+    <div class="bg-collage">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/rZ2ogAeYWtfP8Xn2IcVBSaYup7P.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/tcPc5ZMBO4y2BtCJMe3o2nwZb2B.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_bestv2/A7EByudX0eOzlkQ2FIbogzyazm2.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_bestv2/9SP6uao9oBcmQ3Kf7pzhtGSMYHV.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_bestv2/f5b1XGx6noPZTOh9tzPh0JhFiVH.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_bestv2/x7y3ltzX3hHHntG0cc0fvjwzztf.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_bestv2/vr20UIrV0jxe0ntkLqbPNyIwvAm.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/fSsWpo4eb88aZwcXevNXZKWQU4o.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/wD0dkVerZMQu2uv7C9pPKXNB2pm.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/rZ2ogAeYWtfP8Xn2IcVBSaYup7P.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_bestv2/r9K5QQv1o9pLKSEEbfoMWOQwLl5.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_bestv2/AcrDB32TqpAGwvQFbICALGxSzn3.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/cHjKnXqpsulF31q1EMGkulbmqkc.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/8NLin5rKOtd8ecwSCMAncazbaA9.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/vXRiBTbjPE5reRDuVtSG9MVfVvB.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/uJOfOqWKJmyABSEaV2mD9TEMN1T.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/w0MX0Gwxa8MUd5NDa9HkujzoyPs.jpg" alt="">
+        <img src="https://www.themoviedb.org/t/p/w600_and_h900_face/2TzNrOyzM6jnmNLLA9daohV1Vfw.jpg" alt="">
+    </div>
+    <div class="bg-overlay"></div>
+</div>
+ 
+<!-- NAVIGÁCIÓ -->
+<nav>
+    <img src="skysnet.png" alt="SkysNet" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <span style="display:none; font-family:'Bebas Neue',sans-serif; font-size:2.2rem; color:#e50914; letter-spacing:3px;">SKYSNET</span>
+</nav>
+ 
+<!-- BEJELENTKEZÉSI KÁRTYA -->
+<div class="page-center">
+    <div class="card">
+        <div class="card-title">Bejelentkezés</div>
+        <div class="card-sub">Üdvözlünk vissza a SkysNet-en!</div>
+ 
+        <div class="error-msg" id="errorMsg">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="errorText">Hibás e-mail cím vagy jelszó.</span>
+        </div>
+ 
+        <div class="field">
+            <label for="email">E-mail cím</label>
+            <input 
+                type="email" 
+                id="email" 
+                placeholder="pelda@email.hu"
+                autocomplete="email"
+                oninput="clearError()">
+            <i class="fa-regular fa-envelope field-icon"></i>
+        </div>
+ 
+        <div class="field">
+            <label for="password">Jelszó</label>
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="••••••••"
+                autocomplete="current-password"
+                oninput="clearError()"
+                onkeydown="if(event.key==='Enter') handleLogin()">
+            <i class="fa-regular fa-eye field-icon" id="toggleIcon" onclick="togglePassword()" title="Jelszó megjelenítése"></i>
+        </div>
+ 
+        <div class="remember-row">
+            <label>
+                <input type="checkbox" id="remember">
+                <div class="custom-check" id="checkBox" onclick="toggleCheck()">
+                    <i class="fa-solid fa-check" style="font-size:10px; display:none;" id="checkMark"></i>
+                </div>
+                Emlékezz rám
+            </label>
+            <a href="#" class="forgot-link">Elfelejtett jelszó?</a>
+        </div>
+ 
+        <button class="btn-submit" id="loginBtn" onclick="handleLogin()">
+            <div class="spinner" id="spinner"></div>
+            <i class="fa-solid fa-right-to-bracket" id="loginIcon"></i>
+            <span id="loginText">Bejelentkezés</span>
+        </button>
+ 
+        <div class="divider">vagy</div>
+ 
+        <div class="register-row">
+            Még nincs fiókod? <a href="regisztracio.html">Regisztrálj most</a>
+        </div>
+    </div>
+</div>
+ 
+<!-- SIKERES BEJELENTKEZÉS -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-icon">
+        <i class="fa-solid fa-check"></i>
+    </div>
+    <div class="success-text">Sikeres belépés!</div>
+    <div class="success-sub">Átirányítás a főoldalra…</div>
+</div>
+ 
+<footer>© 2025 SkysNet · Minden jog fenntartva</footer>
+ 
+<script>
+    // Jelszó megjelenítés
+    function togglePassword() {
+        const input = document.getElementById('password');
+        const icon  = document.getElementById('toggleIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+ 
+    // Checkbox
+    let checked = false;
+    function toggleCheck() {
+        checked = !checked;
+        const box  = document.getElementById('checkBox');
+        const mark = document.getElementById('checkMark');
+        if (checked) {
+            box.style.background  = 'var(--red)';
+            box.style.borderColor = 'var(--red)';
+            mark.style.display = 'block';
+        } else {
+            box.style.background  = 'transparent';
+            box.style.borderColor = 'rgba(255,255,255,0.25)';
+            mark.style.display = 'none';
+        }
+    }
+ 
+    // Hibaüzenet törlése
+    function clearError() {
+        document.getElementById('errorMsg').classList.remove('visible');
+    }
+ 
+    // Bejelentkezés logika
+    function handleLogin() {
+        const email    = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const btn      = document.getElementById('loginBtn');
+        const spinner  = document.getElementById('spinner');
+        const icon     = document.getElementById('loginIcon');
+        const text     = document.getElementById('loginText');
+        const errorMsg = document.getElementById('errorMsg');
+ 
+        // Validáció
+        if (!email) {
+            showError('Kérjük, add meg az e-mail címed.');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showError('Érvényes e-mail címet adj meg.');
+            return;
+        }
+        if (!password) {
+            showError('Kérjük, add meg a jelszavadat.');
+            return;
+        }
+        if (password.length < 4) {
+            showError('A jelszó legalább 4 karakter kell legyen.');
+            return;
+        }
+ 
+        // Loading állapot
+        btn.disabled    = true;
+        spinner.style.display = 'block';
+        icon.style.display    = 'none';
+        text.textContent      = 'Bejelentkezés…';
+ 
+        // Bejelentkezési szimuláció (itt csatlakoztasd a valódi backendet)
+        setTimeout(() => {
+            const validEmail    = 'skysnet@demo.hu';
+            const validPassword = 'skysnet123';
+ 
+            if (email === validEmail && password === validPassword) {
+                // Siker
+                document.getElementById('successOverlay').classList.add('visible');
+                setTimeout(() => {
+                    window.location.href = 'profil.html';
+                }, 2200);
+            } else {
+                // Hiba
+                spinner.style.display = 'none';
+                icon.style.display    = 'inline-block';
+                text.textContent      = 'Bejelentkezés';
+                btn.disabled          = false;
+                showError('Hibás e-mail cím vagy jelszó.');
+            }
+        }, 1400);
+    }
+ 
+    function showError(msg) {
+        document.getElementById('errorText').textContent = msg;
+        document.getElementById('errorMsg').classList.add('visible');
+    }
+</script>
+</body>
+</html>

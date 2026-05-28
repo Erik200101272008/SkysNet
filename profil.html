@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/png" href="skysnet.png">
+  <title>SkysNet - Ki nézi?</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #141414;
+      color: white;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo {
+      position: absolute;
+      top: 40px;
+      left: 50px;
+      font-size: 2.8rem;
+      font-weight: bold;
+      color: #e50914;
+    }
+
+    .container { text-align: center; }
+    h1 {
+      font-size: 3.8rem;
+      margin-bottom: 60px;
+      font-weight: 400;
+    }
+
+    .profiles {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .profile {
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .profile:hover {
+      transform: scale(1.12);
+    }
+
+    .avatar {
+      width: 170px;
+      height: 170px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 4px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .profile:hover .avatar {
+      border-color: white;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .name {
+      margin-top: 15px;
+      font-size: 1.5rem;
+      color: #b3b3b3;
+    }
+
+    .profile:hover .name {
+      color: white;
+    }
+
+    .add {
+      width: 170px;
+      height: 170px;
+      border: 4px solid #666;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      color: #666;
+    }
+
+    .add:hover {
+      border-color: white;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo">SKYSNET</div>
+
+  <div class="container">
+    <h1>Ki nézi?</h1>
+    
+    <div class="profiles">
+      <!-- Profil 1 -->
+      <div class="profile" onclick="loadSkysNet('Erik')">
+        <div class="avatar">
+          <img src="https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg" alt="Erik">
+        </div>
+        <div class="name">Erik</div>
+      </div>
+
+      <!-- Profil 2 -->
+      <div class="profile" onclick="loadSkysNet('Cinti')">
+        <div class="avatar">
+          <img src="https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg" alt="Cinti">
+        </div>
+        <div class="name">Cinti</div>
+      </div>
+
+      <!-- Profil 3 -->
+      <div class="profile" onclick="loadSkysNet('Bandi')">
+        <div class="avatar">
+          <img src="https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg" alt="Bandi">
+        </div>
+        <div class="name">Bandi</div>
+      </div>
+
+      
+
+      <!-- Új profil -->
+      <div class="profile" onclick="addNewProfile()">
+        <div class="add">+</div>
+        <div class="name">Új profil</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadSkysNet(name) {
+        // Profil átadása URL paraméterrel
+        window.location.href = `szemszab.html?profile=${encodeURIComponent(name)}`;
+    }
+
+    function addNewProfile() {
+        const name = prompt("Add meg az új profil nevét:");
+        if (name) {
+            alert(`${name} profil sikeresen létrehozva!`);
+        }
+    }
+</script>
+
+</body>
+</html>
