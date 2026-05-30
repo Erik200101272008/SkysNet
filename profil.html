@@ -15,6 +15,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     .logo {
       position: absolute;
@@ -67,24 +68,135 @@
     .profile:hover .name {
       color: white;
     }
+
+    /* PIN képernyő */
+    .pin-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .pin-container {
+      text-align: center;
+    }
+    .pin-header {
+      margin-bottom: 40px;
+    }
+    .pin-name {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+    .pin-dots {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+    }
+    .dot {
+      width: 22px;
+      height: 22px;
+      border: 3px solid #555;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+    .dot.filled {
+      background-color: white;
+      border-color: white;
+    }
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    .key {
+      width: 85px;
+      height: 85px;
+      background-color: #303030;
+      color: white;
+      font-size: 2rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .key:active {
+      background-color: #e50914;
+      transform: scale(0.95);
+    }
+    .key.zero { grid-column: 2; }
+    .actions {
+      margin-top: 30px;
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+    }
+    .action-btn {
+      background: none;
+      border: none;
+      color: #b3b3b3;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .action-btn:hover {
+      color: white;
+    }
+    .error {
+      color: #e50914;
+      margin-top: 15px;
+      min-height: 24px;
+    }
   </style>
 </head>
 <body>
   <div class="logo">SKYSNET</div>
   <div class="container">
     <h1>Ki nézi?</h1>
-  
     <div class="profiles" id="profilesContainer"></div>
+  </div>
+
+  <!-- PIN beviteli képernyő -->
+  <div class="pin-screen" id="pinScreen">
+    <div class="pin-container">
+      <div class="pin-header">
+        <div class="pin-name" id="pinName"></div>
+        <div class="pin-dots" id="pinDots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+
+      <div class="keypad" id="keypad">
+        <!-- JS-sel generáljuk -->
+      </div>
+
+      <div class="actions">
+        <button class="action-btn" onclick="cancelPin()">Mégsem</button>
+      </div>
+      <div class="error" id="errorMsg"></div>
+    </div>
   </div>
 
   <script>
     const profiles = [
-      { name: "Erik", image: "https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg" },
-      { name: "Cinti", image: "https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg" },
-      { name: "Bandi", image: "https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg" },
-      { name: "Magdi", image: "https://i.pinimg.com/1200x/fe/31/f7/fe31f7e86ca12d48084de16c6c1d48de.jpg" },
-      { name: "Attila", image: "https://i.pinimg.com/1200x/f4/5e/5d/f45e5dd8e0bf3f5e23036f066c8b74a8.jpg" }
+      { name: "Erik",   pin: "2001", image: "https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg" },
+      { name: "Cinti",  pin: "1998", image: "https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg" },
+      { name: "Bandi",  pin: "2000", image: "https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg" },
+      { name: "Magdi",  pin: "1974", image: "https://i.pinimg.com/1200x/fe/31/f7/fe31f7e86ca12d48084de16c6c1d48de.jpg" },
+      { name: "Attila", pin: "1971", image: "https://i.pinimg.com/1200x/f4/5e/5d/f45e5dd8e0bf3f5e23036f066c8b74a8.jpg" }
     ];
+
+    let currentProfile = null;
+    let enteredPin = "";
 
     const container = document.getElementById('profilesContainer');
 
@@ -97,11 +209,81 @@
         </div>
         <div class="name">${p.name}</div>
       `;
-      // PIN nélkül közvetlenül átirányít
-      div.onclick = () => {
-        window.location.href = `szemszab.html?profile=${encodeURIComponent(p.name)}`;
-      };
+      div.onclick = () => startPinEntry(p);
       container.appendChild(div);
+    });
+
+    function startPinEntry(profile) {
+      currentProfile = profile;
+      enteredPin = "";
+      document.getElementById('pinName').textContent = profile.name;
+      document.getElementById('pinScreen').style.display = 'flex';
+      document.getElementById('errorMsg').textContent = "";
+      updateDots();
+      generateKeypad();
+    }
+
+    function generateKeypad() {
+      const keypad = document.getElementById('keypad');
+      keypad.innerHTML = '';
+
+      for (let i = 1; i <= 9; i++) {
+        const key = document.createElement('div');
+        key.className = 'key';
+        key.textContent = i;
+        key.onclick = () => addDigit(i);
+        keypad.appendChild(key);
+      }
+
+      // 0 gomb
+      const zero = document.createElement('div');
+      zero.className = 'key zero';
+      zero.textContent = '0';
+      zero.onclick = () => addDigit(0);
+      keypad.appendChild(zero);
+    }
+
+    function addDigit(digit) {
+      if (enteredPin.length < 4) {
+        enteredPin += digit;
+        updateDots();
+        
+        if (enteredPin.length === 4) {
+          checkPin();
+        }
+      }
+    }
+
+    function updateDots() {
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('filled', index < enteredPin.length);
+      });
+    }
+
+    function checkPin() {
+      if (enteredPin === currentProfile.pin) {
+        window.location.href = `szemszab.html?profile=${encodeURIComponent(currentProfile.name)}`;
+      } else {
+        document.getElementById('errorMsg').textContent = "❌ Hibás PIN kód!";
+        setTimeout(() => {
+          enteredPin = "";
+          updateDots();
+          document.getElementById('errorMsg').textContent = "";
+        }, 1500);
+      }
+    }
+
+    function cancelPin() {
+      document.getElementById('pinScreen').style.display = 'none';
+      enteredPin = "";
+    }
+
+    // ESC billentyűvel is lehessen kilépni
+    document.addEventListener('keydown', (e) => {
+      if (e.key === "Escape") {
+        cancelPin();
+      }
     });
   </script>
 </body>
