@@ -8493,27 +8493,20 @@
 			
         ];
 
-       // Profil-specifikus LocalStorage kulcsok
+    
+      // Profil-specifikus mentés
         function getKey(type) {
             return `skysnet_${type}_${currentProfile}`;
         }
 
-        function getMyList() { 
-            return JSON.parse(localStorage.getItem(getKey('mylist')) || '[]'); 
-        }
-        function getContinueWatching() { 
-            return JSON.parse(localStorage.getItem(getKey('continue')) || '[]'); 
-        }
-        function saveMyList(list) { 
-            localStorage.setItem(getKey('mylist'), JSON.stringify(list)); 
-        }
-        function saveContinueWatching(list) { 
-            localStorage.setItem(getKey('continue'), JSON.stringify(list)); 
-        }
+        function getMyList() { return JSON.parse(localStorage.getItem(getKey('mylist')) || '[]'); }
+        function getContinueWatching() { return JSON.parse(localStorage.getItem(getKey('continue')) || '[]'); }
+        function saveMyList(list) { localStorage.setItem(getKey('mylist'), JSON.stringify(list)); }
+        function saveContinueWatching(list) { localStorage.setItem(getKey('continue'), JSON.stringify(list)); }
 
-        function createMovieCard(movie, isSmall = false) {
+        function createMovieCard(movie) {
             const div = document.createElement('div');
-            div.className = `movie-card group${isSmall ? ' small-card' : ''}`;
+            div.className = "movie-card group";
             div.innerHTML = `
                 <div class="relative overflow-hidden rounded-xl">
                     <img src="${movie.image}" class="w-full aspect-[2/3] object-cover">
@@ -8562,9 +8555,9 @@
         }
 
         function renderRows() {
-            document.getElementById('continue-row').innerHTML = getContinueWatching().map(m => createMovieCard(m, true).outerHTML).join('');
-            document.getElementById('mylist-row').innerHTML = getMyList().map(m => createMovieCard(m, true).outerHTML).join('');
-            document.getElementById('movie-list').innerHTML = movies.map(m => createMovieCard(m, false).outerHTML).join('');
+            document.getElementById('continue-row').innerHTML = getContinueWatching().map(m => createMovieCard(m).outerHTML).join('');
+            document.getElementById('mylist-row').innerHTML = getMyList().map(m => createMovieCard(m).outerHTML).join('');
+            document.getElementById('movie-list').innerHTML = movies.map(m => createMovieCard(m).outerHTML).join('');
         }
 
         function filmKereses() {
