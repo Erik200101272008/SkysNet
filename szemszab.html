@@ -116,11 +116,9 @@
             "Erik": "https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg",
             "Cinti": "https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg",
             "Bandi": "https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg"
-			"Magdi": "https://i.pinimg.com/1200x/fe/31/f7/fe31f7e86ca12d48084de16c6c1d48de.jpg",
-			"Attila": "https://i.pinimg.com/1200x/f4/5e/5d/f45e5dd8e0bf3f5e23036f066c8b74a8.jpg"
         };
 
-        let currentProfile = "";
+        let currentProfile = "Erik";
 
         function getProfileFromUrl() {
             const params = new URLSearchParams(window.location.search);
@@ -138,41 +136,6 @@
                 renderRows(); // Frissítjük a listákat az új profilhoz
             }
         }
-		function createMovieCard(movie, isSmall = false) {
-    const div = document.createElement('div');
-    div.className = `movie-card group ${isSmall ? 'small-card' : ''}`;
-    div.innerHTML = `
-        <div class="relative overflow-hidden rounded-xl">
-            <img src="${movie.image}" class="w-full">
-            <div class="movie-info">
-                <h3 class="font-semibold">${movie.title}</h3>
-                <div class="flex gap-2 mt-3">
-                    <button onclick="playMovie('${movie.title}')" class="btn btn-play text-xs flex-1">
-                        ▶ Lejátszás
-                    </button>
-                    <button onclick="toggleMyList(this, '${movie.title}')" class="btn btn-list text-xs">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    return div;
-}
-
-function renderRows() {
-    // Continue Watching - KISEBB
-    const contRow = document.getElementById('continue-row');
-    contRow.innerHTML = getContinueWatching().map(m => createMovieCard(m, true).outerHTML).join('');
-
-    // My List - KISEBB
-    const listRow = document.getElementById('mylist-row');
-    listRow.innerHTML = getMyList().map(m => createMovieCard(m, true).outerHTML).join('');
-
-    // Népszerű tartalmak - Normál méret
-    const allRow = document.getElementById('movie-list');
-    allRow.innerHTML = movies.map(m => createMovieCard(m, false).outerHTML).join('');
-}
 
         // ==================== FILMEK ====================
         const movies = [
@@ -8528,7 +8491,7 @@ function renderRows() {
 			
         ];
 
-        // Profil-specifikus LocalStorage kulcsok
+       // Profil-specifikus LocalStorage kulcsok
         function getKey(type) {
             return `skysnet_${type}_${currentProfile}`;
         }
@@ -8546,9 +8509,9 @@ function renderRows() {
             localStorage.setItem(getKey('continue'), JSON.stringify(list)); 
         }
 
-        function createMovieCard(movie) {
+        function createMovieCard(movie, isSmall = false) {
             const div = document.createElement('div');
-            div.className = "movie-card group";
+            div.className = `movie-card group${isSmall ? ' small-card' : ''}`;
             div.innerHTML = `
                 <div class="relative overflow-hidden rounded-xl">
                     <img src="${movie.image}" class="w-full aspect-[2/3] object-cover">
@@ -8597,9 +8560,9 @@ function renderRows() {
         }
 
         function renderRows() {
-            document.getElementById('continue-row').innerHTML = getContinueWatching().map(m => createMovieCard(m).outerHTML).join('');
-            document.getElementById('mylist-row').innerHTML = getMyList().map(m => createMovieCard(m).outerHTML).join('');
-            document.getElementById('movie-list').innerHTML = movies.map(m => createMovieCard(m).outerHTML).join('');
+            document.getElementById('continue-row').innerHTML = getContinueWatching().map(m => createMovieCard(m, true).outerHTML).join('');
+            document.getElementById('mylist-row').innerHTML = getMyList().map(m => createMovieCard(m, true).outerHTML).join('');
+            document.getElementById('movie-list').innerHTML = movies.map(m => createMovieCard(m, false).outerHTML).join('');
         }
 
         function filmKereses() {
