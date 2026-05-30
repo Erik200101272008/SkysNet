@@ -73,17 +73,17 @@
   <div class="logo">SKYSNET</div>
   <div class="container">
     <h1>Ki nézi?</h1>
-   
+  
     <div class="profiles" id="profilesContainer"></div>
   </div>
 
   <script>
     const profiles = [
-      { name: "Erik",  pin: "2001", image: "https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg" },
-      { name: "Cinti", pin: "1998", image: "https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg" },
-      { name: "Bandi", pin: "2000", image: "https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg" },
-      { name: "Magdi",  pin: "1974", image: "https://i.pinimg.com/1200x/fe/31/f7/fe31f7e86ca12d48084de16c6c1d48de.jpg" },
-      { name: "Attila", pin: "1971", image: "https://i.pinimg.com/1200x/f4/5e/5d/f45e5dd8e0bf3f5e23036f066c8b74a8.jpg" }
+      { name: "Erik", image: "https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg" },
+      { name: "Cinti", image: "https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg" },
+      { name: "Bandi", image: "https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg" },
+      { name: "Magdi", image: "https://i.pinimg.com/1200x/fe/31/f7/fe31f7e86ca12d48084de16c6c1d48de.jpg" },
+      { name: "Attila", image: "https://i.pinimg.com/1200x/f4/5e/5d/f45e5dd8e0bf3f5e23036f066c8b74a8.jpg" }
     ];
 
     const container = document.getElementById('profilesContainer');
@@ -97,20 +97,12 @@
         </div>
         <div class="name">${p.name}</div>
       `;
-      div.onclick = () => checkPin(p.name, p.pin);
+      // PIN nélkül közvetlenül átirányít
+      div.onclick = () => {
+        window.location.href = `szemszab.html?profile=${encodeURIComponent(p.name)}`;
+      };
       container.appendChild(div);
     });
-
-    function checkPin(name, correctPin) {
-      const enteredPin = prompt(`Írd be ${name} 4 számjegyű PIN kódját:`);
-      if (enteredPin === null) return;
-      
-      if (enteredPin === correctPin) {
-        window.location.href = `szemszab.html?profile=${encodeURIComponent(name)}`;
-      } else {
-        alert("❌ Hibás PIN kód!");
-      }
-    }
   </script>
 </body>
 </html>
