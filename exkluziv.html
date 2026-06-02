@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="skysnet.png">
+    <title>SkysNet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    body { 
+        font-family: 'Inter', sans-serif; 
+        background: #141414; 
+        color: #fff; 
+    }
+    
+    .movie-row { margin-bottom: 50px; }
+    .row-title { font-size: 1.5rem; font-weight: 600; margin: 0 0 15px 20px; }
+    
+    /* Normál méret (Népszerű tartalmak) */
+    .movie-card {
+        position: relative;
+        transition: all 0.4s ease;
+        cursor: pointer;
+        width: 100%;
+        max-width: 180px;
+    }
+    .movie-card:hover { transform: scale(1.12); z-index: 20; }
+    .movie-card img { 
+        border-radius: 8px; 
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        transition: all 0.4s;
+    }
+
+    /* Kisebb méret a Continue és My List sorokhoz */
+    .small-card {
+        max-width: 140px;
+    }
+    .small-card img {
+        aspect-ratio: 2 / 3;
+    }
+
+    .movie-info {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.95));
+        padding: 16px 10px 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border-radius: 0 0 8px 8px;
+        font-size: 0.95rem;
+    }
+    .movie-card:hover .movie-info { opacity: 1; }
+    
+    .btn { padding: 5px 12px; border-radius: 4px; font-size: 0.85rem; }
+    .btn-play { background: #e50914; }
+    .btn-list { background: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body class="pb-12">
+
+    <!-- NAVIGÁCIÓ -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-screen-2xl mx-auto px-10 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <img src="skysnet.png" alt="SkysNet" class="h-12">
+                <div class="flex gap-8 text-sm font-medium">
+                    <a href="szemszab.html" class="text-red-600">Főoldal</a>
+                    <a href="szemszab.html" class="hover:text-red-600 transition">Filmek</a>
+                    <a href="privsori.html" class="hover:text-red-600 transition">Sorozatok</a>
+					<a href="exkluziv.html" class="hover:text-red-600 transition">Exkluzív</a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <input id="kereso" type="text" placeholder="Keresés..." 
+                       onkeyup="filmKereses()" 
+                       class="bg-zinc-900 border border-zinc-700 focus:border-red-600 rounded-full py-2 px-6 w-80 focus:outline-none">
+
+                <div onclick="toggleProfileMenu()" class="flex items-center gap-3 cursor-pointer hover:bg-zinc-800 px-3 py-1 rounded-lg transition">
+                    <img id="profilePic" src="https://cdn.mos.cms.futurecdn.net/hNA4VHWb4njAtxk9mVDQvV.jpg" 
+                         alt="Profilkép" class="w-9 h-9 rounded-full object-cover border-2 border-white/40">
+                    <div class="flex items-center gap-1">
+                        <span id="currentProfile" class="text-sm font-medium">Erik</span>
+                        <i class="fas fa-caret-down text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20"></div>
+
+    <div class="max-w-screen-2xl mx-auto px-8 movie-row">
+        <h2 class="row-title">Folytasd, ahol abbahagytad</h2>
+        <div class="flex gap-4 overflow-x-auto pb-6" id="continue-row"></div>
+    </div>
+
+    <div class="max-w-screen-2xl mx-auto px-8 movie-row">
+        <h2 class="row-title">Saját listám</h2>
+        <div class="flex gap-4 overflow-x-auto pb-6" id="mylist-row"></div>
+    </div>
+
+    <div class="max-w-screen-2xl mx-auto px-8">
+        <h2 class="row-title">Népszerű tartalmak</h2>
+        <div id="movie-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6"></div>
+    </div>
+
+    <script>
+        // ==================== PROFILOK ====================
+        const profiles = {
+            "Erik": "https://cdn.mos.cms.futurecdn.net/uNarNjeX5KZfbX3YVN6Nb9.jpg",
+            "Cinti": "https://i.pinimg.com/736x/ee/ec/fd/eeecfd39ea632418aab3fc0485c3c0c1.jpg",
+            "Bandi": "https://i.pinimg.com/736x/5c/63/16/5c6316ea9b1c8ff875ee65daa8c77cd4.jpg",
+			"Magdi": "https://i.pinimg.com/1200x/fe/31/f7/fe31f7e86ca12d48084de16c6c1d48de.jpg",
+			"Attila": "https://i.pinimg.com/1200x/f4/5e/5d/f45e5dd8e0bf3f5e23036f066c8b74a8.jpg"
+        };
+
+        let currentProfile = "";
+
+        function getProfileFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const profile = params.get('profile');
+            if (profile && profiles[profile]) currentProfile = profile;
+        }
+
+        function toggleProfileMenu() {
+            let options = Object.keys(profiles).join("\n");
+            const selected = prompt(`Válassz profilt:\n\n${options}`, currentProfile);
+            if (selected && profiles[selected]) {
+                currentProfile = selected;
+                document.getElementById("currentProfile").textContent = selected;
+                document.getElementById("profilePic").src = profiles[selected];
+                renderRows(); // Frissítjük a listákat az új profilhoz
+            }
+        }
+		function createMovieCard(movie, isSmall = false) {
+    const div = document.createElement('div');
+    div.className = `movie-card group ${isSmall ? 'small-card' : ''}`;
+    div.innerHTML = `
+        <div class="relative overflow-hidden rounded-xl">
+            <img src="${movie.image}" class="w-full">
+            <div class="movie-info">
+                <h3 class="font-semibold">${movie.title}</h3>
+                <div class="flex gap-2 mt-3">
+                    <button onclick="playMovie('${movie.title}')" class="btn btn-play text-xs flex-1">
+                        ▶ Lejátszás
+                    </button>
+                    <button onclick="toggleMyList(this, '${movie.title}')" class="btn btn-list text-xs">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    return div;
+}
+
+function renderRows() {
+    // Continue Watching - KISEBB
+    const contRow = document.getElementById('continue-row');
+    contRow.innerHTML = getContinueWatching().map(m => createMovieCard(m, true).outerHTML).join('');
+
+    // My List - KISEBB
+    const listRow = document.getElementById('mylist-row');
+    listRow.innerHTML = getMyList().map(m => createMovieCard(m, true).outerHTML).join('');
+
+    // Népszerű tartalmak - Normál méret
+    const allRow = document.getElementById('movie-list');
+    allRow.innerHTML = movies.map(m => createMovieCard(m, false).outerHTML).join('');
+}
+
+        // ==================== FILMEK ====================
+        const movies = [
+		{
+		  title: "Clash in Italy",
+		  image: "https://www.themoviedb.org/t/p/w600_and_h900_face/qNfjgQmYYQ4VwIGFdGjjil8kvsf.jpg",
+		  previewImage: "https://media.themoviedb.org/t/p/w533_and_h300_face/miJxT7HTdw1JmFjdkBHjO8XfMF.jpg",
+		  description: "2026-os Clash in Italy",
+		  link: "https://archive.org/embed/wwe-clash-in-italy-2026" 
+		},
+		        ];
+
+         // Profil-specifikus LocalStorage kulcsok
+        function getKey(type) {
+            return `skysnet_${type}_${currentProfile}`;
+        }
+
+        function getMyList() { 
+            return JSON.parse(localStorage.getItem(getKey('mylist')) || '[]'); 
+        }
+        function getContinueWatching() { 
+            return JSON.parse(localStorage.getItem(getKey('continue')) || '[]'); 
+        }
+        function saveMyList(list) { 
+            localStorage.setItem(getKey('mylist'), JSON.stringify(list)); 
+        }
+        function saveContinueWatching(list) { 
+            localStorage.setItem(getKey('continue'), JSON.stringify(list)); 
+        }
+
+        function createMovieCard(movie) {
+            const div = document.createElement('div');
+            div.className = "movie-card group";
+            div.innerHTML = `
+                <div class="relative overflow-hidden rounded-xl">
+                    <img src="${movie.image}" class="w-full aspect-[2/3] object-cover">
+                    <div class="movie-info">
+                        <h3 class="font-semibold">${movie.title}</h3>
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="playMovie('${movie.title}')" class="btn btn-play text-xs flex-1">
+                                ▶ Lejátszás
+                            </button>
+                            <button onclick="toggleMyList(this, '${movie.title}')" class="btn btn-list text-xs">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function playMovie(title) {
+            const movie = movies.find(m => m.title === title);
+            if (movie?.link) {
+                window.open(movie.link, '_blank');
+                
+                let cont = getContinueWatching();
+                cont = cont.filter(m => m.title !== title);
+                cont.unshift(movie);
+                if (cont.length > 10) cont.pop();
+                saveContinueWatching(cont);
+                renderRows();
+            }
+        }
+
+        function toggleMyList(btn, title) {
+            let list = getMyList();
+            if (list.find(m => m.title === title)) {
+                list = list.filter(m => m.title !== title);
+                btn.innerHTML = `<i class="fas fa-plus"></i>`;
+            } else {
+                const movie = movies.find(m => m.title === title);
+                if (movie) list.push(movie);
+                btn.innerHTML = `<i class="fas fa-check"></i>`;
+            }
+            saveMyList(list);
+            renderRows();
+        }
+
+        function renderRows() {
+            document.getElementById('continue-row').innerHTML = getContinueWatching().map(m => createMovieCard(m).outerHTML).join('');
+            document.getElementById('mylist-row').innerHTML = getMyList().map(m => createMovieCard(m).outerHTML).join('');
+            document.getElementById('movie-list').innerHTML = movies.map(m => createMovieCard(m).outerHTML).join('');
+        }
+
+        function filmKereses() {
+            const term = document.getElementById('kereso').value.toLowerCase();
+            const container = document.getElementById('movie-list');
+            container.innerHTML = movies
+                .filter(m => m.title.toLowerCase().includes(term))
+                .map(m => createMovieCard(m).outerHTML)
+                .join('');
+        }
+
+        window.onload = () => {
+            getProfileFromUrl();
+            document.getElementById("currentProfile").textContent = currentProfile;
+            document.getElementById("profilePic").src = profiles[currentProfile];
+            renderRows();
+        };
+		
+    </script>
+</body>
+</html>
