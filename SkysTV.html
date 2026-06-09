@@ -3,88 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <link rel="shortcut icon" type="image/png" href="SkysTV.png">
-  <title>SkysTV</title>
+  <link rel="shortcut icon" type="image/png" href="SkysTV.png">
+  <title>SkysTV • 24/7</title>
   <style>
     body { margin:0; background:#000; overflow:hidden; font-family:Arial, sans-serif; color:#fff; }
     #container { position:relative; width:100vw; height:100vh; }
-    #player { width:100%; height:100%; border:none; }
+
+    #player { width:100%; height:100%; border:none; background:#000; }
+
     #overlay-bottom {
       position: absolute; bottom:12px; left:12px; right:12px;
-      background:rgba(0,0,0,0.6); padding:10px; border-radius:6px;
-      display:flex; justify-content:space-between; align-items:center; font-size:1.05rem;
-      z-index:10; pointer-events:none;
+      background:rgba(0,0,0,0.75); padding:12px 16px; border-radius:8px;
+      display:flex; justify-content:space-between; align-items:center; font-size:1.1rem;
+      z-index:10; pointer-events:none; box-shadow:0 4px 15px rgba(0,0,0,0.6);
     }
-    #progress { flex:1; margin:0 15px; height:6px; background:#444; border-radius:3px; overflow:hidden; }
-    #progress-bar { width:0%; height:100%; background:#e53935; transition:width 1s linear; }
+    #progress { flex:1; margin:0 20px; height:7px; background:#444; border-radius:4px; overflow:hidden; }
+    #progress-bar { width:0%; height:100%; background:linear-gradient(90deg, #e53935, #ff9800); transition:width 0.3s linear; }
 
     #guide-btn {
-      position: absolute; top: 12px; right: 12px;
-      background: rgba(0,0,0,0.7); color: white; border: 1px solid #555;
-      padding: 8px 14px; border-radius: 6px; cursor: pointer; z-index: 20;
-      font-size: 1rem; pointer-events: auto; user-select: none;
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(0,0,0,0.8); color: white; border: 2px solid #e53935;
+      padding: 10px 18px; border-radius: 8px; cursor: pointer; z-index: 20;
+      font-size: 1.05rem; font-weight: bold; pointer-events: auto;
     }
-    #guide-btn:hover { background: rgba(229,57,53,0.6); border-color: #e53935; }
+    #guide-btn:hover { background: #e53935; transform: scale(1.05); }
+
+    #logo-overlay {
+      position: absolute; top: 16px; left: 16px; z-index: 25; pointer-events: none;
+      opacity: 0.9; transition: opacity 0.3s;
+    }
+    #logo-overlay:hover { opacity: 1; }
+    #logo-overlay img { height: 90px; width: auto; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
 
     #guide-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85); z-index: 30;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 30;
       display: none; align-items: center; justify-content: center;
-      pointer-events: auto;
     }
     #guide-content {
-      background: #111; border-radius: 10px; padding: 20px; max-width: 90%; width: 860px;
-      max-height: 88vh; overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.8);
-      position: relative;
+      background: #111; border: 2px solid #e53935; border-radius: 12px;
+      padding: 25px; max-width: 95%; width: 920px; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 10px 40px rgba(229,57,53,0.4);
     }
-    #guide-close {
-      position: absolute; top: 12px; right: 16px; font-size: 2rem; cursor: pointer;
-      color: #aaa; line-height: 1;
-    }
-    #guide-close:hover { color: white; }
-    #guide-title { text-align: center; color: #e53935; margin: 0 0 20px 0; }
+    #guide-close { position: absolute; top: 15px; right: 20px; font-size: 2.5rem; cursor: pointer; color: #aaa; }
+    #guide-close:hover { color: #fff; }
+    #guide-title { text-align: center; color: #e53935; margin: 0 0 20px 0; font-size: 2rem; }
 
     table { width:100%; border-collapse: collapse; }
-    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #333; }
     th { background: #e53935; color: white; }
-    tr.now { background: #2e7d32; font-weight: bold; }
-    tr.next { background: #444; color: #ffcc80; }
-    .countdown { font-size: 0.9rem; color: #ffcc80; font-style: italic; margin-left: 10px; }
+    tr.now { background: #1b5e20 !important; font-weight: bold; }
+    tr.next { background: #37474f; }
+    .countdown { color: #ffcc80; font-style: italic; }
     .time { font-family: Consolas, monospace; color: #8bc34a; }
 
-    @media (max-width: 700px) {
-      #guide-content { padding: 16px; }
-      table, th, td { font-size: 0.95rem; padding: 8px; }
+    .ticker {
+      position: absolute; top: 0; left: 0; right: 0;
+      background: rgba(229,57,53,0.9); padding: 6px 0; text-align: center;
+      font-size: 0.95rem; white-space: nowrap; overflow: hidden;
+      z-index: 15;
     }
-	#logo-overlay {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 25;
-  pointer-events: none; /* ne zavarja a kattintásokat */
-  opacity: 0.85;
-  transition: opacity 0.3s;
-}
-
-#logo-overlay:hover {
-  opacity: 1.0;
-}
-
-#logo-overlay img {
-  height: 100px;          /* állítsd a kívánt méretre */
-  width: auto;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
-}
-@media (max-width: 700px) {
-  #logo-overlay img {
-    height: 36px;
-  }
-}
+    .ticker-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: ticker 35s linear infinite;
+    }
+    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
   </style>
 </head>
 <body>
+
+<div class="ticker">
+  <div class="ticker-content">
+     SkysTV – Minőségi filmek nonstop
+  </div>
+</div>
+
 <div id="logo-overlay">
-  <img src="SkysTvlog.png" alt="SkysTV">
+  <img src="skystvorigin2.0.png" alt="SkysTV">
 </div>
 
 <div id="container">
@@ -96,17 +91,15 @@
     <span id="clock">--:--</span>
   </div>
 
-  <div id="guide-btn">Műsorújság</div>
+  <div id="guide-btn">📺 MŰSORÚJSÁG</div>
 
   <div id="guide-overlay">
     <div id="guide-content">
       <span id="guide-close">×</span>
-      <h2 id="guide-title">SkysTV – Műsorújság</h2>
-      <div id="current-info" style="text-align:center; margin-bottom:16px; font-size:1.3rem;"></div>
+      <h2 id="guide-title">SkysTV – Műsorújság (24/7)</h2>
+      <div id="current-info" style="text-align:center; margin-bottom:20px; font-size:1.4rem; color:#ffcc80;"></div>
       <table>
-        <thead>
-          <tr><th>#</th><th>Cím</th><th>Hossz</th></tr>
-        </thead>
+        <thead><tr><th>#</th><th>Cím</th><th>Hossz</th></tr></thead>
         <tbody id="guide-tbody"></tbody>
       </table>
     </div>
@@ -114,100 +107,46 @@
 </div>
 
 <script>
-// ────────────────────────────────────────────────
-// PLAYLIST
-// ────────────────────────────────────────────────
+// ====================== TELJES PLAYLIST ======================
 const playlist = [
+  { url: "https://archive.org/embed/mortal-kombat-2_202606", duration: 6360, title: "Mortal Kombat 2" },
+  { url: "https://archive.org/embed/a-megtorlo-utolso-celpont", duration: 2883, title: "Megtorló: Utolsó célpont" },
+  { url: "https://archive.org/embed/imadlak-utalni", duration:5960 , title: "Imádlak utálni" },
+  { url: "https://archive.org/embed/a-sotetseg-titkai", duration:4869 , title: "A sötétség titkai" },
+  { url: "https://archive.org/embed/hogyan-legyunk-szinglik", duration:6589 , title: "Hogyan legyünk szingli" },
+  { url: "https://archive.org/embed/vaksotet-2", duration:5895 , title: "Vaksötét 2" },
+  { url: "https://archive.org/embed/baratnot-felveszunk", duration:6230 , title: "Barátnőt felveszünk" },
+  { url: "https://archive.org/embed/orvlovesz", duration:7541 , title: "Orvlövész" },
+  { url: "https://archive.org/embed/ted-1x-4_202605", duration:2227 , title: "Ted 1x4" },
   
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239541&hd=2&autoplay=1", duration: 7343, title: "Sikoly 6" },
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239241&hd=1&autoplay=1", duration: 6976, title: "Pancser Police"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=749867145&id=456245768&hash=ab046f70de9bcf6a&hd=3", duration: 6233, title: "Ölj meg, ha tudsz!"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240973&autoplay=1", duration: 5476, title: "Diablo"},
-
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=-229926412&id=456240994&hash=54598dd636557039&hd=3", duration: 7674, title: "A könyvelő"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=-229926412&id=456240993&hash=6e42bcd4493790d2&hd=3", duration: 8060, title: "A könyvelő 2"},
-
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239910&hd=2&autoplay=1", duration: 7672, title: "Mennydörgők"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239817&hd=1&autoplay=1", duration: 7413, title: "Megtorló"},
- 
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239188&hd=2&autoplay=1", duration: 6510, title: "Családi bunyó"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239353&hd=2&autoplay=1", duration: 7598, title: "A védelmező"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239797&hd=1&autoplay=1", duration: 6250, title: "Morbius"},
-
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239112&hd=2&autoplay=1", duration: 7754, title: "Deadpool és Rozsomák"},
- 
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
- { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239739&hd=2&autoplay=1", duration: 7986, title: "Creed"},
-
-{ url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239220&hd=1&autoplay=1", duration: 6086, title: "Bérhaverok"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239468&hd=2&autoplay=1", duration: 6232, title: "Barátnőt felveszünk"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239565&hd=1&autoplay=1", duration: 7744, title: "Szürke ember"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239059", duration: 7198, title: "Mr.& Mrs. Smith"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239072&autoplay=1", duration: 7180, title: "A múmia"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239073&autoplay=1", duration: 7772, title: "A múmia visszatér"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239081&hd=1&autoplay=1", duration: 6694, title: "Vérmesék"},
-
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239077&autoplay=1", duration: 7372, title: "Suicide Squad: Öngyilkos osztag"},
-
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239104&hd=1&autoplay=1", duration: 5876, title: "Rohanás"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239218&hd=2&autoplay=1", duration: 8338, title: "Ál/Arc"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239289&hd=2&autoplay=1", duration: 6032, title: "A kaptár"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239395&hd=1&autoplay=1", duration: 8800, title: "Egyenesen Comptonból"},
-  
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1", duration: 5, title: "Reklám"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239484&hd=1&autoplay=1", duration: 6142, title: "Nagyfiúk"},
-
-
 ];
 
+// Reklám (minden film után)
+const ad = {
+  url: "https://vk.com/video_ext.php?oid=1037217102&id=456241239&hash=709d6b0c2411c5bd",
+  duration: 6,
+  title: "Reklám"
+};
 
-const totalCycleSeconds = playlist.reduce((sum, v) => sum + v.duration, 0);
+// Véletlen sorrend létrehozása
+function shuffle(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
 
-// ────────────────────────────────────────────────
-// Random kezdés + lejátszó logika
-// ────────────────────────────────────────────────
-let currentIndex = Math.floor(Math.random() * playlist.length);   // ← itt a lényeg: véletlen kezdő index
+// Teljes ciklus létrehozása véletlen sorrendben
+let fullPlaylist = [];
+const shuffledMovies = shuffle(playlist);
+shuffledMovies.forEach(movie => {
+  fullPlaylist.push(movie);
+  fullPlaylist.push(ad);
+});
+
+let currentIndex = 0;
 let progressInterval = null;
 let videoStartTime = 0;
 
@@ -226,8 +165,18 @@ function formatTime(sec) {
 function updateClock() {
   clockEl.textContent = new Date().toLocaleTimeString("hu-HU", {hour:"2-digit", minute:"2-digit"});
 }
-setInterval(updateClock, 5000);
+setInterval(updateClock, 10000);
 updateClock();
+
+function addAutoplayParam(url) {
+  if (url.includes("archive.org")) {
+    return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
+  }
+  if (url.includes("vk.com")) {
+    return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
+  }
+  return url;
+}
 
 function startProgress(duration) {
   progressBar.style.width = "0%";
@@ -235,112 +184,95 @@ function startProgress(duration) {
   const start = Date.now();
   progressInterval = setInterval(() => {
     const elapsed = (Date.now() - start) / 1000;
-    const percent = Math.min(100, (elapsed / duration) * 100);
+    let percent = (elapsed / duration) * 100;
+    if (percent > 100) percent = 100;
     progressBar.style.width = percent + "%";
-    if (percent >= 100) clearInterval(progressInterval);
-  }, 200);
+  }, 300);
 }
 
 function playNext() {
-  const video = playlist[currentIndex];
+  const video = fullPlaylist[currentIndex];
   if (!video) {
     currentIndex = 0;
     playNext();
     return;
   }
 
-  let src = video.url;
-  if (src.includes("vk.com")) {
-    src += (src.includes("?") ? "&" : "?") + "autoplay=1";
-  }
+  let src = addAutoplayParam(video.url);
 
   player.src = src;
-  status.textContent = `${currentIndex + 1}/${playlist.length}  •  ${video.title || "Videó"}`;
+  status.textContent = `${(currentIndex % 2 === 0 ? "🎬" : "📺")} ${video.title}`;
 
   videoStartTime = Date.now();
   startProgress(video.duration);
 
+  // Következő videó
   setTimeout(() => {
-    currentIndex = (currentIndex + 1) % playlist.length;
+    currentIndex = (currentIndex + 1) % fullPlaylist.length;
     playNext();
-  }, (video.duration + 2) * 1000);   // +2 mp bónusz a biztonság kedvéért
+  }, (video.duration + 3) * 1000);
 }
 
+// Indítás
 playNext();
 
-// Autoplay engedélyezés kattintásra (mobil/böngésző korlátozás miatt)
-let autoplayEnabled = false;
+// Autoplay támogatás mobilra
 document.addEventListener("click", () => {
-  if (!autoplayEnabled) {
-    autoplayEnabled = true;
-    player.src = player.src;  // újratöltés → autoplay indulhat
-  }
+  if (player.paused) player.play();
 }, { once: true });
 
-// ────────────────────────────────────────────────
-// MŰSORÚJSÁG LOGIKA (módosítva a random kezdés miatt)
-// ────────────────────────────────────────────────
+// ====================== MŰSORÚJSÁG ======================
 function getCurrentPosition() {
   const now = Date.now();
-  let elapsedSinceStart = (now - videoStartTime) / 1000;
-  if (elapsedSinceStart < 0) elapsedSinceStart = 0;
+  let elapsed = (now - videoStartTime) / 1000;
+  if (elapsed < 0) elapsed = 0;
 
   let sum = 0;
-  let idx = currentIndex;
-  let timeInto = 0;
-
-  for (let i = 0; i < playlist.length; i++) {
-    const dur = playlist[(currentIndex + i) % playlist.length].duration;
-    if (sum + dur > elapsedSinceStart) {
-      idx = (currentIndex + i) % playlist.length;
-      timeInto = elapsedSinceStart - sum;
-      break;
+  for (let i = 0; i < fullPlaylist.length; i++) {
+    const idx = (currentIndex + i) % fullPlaylist.length;
+    const dur = fullPlaylist[idx].duration;
+    if (sum + dur > elapsed) {
+      return {
+        index: idx,
+        timeInto: elapsed - sum,
+        timeLeft: dur - (elapsed - sum)
+      };
     }
     sum += dur;
   }
-
-  const timeLeft = playlist[idx].duration - timeInto;
-  return { index: idx, timeInto, timeLeft };
+  return { index: currentIndex, timeInto: 0, timeLeft: fullPlaylist[currentIndex].duration };
 }
 
 function updateGuide() {
   const pos = getCurrentPosition();
-  const current = playlist[pos.index];
+  const current = fullPlaylist[pos.index];
 
   document.getElementById("current-info").innerHTML = `
-    Most megy: <strong>${current.title}</strong>
-    <span class="countdown">még kb. ${formatTime(Math.round(pos.timeLeft))}</span>
+    <strong>Most megy:</strong> ${current.title} 
+    <span class="countdown">• még ${formatTime(Math.round(pos.timeLeft))}</span>
   `;
 
   const tbody = document.getElementById("guide-tbody");
   tbody.innerHTML = "";
 
-  for (let i = 0; i < playlist.length; i++) {
-    const itemIndex = (pos.index + i) % playlist.length;
-    const item = playlist[itemIndex];
+  for (let i = 0; i < Math.min(12, fullPlaylist.length); i++) {
+    const itemIndex = (pos.index + i) % fullPlaylist.length;
+    const item = fullPlaylist[itemIndex];
     const tr = document.createElement("tr");
-    let cls = "";
-    let extra = "";
+    
+    if (i === 0) tr.className = "now";
+    else if (i === 1) tr.className = "next";
 
-    if (i === 0) {
-      cls = "now";
-      extra = '<span style="color:#fff;">Élőben</span>';
-    } else if (i === 1) {
-      cls = "next";
-      extra = `<span class="countdown">következő (${formatTime(Math.round(pos.timeLeft))})</span>`;
-    }
-
-    tr.className = cls;
     tr.innerHTML = `
       <td>${(itemIndex + 1).toString().padStart(2,'0')}</td>
-      <td>${item.title} ${extra}</td>
+      <td>${item.title} ${i===0 ? '<span style="color:#4caf50;">● ÉLŐ</span>' : i===1 ? '<span class="countdown">(következő)</span>' : ''}</td>
       <td class="time">${formatTime(item.duration)}</td>
     `;
     tbody.appendChild(tr);
   }
 }
 
-// Gomb és overlay
+// Guide vezérlés
 const guideBtn = document.getElementById("guide-btn");
 const guideOverlay = document.getElementById("guide-overlay");
 const guideClose = document.getElementById("guide-close");
@@ -350,36 +282,14 @@ guideBtn.addEventListener("click", () => {
   guideOverlay.style.display = "flex";
 });
 
-guideClose.addEventListener("click", () => {
-  guideOverlay.style.display = "none";
-});
-
-guideOverlay.addEventListener("click", (e) => {
+guideClose.addEventListener("click", () => guideOverlay.style.display = "none");
+guideOverlay.addEventListener("click", e => {
   if (e.target === guideOverlay) guideOverlay.style.display = "none";
 });
 
-// Frissítés, amíg a műsorújság nyitva van
 setInterval(() => {
-  if (guideOverlay.style.display === "flex") {
-    updateGuide();
-  }
-}, 1000);
-
-// Minden elem után szúrd be a reklámot
-const adVideo = {
-  url: "https://vk.com/video_ext.php?oid=1037217102&id=456241049&autoplay=1",
-  duration: 5,   // ← igazítsd a videó tényleges hosszához! (pl. 15, 30 stb.)
-  title: "Reklám"
-};
-
-let enhancedPlaylist = [];
-playlist.forEach(item => {
-  enhancedPlaylist.push(item);
-  enhancedPlaylist.push(adVideo);   // minden film után reklám
-});
+  if (guideOverlay.style.display === "flex") updateGuide();
+}, 15000);
 </script>
-
 </body>
 </html>
-
-
