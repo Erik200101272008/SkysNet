@@ -174,11 +174,8 @@ const playlist = [
   
   { url:"https://archive.org/embed/a-piszkos-hadviseles-miniszteriuma", duration:6607 , title: "A piszkos hadviselés minisztériuma" },
 
-
-
-
-  
 ];
+
 
 // Reklám (minden film után)
 const ad = {
@@ -233,6 +230,11 @@ function addAutoplayParam(url) {
   }
   if (url.includes("vk.com")) {
     return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
+  }
+  if (url.includes("youtube.com/embed") || url.includes("youtu.be")) {
+    // YouTube autoplay + mute (szükséges a legtöbb böngészőben)
+    let separator = url.includes("?") ? "&" : "?";
+    return url + separator + "autoplay=1&mute=1&modestbranding=1&playsinline=1&rel=0";
   }
   return url;
 }
