@@ -55,28 +55,9 @@
     tr.next { background: #37474f; }
     .countdown { color: #ffcc80; font-style: italic; }
     .time { font-family: Consolas, monospace; color: #8bc34a; }
-
-    .ticker {
-      position: absolute; top: 0; left: 0; right: 0;
-      background: rgba(229,57,53,0.9); padding: 6px 0; text-align: center;
-      font-size: 0.95rem; white-space: nowrap; overflow: hidden;
-      z-index: 15;
-    }
-    .ticker-content {
-      display: inline-block;
-      padding-left: 100%;
-      animation: ticker 35s linear infinite;
-    }
-    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
   </style>
 </head>
 <body>
-
-<div class="ticker">
-  <div class="ticker-content">
-     SkysTV – Minőségi filmek nonstop
-  </div>
-</div>
 
 <div id="logo-overlay">
   <img src="skystvorigin2.0.png" alt="SkysTV">
@@ -88,7 +69,7 @@
   <div id="overlay-bottom">
     <span id="status">Betöltés...</span>
     <div id="progress"><div id="progress-bar"></div></div>
-    <span id="clock">--:--</span>
+    <span id="rating" style="background:rgba(255,215,0,0.9); color:#000; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:1.05rem;">12+</span>
   </div>
 
   <div id="guide-btn">📺 MŰSORÚJSÁG</div>
@@ -112,54 +93,53 @@ const playlist = [
   { url: "https://archive.org/embed/mortal-kombat-2_202606", duration: 6360, title: "Mortal Kombat 2" },
   
   { url:"https://www.youtube.com/embed/hMybqLajEQk?si=WI0Q8semWGyIsKtK",   duration: 137, title: "Reklám" },
-
+  
   { url:"https://www.youtube.com/embed/kAf5AtPRfzI?si=UF_AhzsZHQCSPzpy",   duration: 220, title: "Reklám" },
   
   { url: "https://archive.org/embed/a-megtorlo-utolso-celpont", duration: 2643, title: "Megtorló: Utolsó célpont" },
-
+  
   { url: "https://www.youtube.com/embed/wAozjf2frxw?si=pYmEtlFYrcZAiFA1" , duration: 139, title: "Reklám" },
-
+  
   { url:"https://www.youtube.com/embed/xoGg5wAvH6E?si=coj8dT4gU_juWAGX"  , duration:179 , title: "Reklám" },
   
   { url: "https://archive.org/embed/imadlak-utalni", duration:5668 , title: "Imádlak utálni" },
-
+  
   { url:"https://www.youtube.com/embed/C93GFpbp554?si=po8-0LBZuIS6bFrL" , duration:138 , title: "Reklám" },
-
+  
   { url:"https://www.youtube.com/embed/EsnkcbfcC4I?si=-6_j6Xmz7W5iRvqu" , duration:150 , title: "Reklám" },
-
-
+  
   { url:"https://archive.org/embed/csucsformaban" , duration:5717 , title: "Csúcsformában" },
-
-   { url:"https://www.youtube.com/embed/KCXfSqZDtYM?si=Kr5vN7i813G1dSvm" , duration:74.9999 , title: "Reklám" },
+  
+  { url:"https://www.youtube.com/embed/KCXfSqZDtYM?si=Kr5vN7i813G1dSvm" , duration:74.9999 , title: "Reklám" },
   
   { url: "https://archive.org/embed/a-sotetseg-titkai", duration:4627 , title: "A sötétség titkai" },
-
-   { url:"https://www.youtube.com/embed/1ev-LXcdjeI?si=76bI2J2-ZB3frcxL" , duration:60 , title: "Reklám" },
+  
+  { url:"https://www.youtube.com/embed/1ev-LXcdjeI?si=76bI2J2-ZB3frcxL" , duration:60 , title: "Reklám" },
   
   { url: "https://archive.org/embed/hogyan-legyunk-szinglik", duration:6207 , title: "Hogyan legyünk szingli" },
-
+  
   { url:"https://www.youtube.com/embed/XL_7rFA1G7A?si=atyp9m7IRXT_Gz9k" , duration:138 , title: "Reklám" },
-
+  
   { url: "https://archive.org/embed/vaksotet-2", duration:5420 , title: "Vaksötét 2" },
-
+  
   { url:"https://www.youtube.com/embed/FKlXlkNow8E?si=XnwHZkJlKja0i1z9" , duration:144 , title: "Reklám" },
-
+  
   { url: "https://archive.org/embed/baratnot-felveszunk", duration:5940 , title: "Barátnőt felveszünk" },
-
+  
   { url:"https://www.youtube.com/embed/EFiLcI2kQ-A?si=4-8yQiRRy7u2Az6s" , duration:153 , title: "Reklám" },
   
   { url:"https://www.youtube.com/embed/nxlAn-aNk8I?si=EoEaEe4W3f_EnRh9", duration:158 , title: "Reklám" },
   
   { url: "https://archive.org/embed/orvlovesz", duration:7541 , title: "Orvlövész" },
-
+  
   { url:"https://www.youtube.com/embed/RYWVQLPoi6c?si=7uJ872_bmhkBNGq1" , duration:156 , title: "Reklám" },
- 
+  
   { url:"https://www.youtube.com/embed/JINMQ8JrXT8?si=n45Coi6vdhF1oIFl" , duration:150 , title: "Reklám" },
-
+  
   { url: "https://archive.org/embed/ted-1x-4_202605", duration:2227 , title: "Ted 1x4" },
-
+  
   { url:"https://www.youtube.com/embed/xO3naYxHB4I?si=YFomNKJd_T4LiZdi" , duration:124 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/a-tegla", duration:8690 , title: "A tégla" },
   
   { url:"https://www.youtube.com/embed/pk9Oxa5CRak?si=NHe7xqdkp260c9zG", duration:117 , title: "Reklám" },
@@ -173,96 +153,70 @@ const playlist = [
   { url:"https://www.youtube.com/embed/sgbGhkdlZ0E?si=hvpOUmvFjfXsQNPw", duration:159 , title: "Reklám" },
   
   { url:"https://archive.org/embed/a-piszkos-hadviseles-miniszteriuma", duration:6607 , title: "A piszkos hadviselés minisztériuma" },
-
+  
   { url:"https://www.youtube.com/embed/YP6s4xoufzg?si=_3V2zSY5-SEoBcQN", duration:146 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/a-szellemlovas_202606", duration:6961 , title: "Szellemlovas" },
   
   { url:"https://www.youtube.com/embed/0sTErvS2-gQ?si=QlW6yglM-iw6fmKp", duration:145 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/bloodshot_202605", duration:6160 , title: "Bloodshot" },
-
+  
   { url:"https://www.youtube.com/embed/Li_0ZzixHkM?si=79VOwIjDFuUhd6bF", duration:135 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/michael_20260611", duration:7083 , title: "Michael" },
-
+  
   { url:"https://www.youtube.com/embed/PcOj9Agn3vA?si=Wo-Bnrx1x5R2Gvaq", duration:153 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/pillango-hatas", duration:6474 , title: "Pillangó-hatás" },
   
   { url:"https://www.youtube.com/embed/aUYl59LTYO4?si=uN7v1_Qbw70C0GKB", duration:175 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/a-konyvelo-2", duration:7432 , title: "A könyvelő 2" },
-
+  
   { url:"https://www.youtube.com/embed/AWHTCFjJ4Qk?si=IhnSvxeqqwwgxc-y", duration:144 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/Randiguru", duration:7095 , title: "Randiguru" },
-
+  
   { url:"https://www.youtube.com/embed/I6WlxaSOc2Y?si=wIhx_mnZyPBrH6TT", duration:145 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/a-szallito-2", duration:4865 , title: "A szállító 2" },
-
+  
   { url:"https://www.youtube.com/embed/ZrJCsX8eVLU?si=yj8BGRYbbcIwRzW-", duration:185 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/eroszakik", duration:6084 , title: "Erőszakik" },
-
+  
   { url:"https://www.youtube.com/embed/J7JIguxpzSA?si=8AovsJOvkxxMWNUI", duration:88.9999 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/bolcsod-lesz-a-koporsod", duration:5813 , title: "Bölcsőd lesz a koporsód" },
-
+  
   { url:"https://www.youtube.com/embed/wspBD2lFlzY?si=yscNgO112oWtofyR", duration:119 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/fekete-ozvegy_202605", duration:7472 , title: "Fekete özvegy" },
-
+  
   { url:"https://www.youtube.com/embed/I_Zs6DSncAM?si=GE9P8ROe7R4ROkts", duration:168 , title: "Reklám" },
-
+  
   { url:"https://archive.org/embed/kezipoggyasz", duration:6521 , title: "Kézipoggyász" },
-
+  
   { url:"https://www.youtube.com/embed/PepOiELj3xA?si=F2UZePWtO3rH_CGa", duration:168 , title: "Reklám" },
-
+  
   { url:"https://videa.hu/player?v=YueuoXwmprLoQaBa", duration:5975 , title: "Központi hírszerzés" },
   
   { url:"https://www.youtube.com/embed/okeCY8fKzL0?si=SaDp3q9PYYyLmznK", duration:124 , title: "Reklám" },
- 
+  
   { url:"https://archive.org/embed/torbe-ejtve", duration:7520 , title: "Tőrbe ejtve" },
-
+  
   { url:"https://www.youtube.com/embed/8_mHPYNBRzE?si=_MnWFv4GUSSWyTnB", duration:137 , title: "Reklám" },
-
-  { url:"https://archive.org/embed/veszelyes_202605", duration:5671 , title: "Veszélyes" },
-
-
-
-
-
-
-
-
-
-
-
-
   
-
-
-
-  
-
-
-
-
-
-
-
-
-
-  
+  { url:"https://archive.org/embed/veszelyes_202605", duration:5671 , title: "Veszélyes" }
 ];
 
 // Reklám (minden film után)
 const ad = {
   url: "https://vk.com/video_ext.php?oid=1037217102&id=456241239&hash=709d6b0c2411c5bd",
   duration: 6,
-  title: "Reklám"
+  title: "Reklám",
+  rating: "12+"
 };
 
 // Véletlen sorrend létrehozása
@@ -279,6 +233,16 @@ function shuffle(array) {
 let fullPlaylist = [];
 const shuffledMovies = shuffle(playlist);
 shuffledMovies.forEach(movie => {
+  // Rating hozzáadása ha nincs
+  if (!movie.rating) {
+    if (movie.title.includes("Reklám")) {
+      movie.rating = "12+";
+    } else if (["Mortal Kombat", "Megtorló", "Orvlövész", "Tégla", "Kaptár", "Sebhelyesarcú", "Szellemlovas", "Bloodshot", "Erőszakik", "Fekete özvegy", "Tőrbe ejtve", "Veszélyes"].some(term => movie.title.includes(term))) {
+      movie.rating = "18+";
+    } else {
+      movie.rating = "16+";
+    }
+  }
   fullPlaylist.push(movie);
   fullPlaylist.push(ad);
 });
@@ -289,7 +253,7 @@ let videoStartTime = 0;
 
 const player = document.getElementById("player");
 const status = document.getElementById("status");
-const clockEl = document.getElementById("clock");
+const ratingEl = document.getElementById("rating");
 const progressBar = document.getElementById("progress-bar");
 
 function formatTime(sec) {
@@ -299,11 +263,12 @@ function formatTime(sec) {
   return h === "00" ? `${m}:${s}` : `${h}:${m}:${s}`;
 }
 
-function updateClock() {
-  clockEl.textContent = new Date().toLocaleTimeString("hu-HU", {hour:"2-digit", minute:"2-digit"});
+function updateRating(rating) {
+  ratingEl.textContent = rating;
+  ratingEl.style.background = rating.includes('18') ? 'rgba(220,20,60,0.95)' : 
+                             rating.includes('16') ? 'rgba(255,140,0,0.95)' : 'rgba(255,215,0,0.9)';
+  ratingEl.style.color = '#000';
 }
-setInterval(updateClock, 10000);
-updateClock();
 
 function addAutoplayParam(url) {
   if (url.includes("archive.org")) {
@@ -339,6 +304,9 @@ function playNext() {
 
   player.src = src;
   status.textContent = `${(currentIndex % 2 === 0 ? "🎬" : "📺")} ${video.title}`;
+  
+  const rating = video.rating || (video.title.includes("Reklám") ? "12+" : "16+");
+  updateRating(rating);
 
   videoStartTime = Date.now();
   startProgress(video.duration);
