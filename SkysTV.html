@@ -20,41 +20,12 @@
     #progress { flex:1; margin:0 20px; height:7px; background:#444; border-radius:4px; overflow:hidden; }
     #progress-bar { width:0%; height:100%; background:linear-gradient(90deg, #e53935, #ff9800); transition:width 0.3s linear; }
 
-    #guide-btn {
-      position: absolute; top: 16px; right: 16px;
-      background: rgba(0,0,0,0.8); color: white; border: 2px solid #e53935;
-      padding: 7px 14px; border-radius: 8px; cursor: pointer; z-index: 20;
-      font-size: 0.95rem; font-weight: bold; pointer-events: auto;
-    }
-    #guide-btn:hover { background: #e53935; transform: scale(1.05); }
-
     #logo-overlay {
       position: absolute; top: 16px; left: 16px; z-index: 25; pointer-events: none;
       opacity: 0.9; transition: opacity 0.3s;
     }
     #logo-overlay:hover { opacity: 1; }
     #logo-overlay img { height: 90px; width: auto; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
-
-    #guide-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 30;
-      display: none; align-items: center; justify-content: center;
-    }
-    #guide-content {
-      background: #111; border: 2px solid #e53935; border-radius: 12px;
-      padding: 20px; max-width: 95%; width: 580px; max-height: 90vh;
-      overflow-y: auto; box-shadow: 0 10px 40px rgba(229,57,53,0.4);
-    }
-    #guide-close { position: absolute; top: 15px; right: 20px; font-size: 2.5rem; cursor: pointer; color: #aaa; }
-    #guide-close:hover { color: #fff; }
-    #guide-title { text-align: center; color: #e53935; margin: 0 0 20px 0; font-size: 1.9rem; }
-
-    table { width:100%; border-collapse: collapse; }
-    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; font-size: 0.95rem; }
-    th { background: #e53935; color: white; }
-    tr.now { background: #1b5e20 !important; font-weight: bold; }
-    tr.next { background: #37474f; }
-    .countdown { color: #ffcc80; font-style: italic; }
-    .time { font-family: Consolas, monospace; color: #8bc34a; }
   </style>
 </head>
 <body>
@@ -72,28 +43,12 @@
 
    <span id="rating" style="background:rgba(255,215,0,0.9); color:#000; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:1.05rem; min-width:48px; text-align:center;">12+</span>
   </div>
-
-  <div id="guide-btn">📺 MŰSORÚJSÁG</div>
-
-  <div id="guide-overlay">
-    <div id="guide-content">
-      <span id="guide-close">×</span>
-      <h2 id="guide-title">SkysTV – Műsorújság (24/7)</h2>
-      <div id="current-info" style="text-align:center; margin-bottom:20px; font-size:0.50rem; color:#ffcc80;"></div>
-      <table>
-        <thead><tr><th>#</th><th>Cím</th><th>Hossz</th></tr></thead>
-        <tbody id="guide-tbody"></tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 <script>
 // ====================== TELJES PLAYLIST ======================
 // Itt írd be a rating-et minden sor végén: rating: "18+"
 const playlist = [
-  { url: "https://archive.org/embed/mortal-kombat-2_202606", duration: 6360, title: "Mortal Kombat 2", rating: "18+" },
-  
   
   
   { url: "https://archive.org/embed/a-megtorlo-utolso-celpont", duration: 2643, title: "Megtorló: Utolsó célpont", rating: "18+" },
@@ -400,6 +355,7 @@ const playlist = [
   { url:"https://archive.org/embed/wanted_202605", duration:6158, title: "Wanted", rating: "18+" },
 
   { url:"https://archive.org/embed/en-a-robot_202605", duration:6319, title: "Én a robot", rating: "12+" },
+  
 
 
   
@@ -444,11 +400,6 @@ const playlist = [
 
 
 
-
-
-
-  
-  
   
   
   
@@ -493,19 +444,11 @@ shuffledMovies.forEach(movie => {
 
 let currentIndex = 0;
 let progressInterval = null;
-let videoStartTime = 0;
 
 const player = document.getElementById("player");
 const status = document.getElementById("status");
 const ratingEl = document.getElementById("rating");
 const progressBar = document.getElementById("progress-bar");
-
-function formatTime(sec) {
-  const h = Math.floor(sec / 3600).toString().padStart(2, '0');
-  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
-  const s = Math.floor(sec % 60).toString().padStart(2, '0');
-  return h === "00" ? `${m}:${s}` : `${h}:${m}:${s}`;
-}
 
 function updateRating(rating) {
   if (!rating) rating = "16+";
@@ -551,7 +494,6 @@ function playNext() {
   
   updateRating(video.rating);
 
-  videoStartTime = Date.now();
   startProgress(video.duration);
 
   setTimeout(() => {
@@ -567,76 +509,6 @@ playNext();
 document.addEventListener("click", () => {
   if (player.paused) player.play();
 }, { once: true });
-
-// ====================== MŰSORÚJSÁG ======================
-function getCurrentPosition() {
-  const now = Date.now();
-  let elapsed = (now - videoStartTime) / 1000;
-  if (elapsed < 0) elapsed = 0;
-
-  let sum = 0;
-  for (let i = 0; i < fullPlaylist.length; i++) {
-    const idx = (currentIndex + i) % fullPlaylist.length;
-    const dur = fullPlaylist[idx].duration;
-    if (sum + dur > elapsed) {
-      return {
-        index: idx,
-        timeInto: elapsed - sum,
-        timeLeft: dur - (elapsed - sum)
-      };
-    }
-    sum += dur;
-  }
-  return { index: currentIndex, timeInto: 0, timeLeft: fullPlaylist[currentIndex].duration };
-}
-
-function updateGuide() {
-  const pos = getCurrentPosition();
-  const current = fullPlaylist[pos.index];
-
-  document.getElementById("current-info").innerHTML = `
-    <strong>Most megy:</strong> ${current.title} 
-    <span class="countdown">• még ${formatTime(Math.round(pos.timeLeft))}</span>
-  `;
-
-  const tbody = document.getElementById("guide-tbody");
-  tbody.innerHTML = "";
-
-  for (let i = 0; i < Math.min(12, fullPlaylist.length); i++) {
-    const itemIndex = (pos.index + i) % fullPlaylist.length;
-    const item = fullPlaylist[itemIndex];
-    const tr = document.createElement("tr");
-    
-    if (i === 0) tr.className = "now";
-    else if (i === 1) tr.className = "next";
-
-    tr.innerHTML = `
-      <td>${(itemIndex + 1).toString().padStart(2,'0')}</td>
-      <td>${item.title} ${i===0 ? '<span style="color:#4caf50;">● ÉLŐ</span>' : i===1 ? '<span class="countdown">(következő)</span>' : ''}</td>
-      <td class="time">${formatTime(item.duration)}</td>
-    `;
-    tbody.appendChild(tr);
-  }
-}
-
-// Guide vezérlés
-const guideBtn = document.getElementById("guide-btn");
-const guideOverlay = document.getElementById("guide-overlay");
-const guideClose = document.getElementById("guide-close");
-
-guideBtn.addEventListener("click", () => {
-  updateGuide();
-  guideOverlay.style.display = "flex";
-});
-
-guideClose.addEventListener("click", () => guideOverlay.style.display = "none");
-guideOverlay.addEventListener("click", e => {
-  if (e.target === guideOverlay) guideOverlay.style.display = "none";
-});
-
-setInterval(() => {
-  if (guideOverlay.style.display === "flex") updateGuide();
-}, 15000);
 </script>
 </body>
 </html>
