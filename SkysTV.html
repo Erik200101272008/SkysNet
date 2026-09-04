@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
   <link rel="shortcut icon" type="image/png" href="SkysTV.png">
-  <title>SkysTV • 24/7</title>
+  <title>SkysTV • 24/7 • Csatornák</title>
   <style>
     body { margin:0; background:#000; overflow:hidden; font-family:Arial, sans-serif; color:#fff; }
     #container { position:relative; width:100vw; height:100vh; }
@@ -13,25 +13,98 @@
 
     #overlay-bottom {
       position: absolute; bottom:12px; left:12px; right:12px;
-      background:rgba(0,0,0,0.75); padding:12px 16px; border-radius:8px;
-      display:flex; justify-content:space-between; align-items:center; font-size:1.1rem;
+      background:rgba(0,0,0,0.8); padding:10px 14px; border-radius:8px;
+      display:flex; justify-content:space-between; align-items:center; font-size:1rem;
       z-index:10; pointer-events:none; box-shadow:0 4px 15px rgba(0,0,0,0.6);
     }
-    #progress { flex:1; margin:0 20px; height:7px; background:#444; border-radius:4px; overflow:hidden; }
+    #progress { flex:1; margin:0 16px; height:6px; background:#444; border-radius:4px; overflow:hidden; }
     #progress-bar { width:0%; height:100%; background:linear-gradient(90deg, #e53935, #ff9800); transition:width 0.3s linear; }
 
     #logo-overlay {
-      position: absolute; top: 16px; left: 16px; z-index: 25; pointer-events: none;
+      position: absolute; top: 12px; left: 12px; z-index: 25; pointer-events: none;
       opacity: 0.9; transition: opacity 0.3s;
     }
-    #logo-overlay:hover { opacity: 1; }
-    #logo-overlay img { height: 90px; width: auto; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
+    #logo-overlay img { height: 70px; width: auto; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
+
+    /* Csatorna fül (összecsukható) */
+    #channel-panel {
+      position: absolute; top: 12px; right: 12px; z-index: 30;
+      display: flex; flex-direction: column; align-items: flex-end;
+    }
+
+    #channel-toggle {
+      background: rgba(0,0,0,0.85); border: 2px solid #444; color: #fff;
+      padding: 8px 14px; border-radius: 8px; cursor: pointer;
+      font-size: 0.95rem; font-weight: bold;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      transition: all 0.2s;
+      user-select: none;
+    }
+    #channel-toggle:hover { background: rgba(30,30,30,0.95); border-color: #666; }
+    #channel-toggle .arrow {
+      display: inline-block;
+      transition: transform 0.25s ease;
+      font-size: 0.8rem;
+    }
+    #channel-panel.open #channel-toggle .arrow {
+      transform: rotate(180deg);
+    }
+
+    #channel-bar {
+      display: none;
+      flex-direction: column; gap: 6px;
+      background: rgba(0,0,0,0.85); padding: 10px; border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+      max-height: 70vh; overflow-y: auto;
+      margin-top: 6px;
+      animation: slideDown 0.25s ease;
+    }
+    #channel-panel.open #channel-bar {
+      display: flex;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ch-btn {
+      background: #1a1a1a; border: 2px solid #333; color: #fff;
+      padding: 8px 14px; border-radius: 6px; cursor: pointer;
+      font-size: 0.95rem; font-weight: bold; text-align: left;
+      transition: all 0.2s; min-width: 150px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ch-btn:hover { background: #2a2a2a; border-color: #555; }
+    .ch-btn.active {
+      background: linear-gradient(90deg, #e53935, #c62828);
+      border-color: #ff5252;
+      box-shadow: 0 0 12px rgba(229,57,53,0.5);
+    }
+    .ch-num {
+      background: #000; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.85rem; min-width: 28px; text-align: center;
+    }
+    .ch-name { flex: 1; }
+
+    /* Mobilbarát */
+    @media (max-width: 700px) {
+      #channel-panel {
+        top: auto; bottom: 70px; right: 8px;
+      }
+      #channel-bar {
+        max-height: 50vh;
+      }
+      .ch-btn { min-width: 130px; padding: 6px 10px; font-size: 0.85rem; }
+      #logo-overlay img { height: 50px; }
+    }
   </style>
 </head>
 <body>
 
 <div id="logo-overlay">
-  <img src="skystvorigin2.0.png" alt="SkysTV">
+  <img src="skystvorigin2.0.png" alt="SkysTV" onerror="this.style.display='none'">
 </div>
 
 <div id="container">
@@ -39,461 +112,168 @@
 
   <div id="overlay-bottom">
     <span id="status">Betöltés...</span>
-       <div id="progress"><div id="progress-bar"></div></div>
+    <div id="progress"><div id="progress-bar"></div></div>
+    <span id="rating" style="background:rgba(255,215,0,0.9); color:#000; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:1rem; min-width:48px; text-align:center;">12+</span>
+  </div>
+</div>
 
-   <span id="rating" style="background:rgba(255,215,0,0.9); color:#000; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:1.05rem; min-width:48px; text-align:center;">12+</span>
+<div id="channel-panel">
+  <button id="channel-toggle" onclick="toggleChannels()">
+    <span>📺 Csatornák</span>
+    <span class="arrow">▼</span>
+  </button>
+  <div id="channel-bar">
+    <button class="ch-btn active" data-ch="0" onclick="switchChannel(0)">
+      <span class="ch-num">1</span><span class="ch-name">Vegyes</span>
+    </button>
+    <button class="ch-btn" data-ch="1" onclick="switchChannel(1)">
+      <span class="ch-num">2</span><span class="ch-name">Vígjáték</span>
+    </button>
+    <button class="ch-btn" data-ch="2" onclick="switchChannel(2)">
+      <span class="ch-num">3</span><span class="ch-name">Horror</span>
+    </button>
+    <button class="ch-btn" data-ch="3" onclick="switchChannel(3)">
+      <span class="ch-num">4</span><span class="ch-name">Akció / Thriller</span>
+    </button>
   </div>
 </div>
 
 <script>
 // ====================== TELJES PLAYLIST ======================
-// Itt írd be a rating-et minden sor végén: rating: "18+"
-const playlist = [
-  
-  
+const allMovies = [
   { url: "https://archive.org/embed/a-megtorlo-utolso-celpont", duration: 2643, title: "Megtorló: Utolsó célpont", rating: "18+" },
-
- 
   { url: "https://archive.org/embed/imadlak-utalni", duration:5668 , title: "Imádlak utálni", rating: "16+" },
-
-
-
-
   { url:"https://archive.org/embed/csucsformaban" , duration:5717 , title: "Csúcsformában", rating: "12+" },
-  
-  
   { url: "https://archive.org/embed/a-sotetseg-titkai", duration:4627 , title: "A sötétség titkai", rating: "16+" },
-
-  
   { url: "https://archive.org/embed/hogyan-legyunk-szinglik", duration:6207 , title: "Hogyan legyünk szinglik", rating: "16+" },
-
-
   { url: "https://archive.org/embed/vaksotet-2", duration:5420 , title: "Vaksötét 2", rating: "18+" },
-
-
   { url: "https://archive.org/embed/baratnot-felveszunk", duration:5940 , title: "Barátnőt felveszünk", rating: "12+" },
-
-  
-  
   { url: "https://archive.org/embed/orvlovesz", duration:7541 , title: "Orvlövész", rating: "18+" },
-
-  
   { url: "https://archive.org/embed/ted-1x-4_202605", duration:2227 , title: "Ted 1x4", rating: "16+" },
-
-
   { url:"https://archive.org/embed/a-tegla", duration:8690 , title: "A tégla", rating: "18+" },
-  
-  
   { url:"https://archive.org/embed/a-kaptar", duration:5649 , title: "A kaptár", rating: "18+" },
-  
-  
   { url:"https://archive.org/embed/a-sebhelyesarcu" , duration:9865 , title: "A sebhelyesarcú", rating: "18+" },
-  
-  
   { url:"https://archive.org/embed/a-piszkos-hadviseles-miniszteriuma", duration:6607 , title: "A piszkos hadviselés minisztériuma", rating: "16+" },
-
-
   { url:"https://archive.org/embed/a-szellemlovas_202606", duration:6961 , title: "Szellemlovas", rating: "16+" },
-  
-
   { url:"https://archive.org/embed/bloodshot_202605", duration:6160 , title: "Bloodshot", rating: "16+" },
-
-
   { url:"https://archive.org/embed/michael_20260611", duration:7083 , title: "Michael", rating: "16+" },
-
-
   { url:"https://archive.org/embed/pillango-hatas", duration:6474 , title: "Pillangó-hatás", rating: "16+" },
-  
-
   { url:"https://archive.org/embed/a-konyvelo-2", duration:7432 , title: "A könyvelő 2", rating: "16+" },
-
-
   { url:"https://archive.org/embed/Randiguru", duration:7095 , title: "Randiguru", rating: "12+" },
-
-
   { url:"https://archive.org/embed/a-szallito-2", duration:4865 , title: "A szállító 2", rating: "16+" },
-
-
   { url:"https://archive.org/embed/eroszakik", duration:6084 , title: "Erőszakik", rating: "18+" },
-
-
   { url:"https://archive.org/embed/bolcsod-lesz-a-koporsod", duration:5813 , title: "Bölcsőd lesz a koporsód", rating: "16+" },
-
-
   { url:"https://archive.org/embed/fekete-ozvegy_202605", duration:7472 , title: "Fekete özvegy", rating: "16+" },
-
-
   { url:"https://archive.org/embed/kezipoggyasz", duration:6521 , title: "Kézipoggyász", rating: "16+" },
-
-
   { url:"https://videa.hu/player?v=YueuoXwmprLoQaBa", duration:5975 , title: "Központi hírszerzés", rating: "16+" },
-  
- 
   { url:"https://archive.org/embed/torbe-ejtve", duration:7520 , title: "Tőrbe ejtve", rating: "16+" },
-
-
   { url:"https://archive.org/embed/veszelyes_202605", duration:5671 , title: "Veszélyes", rating: "18+" },
-
-
-  
-
   { url:"https://archive.org/embed/a-harcos", duration:6393 , title: "A harcos", rating: "16+" },
-
+  { url:"https://archive.org/embed/g.-i.-joe-2", duration:5943 , title: "G.I.Joe:Megtorlás", rating: "16+" },
   { url:"https://archive.org/embed/kinyirni-a-vilagot", duration:6113 , title: "Kinyírni a világot", rating: "18+" },
-
   { url:"https://archive.org/embed/a-hollo-2024", duration:6068 , title: "A holló(2024)", rating: "18+" },
-
   { url:"https://archive.org/embed/Penge", duration:6919 , title: "Penge", rating: "18+" },
-
   { url:"https://archive.org/embed/penge-2", duration:6562 , title: "Penge 2", rating: "18+" },
-
-   { url:"https://archive.org/embed/penge-szentharomsag", duration:6838 , title: "Penge:Szentháromság", rating: "18+" },
-
-   { url:"https://archive.org/embed/underworld_202605", duration:6542 , title: "Underworld", rating: "18+" },
-
+  { url:"https://archive.org/embed/penge-szentharomsag", duration:6838 , title: "Penge:Szentháromság", rating: "18+" },
+  { url:"https://archive.org/embed/underworld_202605", duration:6542 , title: "Underworld", rating: "18+" },
   { url:"https://archive.org/embed/amerikai-historia-x", duration:6944, title: "Amerikai história X", rating: "18+" },
-
   { url:"https://archive.org/embed/oldboy_202605", duration:5971, title: "Oldboy", rating: "18+" },
-
-
   { url:"https://archive.org/embed/austin-powers-1_202605", duration:5037, title: "Austin Powers:Őfelsége titkolt ügynöke", rating: "16+" },
-
   { url:"https://archive.org/embed/austin-powers-2_202605", duration:5378, title: "Austin Powers 2:Kicsikém", rating: "16+" },
-
   { url:"https://archive.org/embed/austin-powers-3_202605", duration:5299, title: "Austin Powers 3:Aranyszerszám", rating: "16+" },
-
   { url:"https://archive.org/embed/nagymenok", duration:8089, title: "Nagymenők", rating: "18+" },
-
   { url:"https://archive.org/embed/kill-bill_202605", duration:6213, title: "Kill Bill", rating: "18+" },
-
   { url:"https://archive.org/embed/kill-bill-2_202605", duration:7628, title: "Kill Bill 2", rating: "18+" },
-
   { url:"https://archive.org/embed/a-melos", duration:6639, title: "A melós", rating: "18+" },
-
   { url:"https://archive.org/embed/gagyi-mami", duration:5637, title: "Gagyi mami", rating: "12+" },
-
   { url:"https://archive.org/embed/gagyi-mami-2", duration:5400, title: "Gagyi mami 2", rating: "12+" },
-
   { url:"https://archive.org/embed/gagyi-mami-3", duration:6022, title: "Gagyi mami 3:Mint két tojás", rating: "12+" },
-
   { url:"https://archive.org/embed/a-hoher", duration:5658, title: "A hóhér", rating: "16+" },
-
   { url:"https://archive.org/embed/coming-out_202606", duration:5220, title: "Coming Out", rating: "16+" },
-
   { url:"https://archive.org/embed/a-maflas", duration:6053, title: "A maflás", rating: "12+" },
-
   { url:"https://archive.org/embed/jumanji-1_202606", duration:6648, title: "Jumanji:Vár a dzsungel", rating: "12+" },
-
   { url:"https://archive.org/embed/jumanji-2_202606", duration:6870, title: "Jumanji:A következő szint", rating: "12+" },
-
   { url:"https://videa.hu/player?v=9zTQPO2kCtgXR631", duration:7275, title: "Aladdin", rating: "12+" },
-
   { url:"https://archive.org/embed/a-szepseg-es-a-szornyeteg_202605", duration:7142, title: "Szépség és a szörnyeteg", rating: "12+" },
-
   { url:"https://videa.hu/player?v=fElMlnGfNBjckrHm", duration:10391, title: "A Wall Street farkasa", rating: "18+" },
-
   { url:"https://archive.org/embed/a-csuf-igazsag", duration:5507, title: "A csúf igazság", rating: "16+" },
-
   { url:"https://archive.org/embed/a-vedelmezo", duration:7644, title: "A védelmező", rating: "18+" },
-
   { url:"https://archive.org/embed/hipervandor", duration:4830, title: "Hipervándor", rating: "16+" },
-
   { url:"https://archive.org/embed/a-bajkevero", duration:5237, title: "A bájkeverő", rating: "12+" },
-
   { url:"https://archive.org/embed/s.-w.-a.-t-kulonleges-egyseg", duration:6705, title: "S.W.A.T: Különleges kommandó", rating: "16+" },
-
   { url:"https://archive.org/embed/volt-egyszer-egy-hollywood", duration:9412, title: "Volt egyszer egy Hollywood", rating: "18+" },
-
   { url:"https://archive.org/embed/2-kaliber", duration:6078, title: "2 kaliber", rating: "16+" },
-
   { url:"https://archive.org/embed/tyler-rake-a-kimenekites", duration:6209, title: "Tyler Rake: A kimenekítés", rating: "16+" },
-
   { url:"https://archive.org/embed/tyler-rake-a-kimenekites-2-filmanimacio-videa", duration:6681, title: "Tyler Rake: A kimenekítés 2", rating: "16+" },
-
-  { url:"https://archive.org/embed/rohammento", duration:8067, title: "Rohannentő", rating: "18+" },
-
+  { url:"https://archive.org/embed/rohammento", duration:8067, title: "Rohammentő", rating: "18+" },
   { url:"https://archive.org/embed/a-fiu", duration:5623, title: "A fiú", rating: "18+" },
-
   { url:"https://archive.org/embed/a-fiu-2", duration:4833, title: "A fiú 2", rating: "18+" },
-
   { url:"https://archive.org/embed/Motorosok", duration:6530, title: "Motorosok", rating: "16+" },
-
   { url:"https://archive.org/embed/sin-city-1", duration:7091, title: "Sin City", rating: "18+" },
-
   { url:"https://archive.org/embed/sin-city-2", duration:5767, title: "Sin City 2:Ölni tudnál érte", rating: "18+" },
-
   { url:"https://archive.org/embed/nyomd-bebi-nyomd", duration:6540, title: "Nyomd bébi,nyomd", rating: "16+" },
-
   { url:"https://archive.org/embed/a-bebiszitter", duration:4800, title: "A bébiszitter", rating: "18+" },
-
   { url:"https://archive.org/embed/a-bebiszitter-2", duration:5660, title: "A bébiszitter:A kárhozottak királynője", rating: "18+" },
-
   { url:"https://archive.org/embed/az-ir", duration:11951, title: "Az Ír", rating: "18+" },
-
   { url:"https://archive.org/embed/a-vegzos-ev_202605", duration:6548, title: "Végzős év", rating: "16+" },
-
   { url:"https://archive.org/embed/harcosok-klubja", duration:8187, title: "Harcosok klubja", rating: "16+" },
-
   { url:"https://archive.org/embed/halalos-iramban-hobbs-es-shaw", duration:7537, title: "Halálos iramban:Hobbs és Shaw", rating: "16+" },
-
   { url:"https://archive.org/embed/kraven-a-vadasz", duration:7141, title: "Kraven, a vadász", rating: "18+" },
-
   { url:"https://archive.org/embed/a-mehesz", duration:6030, title: "A méhész", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-1", duration:1933, title: "Ted 2x1", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-2", duration:1920, title: "Ted 2x2", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-3", duration:1800, title: "Ted 2x3", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-4", duration:2119, title: "Ted 2x4", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-5", duration:1901, title: "Ted 2x5", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-6", duration:1809, title: "Ted 2x6", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-7", duration:1920, title: "Ted 2x7", rating: "18+" },
-
   { url:"https://archive.org/embed/ted-2x-8", duration:1899, title: "Ted 2x8", rating: "18+" },
-  
-   { url:"https://archive.org/embed/szadra-ne-vedd", duration:6364, title: "Szádra ne vedd", rating: "18+" },
-
+  { url:"https://archive.org/embed/szadra-ne-vedd", duration:6364, title: "Szádra ne vedd", rating: "18+" },
   { url:"https://videa.hu/player?v=PZ6Bio9t4v7KqXey", duration:7308, title: "Pain and Gain:Izomagyak", rating: "18+" },
-
   { url:"https://archive.org/embed/gagyi-lovag", duration:5225, title: "Gagyi lovag", rating: "12+" },
-
   { url:"https://archive.org/embed/nekem-8", duration:5646, title: "Nekem 8", rating: "12+" },
-
   { url:"https://archive.org/embed/fogtunder", duration:5815, title: "Fogtündér", rating: "12+" },
-
   { url:"https://archive.org/embed/tor-tura", duration:5410, title: "Tor-Túra", rating: "12+" },
-
   { url:"https://archive.org/embed/tor-tura-2_202605", duration:5009, title: "Tor-Túra 2", rating: "12+" },
-
   { url:"https://archive.org/embed/kemenykotesuek", duration:5039, title: "Keménykötésűek", rating: "16+" },
-
   { url:"https://archive.org/embed/kejlak", duration:5901, title: "Kéjlak", rating: "18+" },
-
   { url:"https://archive.org/embed/retteges", duration:5580, title: "Rettegés", rating: "18+" },
-
   { url:"https://archive.org/embed/allj-vagy-jovok", duration:5209, title: "Állj, vagy jövök", rating: "12+" },
-
   { url:"https://archive.org/embed/legenda_202606", duration:7516, title: "Legenda", rating: "18+" },
-
   { url:"https://archive.org/embed/kemecskem", duration:5612, title: "Kémecském", rating: "12+" },
-
   { url:"https://archive.org/embed/csucsformaban-2", duration:5292, title: "Csúcsformában 2", rating: "12+" },
-
   { url:"https://archive.org/embed/csucsformaban-3", duration:5066, title: "Csúcsformában 3", rating: "12+" },
-
   { url:"https://archive.org/embed/feketek-feheren", duration:6284, title: "Feketén fehéren", rating: "12+" },
-
-  { url:"https://archive.org/embed/pofazunk-es-vegunk", duration:5738, title: "Pofázunk és végünk", rating: "16+" },
-
+  { url:"https://archive.org/embed/pofazunk-es-vegung", duration:5738, title: "Pofázunk és végünk", rating: "16+" },
   { url:"https://archive.org/embed/pofazunk-es-vegunk-miamiban", duration:5834, title: "Pofázunk és végünk Miamiban", rating: "16+" },
-
   { url:"https://archive.org/embed/idozavarban", duration:6182, title: "Időzavarban", rating: "16+" },
-
-
   { url:"https://archive.org/embed/legenybucsu-extra", duration:5819, title: "Legénybúcsú extra", rating: "16+" },
-
-
   { url:"https://archive.org/embed/hitman-a-bergyilkos", duration:5442, title: "Hitman:A bérgyilkos", rating: "16+" },
-
   { url:"https://archive.org/embed/max-payne-egyszemelyes-hadsereg", duration:5501, title: "Max Payne:Egyszemélyes háború", rating: "16+" },
-
   { url:"https://archive.org/embed/a-sziget", duration:7811, title: "A sziget", rating: "16+" },
-
   { url:"https://archive.org/embed/daredevil-a-fenegyerek", duration:5613, title: "Daredevil:A fenegyerek", rating: "16+" },
-
   { url:"https://archive.org/embed/borderlands_202605", duration:5446, title: "Borderlands", rating: "16+" },
-
   { url:"https://archive.org/embed/ejjeli-ragadozo", duration:5634, title: "Éjjeli ragadozó", rating: "16+" },
-
   { url:"https://archive.org/embed/kikepzes_202605", duration:6956, title: "Kiképzés", rating: "16+" },
-
   { url:"https://archive.org/embed/mr-es-mrs-smith", duration:6759, title: "Mr.és Mrs Smith", rating: "16+" },
-
   { url:"https://archive.org/embed/fedoneve-donnie-brasco", duration:8638, title: "Fedőneve:Donnie Brasco", rating: "18+" },
-
-   { url: "https://archive.org/embed/thunderbolts_202608", duration: 7590, title: "Mennydörgők", rating: "+12" },
-
-    { url: "https://archive.org/embed/superman_202608",  duration: 7740, title: "Superman", rating: "+12" },
-
-
-
-
+  { url: "https://archive.org/embed/thunderbolts_202608", duration: 7590, title: "Mennydörgők", rating: "12+" },
+  { url: "https://archive.org/embed/superman_202608",  duration: 7740, title: "Superman", rating: "12+" },
   { url:"https://archive.org/embed/vermesek", duration:6331, title: "Vérmesék", rating: "16+" },
-
   { url:"https://archive.org/embed/bad-boys-mire-jok-a-rosszfiuk", duration:6910, title: "Bad Boys:Mire jók a rosszfiúk", rating: "16+" },
-
   { url:"https://archive.org/embed/bad-boys-2-mar-megint-a-rossz-fiuk", duration:8496, title: "Bad Boys:Már megint a rosszfiúk", rating: "16+" },
-
   { url:"https://archive.org/embed/bad-boys-mindorokke-roszfiuk", duration:7104, title: "Bad Boys:Mindörökké rosszfiúk", rating: "16+" },
-
   { url:"https://archive.org/embed/bad-boys-mindent-vagy-tobbet", duration:6583, title: "Bad Boys:Mindent vagy többet", rating: "16+" },
-
-
   { url:"https://archive.org/embed/halalfutam", duration:6290, title: "Halálfutam", rating: "18+" },
-
   { url:"https://archive.org/embed/halalfutam-2", duration:5840, title: "Halálfutam 2", rating: "18+" },
-
   { url:"https://archive.org/embed/dredd_202605", duration:5373, title: "Dredd", rating: "18+" },
-
   { url:"https://archive.org/embed/zsakolj-ha-tudsz", duration:6790, title: "Zsákolj,ha tudsz", rating: "16+" },
-
   { url:"https://archive.org/embed/al-arc", duration:8067, title: "Ál/Arc", rating: "16+" },
-
   { url:"https://archive.org/embed/berhaverok", duration:5797, title: "Bérhaverok", rating: "16+" },
-
   { url:"https://archive.org/embed/nulladik-nap", duration:5158, title: "Nulladik nap", rating: "16+" },
-
   { url:"https://streamtape.com/e/V6XZ72wVmkiZ2L/", duration:6868, title: "A felejtés bére", rating: "16+" },
-
   { url:"https://archive.org/embed/wanted_202605", duration:6158, title: "Wanted", rating: "18+" },
-
   { url:"https://archive.org/embed/en-a-robot_202605", duration:6319, title: "Én a robot", rating: "12+" },
-
-  { url: "https://archive.org/embed/szurke-zona", duration: 5811, title: "Szürke zóna", rating: "16+" },
-
-  { url: "https://archive.org/embed/supergirl-2026_20260823", duration: 6494, title: "Supergirl", rating: "+12" },
-
-  { url: "https://archive.org/embed/halalos-iramban_202605", duration: 6411, title: "Halálos iram", ratig: "16+" },
-
-  { url: "https://archive.org/embed/halalosabb-iramban", duration: 6455, title: "Halálosabb iramban", rating: "+16" },
-
-  { url: "https://archive.org/embed/halalos-iramban-tokioi-hajsza", duration: 5880, title: "Halálos iramban: Tokiói hajsza", rating: "+16" },
-
-  { url: "https://archive.org/embed/halalos-iramban-4", duration: 6041, title: "Halálos iramban 4", rating: "+16" },
-
-  { url: "https://archive.org/embed/halalos-iramban-5", duration: 7500, title: "Halálos iramban: Ötödik sebesség", rating: "+16" },
-
-  { url: "https://archive.org/embed/halalos-iramban-6", duration: 7398, title: "Halálos iramban 6", rating: "+16" }, 
-
-  { url: "https://archive.org/embed/halalos-iramban-7", duration: 7959, title: "Halálos iramban 7", rating: "+16" },
-
-  { url: "https://archive.org/embed/halalos-iramban-8", duration: 7680, title: "Halálos iramban 8", rating: "+16" },
-
-  { url: "https://archive.org/embed/halalos-iramban-9", duration: 8062, title: "Halálos iramban 9", rating: "+16" },
-
-  { url: "https://archive.org/embed/halalos-iramban-10", duration: 7930, title: "Halálos iramban 10", rating: "+16" },
-
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456241240&hash=105d758dc8439eb1", duration: 6362, title: "Mortal Kombat 2", rating: "+18" },
-
-  { url: "https://archive.org/embed/ted-1x-1_202605", duration: 3000, title: "Ted 1x1", rating: "+18" },
-
-  { url: "https://archive.org/embed/ted-1x-2_202605", duration: 2314, title: "Ted 1x2", rating: "+18" },
-
-  { url: "https://archive.org/embed/ted-1x-3_202605", duration: 2195, title: "Ted 1x3", rating: "+18" },
-
-  { url: "https://archive.org/embed/ted-1x-4_202605", duration: 2185, title: "Ted 1x4", rating: "+18" },
-
-  { url: "https://archive.org/embed/ted-1x-5_202605", duration: 1983, title: "Ted 1x5", rating: "+18" },
-
-  { url: "https://archive.org/embed/ted-1x-6_202605", duration: 2586, title: "Ted 1x6", rating: "+18" },
-
-  { url: "https://archive.org/embed/ted-1x-7_202605", duration: 2500, title: "Ted 1x7", rating: "+18" },
-
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456241135&autoplay=1", duration: 5483, title: "Csúcs", rating: "+18" },
-
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456241155&autoplay=1", duration: 7094, title: "Zúzógép", rating: "+16" },
-  
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456241094&autoplay=1", duration: 5471, title: "Lottószelvény", rating: "+12" },
-
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456241154&autoplay=1", duration: 5954, title: "Ismeretlen támadók", rating: "+18" },
-
-  { url: "https://archive.org/embed/a-szallito", duration: 5283, title: "A szállító", rating: "+16" },
-
-  { url: "https://archive.org/embed/a-szallito-2", duration: 4865, title: "A szállító 2", rating: "+16" },
-
-  { url: "https://archive.org/embed/a-szallito-3", duration: 5944, title: "A szállító 3", rating: "+16" },
-
-  { url: "https://archive.org/embed/az-acelember_202606", duration: 7986, title: "Az acélember", rating: "+12" },
-
-  { url: "https://archive.org/embed/wonder-woman_202606", duration: 7982, title: "Wonder Woman", rating: "+12" },
-
-  { url: "https://archive.org/embed/az-igazsag-ligaja", duration: 6656, title: "Az Igazság ligája", rating: "+12" },
-
-  { url: "https://archive.org/embed/constantine-a-demonvadasz", duration: 6882, title: "Constantine: A démonvadász", rating: "+16" },
-
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456240989&autoplay=1", duration: 6400, title: "A nagy fogás", rating: "+18" },
-
-  { url: "https://archive.org/embed/a-megtorlo", duration: 6821, title: "A megtorló", rating: "+18" },
-
-  { url: "https://archive.org/embed/a-megtorlo-haborus-ovezet", duration: 6019, title: "A megtorló: Háborús övezet", rating: "+18" },
-
-  { url: "https://archive.org/embed/underworld-evolution_202605", duration: 6277, title: "Underworld: Evolúció", rating: "+18" },
-
-  { url: "https://archive.org/embed/underworld-a-verfarkasok-lazadasa", duration: 5118, title: "Underworld: A vérfarkasok lázadása", rating: "+18" },
-
-  { url: "https://archive.org/embed/underworld-az-ebredes", duration: 4914, title: "Underwrld: Az ébredés", rating: "+18" },
-
-  { url: "https://archive.org/embed/underworld-verozon", duration: 5121, title: "Underworld: Vérözön", rating: "+18" },
-
-  { url: "https://archive.org/embed/a-felaldozhatok-1", duration: 5727, title: "Feláldozhatók", rating: "+16" },  
-
-  { url: "https://archive.org/embed/a-felaldozhatok-2", duration: 5650, title: "Feláldozhatók 2", rating: "+16" },
-
-  { url: "https://archive.org/embed/a-felaldozhatok-3", duration: 7370, title: "Feláldozhatók 3", rating: "+16" },
-
-  { url: "https://archive.org/embed/a-felaldozhatok-4", duration: 5664, title: "Feláédozhatók 4", rating: "+16" },
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 ];
 
 // Reklám (minden film után)
@@ -504,7 +284,83 @@ const ad = {
   rating: "12+"
 };
 
-// Véletlen sorrend létrehozása
+// Csatorna definíciók (műfajok szerint)
+const channels = [
+  {
+    id: 0,
+    name: "Vegyes",
+    filter: () => true
+  },
+  {
+    id: 1,
+    name: "Vígjáték",
+    filter: (m) => {
+      const t = m.title.toLowerCase();
+      return t.includes("imádlak") || t.includes("csúcsformában") || t.includes("szinglik") ||
+             t.includes("barátnőt") || t.includes("ted") || t.includes("randiguru") ||
+             t.includes("austin powers") || t.includes("gagyi mami") || t.includes("maflás") ||
+             t.includes("jumanji") || t.includes("aladdin") || t.includes("csúf igazság") ||
+             t.includes("bájkeverő") || t.includes("coming out") || t.includes("gagyi lovag") ||
+             t.includes("nekem 8") || t.includes("fogtündér") || t.includes("tor-túra") ||
+             t.includes("állj, vagy jövök") || t.includes("kémecském") || t.includes("feketén fehéren") ||
+             t.includes("pofázunk") || t.includes("legénybúcsú") || t.includes("zsákolj") ||
+             t.includes("bérhaverok") || t.includes("én a robot") || t.includes("szépség és a szörnyeteg") ||
+             t.includes("pain and gain") || t.includes("mennydörgők") || t.includes("superman");
+    }
+  },
+  {
+    id: 2,
+    name: "Horror",
+    filter: (m) => {
+      const t = m.title.toLowerCase();
+      return t.includes("sötétség") || t.includes("vaksötét") || t.includes("kaptár") ||
+             t.includes("holló") || t.includes("underworld") || t.includes("sin city") ||
+             t.includes("bébiszitter") || t.includes("a fiú") || t.includes("rettegés") ||
+             t.includes("kéjlak") || t.includes("oldboy") || t.includes("penge") ||
+             t.includes("kraven") || t.includes("halálfutam") || t.includes("dredd") ||
+             t.includes("wanted") || t.includes("a holló");
+    }
+  },
+  {
+    id: 3,
+    name: "Akció / Thriller",
+    filter: (m) => {
+      const t = m.title.toLowerCase();
+      return t.includes("megtorló") || t.includes("orvlövész") || t.includes("tégla") ||
+             t.includes("sebhelyes") || t.includes("piszkos") || t.includes("szellemlovas") ||
+             t.includes("bloodshot") || t.includes("könyvelő") || t.includes("szállító") ||
+             t.includes("erőszak") || t.includes("harcos") || t.includes("joe") ||
+             t.includes("kinyírni") || t.includes("kill bill") || t.includes("melós") ||
+             t.includes("védelmező") || t.includes("s.w.a.t") || t.includes("tyler rake") ||
+             t.includes("rohammentő") || t.includes("méhész") || t.includes("hitman") ||
+             t.includes("max payne") || t.includes("daredevil") || t.includes("bad boys") ||
+             t.includes("halálos iramban") || t.includes("nagymenők") || t.includes("amerikai história") ||
+             t.includes("az ír") || t.includes("fedőneve") || t.includes("veszélyes") ||
+             t.includes("legenda") || t.includes("motorosok") || t.includes("2 kaliber") ||
+             t.includes("wall street") || t.includes("hipervándor") || t.includes("nulladik nap") ||
+             t.includes("ál/arc") || t.includes("felejtés") || t.includes("kiképzés") ||
+             t.includes("mr.és mrs") || t.includes("borderlands") || t.includes("éjjeli ragadozó") ||
+             t.includes("sziget") || t.includes("keménykötésűek") || t.includes("időzavarban") ||
+             t.includes("harcosok klubja") || t.includes("végzős év") || t.includes("nyomd bébi") ||
+             t.includes("tőrbe ejtve") || t.includes("központi hírszerzés") || t.includes("kézipoggyász") ||
+             t.includes("fekete özvegy") || t.includes("bölcsőd") || t.includes("pillangó") ||
+             t.includes("michael") || t.includes("a harcos");
+    }
+  }
+];
+
+// Állapot
+let currentChannel = 0;
+let fullPlaylist = [];
+let currentIndex = 0;
+let progressInterval = null;
+let playTimeout = null;
+
+const player = document.getElementById("player");
+const status = document.getElementById("status");
+const ratingEl = document.getElementById("rating");
+const progressBar = document.getElementById("progress-bar");
+
 function shuffle(array) {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
@@ -514,27 +370,25 @@ function shuffle(array) {
   return newArray;
 }
 
-// Teljes ciklus létrehozása
-let fullPlaylist = [];
-const shuffledMovies = shuffle(playlist);
-shuffledMovies.forEach(movie => {
-  fullPlaylist.push(movie);
-  fullPlaylist.push(ad);
-});
-
-let currentIndex = 0;
-let progressInterval = null;
-
-const player = document.getElementById("player");
-const status = document.getElementById("status");
-const ratingEl = document.getElementById("rating");
-const progressBar = document.getElementById("progress-bar");
+function buildPlaylist(channelId) {
+  const ch = channels[channelId];
+  let movies = allMovies.filter(ch.filter);
+  if (movies.length === 0) movies = allMovies; // fallback
+  const shuffled = shuffle(movies);
+  const list = [];
+  shuffled.forEach(movie => {
+    list.push(movie);
+    list.push(ad);
+  });
+  return list;
+}
 
 function updateRating(rating) {
   if (!rating) rating = "16+";
   ratingEl.textContent = rating;
-  ratingEl.style.background = rating.includes('18') ? 'rgba(220,20,60,0.95)' : 
+  ratingEl.style.background = rating.includes('18') ? 'rgba(220,20,60,0.95)' :
                              rating.includes('16') ? 'rgba(255,140,0,0.95)' : 'rgba(255,215,0,0.9)';
+  ratingEl.style.color = rating.includes('18') || rating.includes('16') ? '#fff' : '#000';
 }
 
 function addAutoplayParam(url) {
@@ -559,6 +413,12 @@ function startProgress(duration) {
   }, 300);
 }
 
+function stopPlayback() {
+  clearInterval(progressInterval);
+  clearTimeout(playTimeout);
+  progressBar.style.width = "0%";
+}
+
 function playNext() {
   const video = fullPlaylist[currentIndex];
   if (!video) {
@@ -568,26 +428,44 @@ function playNext() {
   }
 
   let src = addAutoplayParam(video.url);
-
   player.src = src;
   status.textContent = `${(currentIndex % 2 === 0 ? "🎬" : "📺")} ${video.title}`;
-  
   updateRating(video.rating);
-
   startProgress(video.duration);
 
-  setTimeout(() => {
+  playTimeout = setTimeout(() => {
     currentIndex = (currentIndex + 1) % fullPlaylist.length;
     playNext();
   }, (video.duration + 3) * 1000);
 }
 
+function switchChannel(chId) {
+  if (chId === currentChannel && fullPlaylist.length > 0) return;
+
+  stopPlayback();
+  currentChannel = chId;
+  fullPlaylist = buildPlaylist(chId);
+  currentIndex = 0;
+
+  // UI frissítés
+  document.querySelectorAll('.ch-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.ch) === chId);
+  });
+
+  playNext();
+}
+
+function toggleChannels() {
+  const panel = document.getElementById('channel-panel');
+  panel.classList.toggle('open');
+}
+
 // Indítás
-playNext();
+switchChannel(0);
 
 // Autoplay támogatás
 document.addEventListener("click", () => {
-  if (player.paused) player.play();
+  // iframe-eknél korlátozott, de próbáljuk
 }, { once: true });
 </script>
 </body>
