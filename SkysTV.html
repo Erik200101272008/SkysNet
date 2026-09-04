@@ -135,6 +135,12 @@
     <button class="ch-btn" data-ch="3" onclick="switchChannel(3)">
       <span class="ch-num">4</span><span class="ch-name">Akció / Thriller</span>
     </button>
+    <button class="ch-btn" data-ch="4" onclick="switchChannel(4)">
+      <span class="ch-num">5</span><span class="ch-name">Marvel</span>
+    </button>
+    <button class="ch-btn" data-ch="5" onclick="switchChannel(5)">
+      <span class="ch-num">6</span><span class="ch-name">DC</span>
+    </button>
   </div>
 </div>
 
@@ -345,6 +351,23 @@ const channels = [
              t.includes("tőrbe ejtve") || t.includes("központi hírszerzés") || t.includes("kézipoggyász") ||
              t.includes("fekete özvegy") || t.includes("bölcsőd") || t.includes("pillangó") ||
              t.includes("michael") || t.includes("a harcos");
+    }
+  },
+  {
+    id: 4,
+    name: "Marvel",
+    filter: (m) => {
+      const t = m.title.toLowerCase();
+      return t.includes("szellemlovas") || t.includes("fekete özvegy") || t.includes("penge") ||
+             t.includes("kraven") || t.includes("daredevil") || t.includes("mennydörgők");
+    }
+  },
+  {
+    id: 5,
+    name: "DC",
+    filter: (m) => {
+      const t = m.title.toLowerCase();
+      return t.includes("superman");
     }
   }
 ];
