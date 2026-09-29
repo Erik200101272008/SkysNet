@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/png" href="SkysTV.png">
+  <title>SkysTV • IPTV 24/7</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg: #0a0e17;
+      --panel: rgba(12, 18, 32, 0.92);
+      --accent: #00d4ff;
+      --accent2: #7b5cff;
+      --text: #e8eef7;
+      --muted: #8b9bb4;
+      --live: #ff3b5c;
+      --bar: #1a2336;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+    }
+
+    #player {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000;
+      display: block;
+    }
+
+    /* ===== TOP BAR ===== */
+    #top-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 30;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+
+    #top-bar .left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #logo-overlay {
+      pointer-events: none;
+      opacity: 0.95;
+    }
+    #logo-overlay img {
+      height: 48px;
+      width: auto;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
+    }
+
+    .live-badge {
+      background: var(--live);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 4px;
+      animation: pulse 1.8s infinite;
+      text-transform: uppercase;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+
+    .channel-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .channel-num {
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .channel-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      max-width: 420px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #clock {
+      font-variant-numeric: tabular-nums;
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--text);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
+
+    /* ===== BOTTOM BAR ===== */
+    #overlay-bottom {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.55) 60%, transparent 100%);
+      padding: 28px 24px 18px;
+      z-index: 25;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+
+    .bottom-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    #status {
+      font-size: 1.05rem;
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #rating {
+      background: rgba(255, 215, 0, 0.95);
+      color: #111;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      min-width: 48px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    #progress {
+      height: 5px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    #progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 3px;
+      transition: width 0.3s linear;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.45);
+    }
+
+    .next-info {
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .next-info span.highlight {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ===== SIDE PANEL (Channel list) ===== */
+    #side-panel {
+      position: absolute;
+      top: 0; left: 0;
+      width: 340px;
+      height: 100%;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      z-index: 40;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+    }
+    #side-panel.open {
+      transform: translateX(0);
+    }
+
+    .panel-header {
+      padding: 18px 16px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .panel-header .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    #channel-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0,212,255,0.35) transparent;
+    }
+    #channel-list::-webkit-scrollbar { width: 6px; }
+    #channel-list::-webkit-scrollbar-thumb {
+      background: rgba(0,212,255,0.35);
+      border-radius: 3px;
+    }
+
+    .ch-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .ch-item:hover {
+      background: rgba(0, 212, 255, 0.08);
+    }
+    .ch-item.active {
+      background: rgba(0, 212, 255, 0.14);
+      border-left-color: var(--accent);
+    }
+    .ch-num {
+      width: 36px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .ch-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .ch-title {
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ch-rating {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .ch-item.is-ad .ch-title { color: var(--muted); font-style: italic; }
+
+    /* Toggle button */
+    #toggle-panel {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      z-index: 35;
+      background: rgba(0, 212, 255, 0.15);
+      border: 1px solid rgba(0, 212, 255, 0.35);
+      color: var(--accent);
+      width: 28px;
+      height: 56px;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.25s;
+      backdrop-filter: blur(8px);
+    }
+    #toggle-panel:hover {
+      background: rgba(0, 212, 255, 0.3);
+      width: 34px;
+    }
+    #side-panel.open + #toggle-panel {
+      left: 340px;
+    }
+
+    /* Hide UI when idle */
+    body.idle #top-bar,
+    body.idle #overlay-bottom,
+    body.idle #toggle-panel {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.idle #side-panel:not(.open) {
+      pointer-events: none;
+    }
+
+    /* Small screens */
+    @media (max-width: 600px) {
+      #side-panel { width: 280px; }
+      #side-panel.open + #toggle-panel { left: 280px; }
+      .channel-title { max-width: 180px; font-size: 0.95rem; }
+      #logo-overlay img { height: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <iframe id="player" src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+
+  <!-- TOP BAR -->
+  <div id="top-bar">
+    <div class="left">
+      <div id="logo-overlay">
+        <img src="skystvorigin2.0.png" alt="SkysTV">
+      </div>
+      <span class="live-badge">ÉLŐ</span>
+      <div class="channel-info">
+        <img src="NF.png" height="100" width="100">
+        <div class="channel-title" id="ch-title">Betöltés...</div>
+      </div>
+    </div>
+    <div id="clock">--:--</div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div id="overlay-bottom">
+    <div class="bottom-row">
+      <span id="status">Betöltés...</span>
+      <span id="rating">12+</span>
+    </div>
+    <div id="progress"><div id="progress-bar"></div></div>
+    <div class="next-info">
+      <span>Következő:</span>
+      <span class="highlight" id="next-title">—</span>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div id="side-panel">
+    <div class="panel-header">
+      <h2>MŰSORÚJSÁG</h2>
+      <span class="count" id="list-count">0 tétel</span>
+    </div>
+    <div id="channel-list"></div>
+  </div>
+
+  <button id="toggle-panel" title="Műsorlista (M)">☰</button>
+</div>
+
+<script>
+// ====================== TELJES PLAYLIST ======================
+const playlist = [
+
+{ url: "https://archive.org/embed/a-bebiszitter", duration: 5121, title: "A bébiszitter", rating: "+18" }, 
+{ url: "https://archive.org/embed/a-bebiszitter-2", duration: 6146, title: "A bébiszitter: Kárhozottak királynője", rating: "+18" },
+{ url: "https://archive.org/embed/a-szu-rke-ember", duration: 7742, title: "A szürke ember", rating: "+18" },
+{ url: "https://archive.org/embed/torbe-ejtve", duration: 7813, title: "Törbe ejtve", rating: "+16" },
+{ url: "https://archive.org/embed/torbe-ejtve-2", duration: 8462, title: "Törbe ejtve: Az üveghagyma", rating: "+16" },
+{ url: "https://archive.org/embed/futni-mentem", duration: 6265, title: "Futni mentem", rating: "+12" },
+{ url: "https://archive.org/embed/mindent-egy-lapra", duration: 7086, title: "Mindent egy lapra", rating: "+12" },
+{ url: "https://archive.org/embed/az-ir", duration: 12566, title: "Az Ír", rating: "+18" },
+{ url: "https://archive.org/embed/fear-street-1994", duration: 6437, title: "Fear Street 1994", rating: "+18" },
+{ url: "https://archive.org/embed/fear-street-1978", duration: 6657, title: "Fear Street 1978", rating: "+18" },
+{ url: "https://archive.org/embed/fear-street-1666", duration: 6866, title: "Fear Street 1666", rating: "+18" }, 
+{ url: "https://archive.org/embed/adam-project_202605", duration: 6397, title: "Adam project", rating: "+12" },
+{ url: "https://archive.org/embed/a-halhatatlan-garda", duration: 7536, title: "Halhatatlanok gárda", rating: "+16" },
+{ url: "https://archive.org/embed/kate_20260507", duration: 6470, title: "Kate", rating: "+18" },
+{ url: "https://archive.org/embed/kulonosen-veszelyes-bunozok", duration: 7079, title: "Különösen veszélyes bűnözők", rating: "+16" },
+{ url: "https://archive.org/embed/meg-ne-mozdulj", duration: 5533, title: "Meg ne mozdulj!", rating: "+16" },
+{ url: "https://archive.org/embed/ujra-akcioban", duration: 6862, title: "Újra akcióban", rating: "+16" },
+{ url: "https://archive.org/embed/kezipoggyasz", duration: 7180, title: "Kézipoggyász", rating: "+16" },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+];
+
+// Reklám (minden film után)
+const ad = {
+  url: "https://vk.com/video_ext.php?oid=1037217102&id=456241239&hash=709d6b0c2411c5bd",
+  duration: 6,
+  title: "Reklám",
+  rating: "12+"
+};
+
+function shuffle(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+let fullPlaylist = [];
+const shuffledMovies = shuffle(playlist);
+shuffledMovies.forEach(movie => {
+  fullPlaylist.push(movie);
+  fullPlaylist.push(ad);
+});
+
+let currentIndex = 0;
+let progressInterval = null;
+let playTimeout = null;
+let idleTimer = null;
+
+const player = document.getElementById("player");
+const status = document.getElementById("status");
+const ratingEl = document.getElementById("rating");
+const progressBar = document.getElementById("progress-bar");
+const chNumber = document.getElementById("ch-number");
+const chTitle = document.getElementById("ch-title");
+const nextTitle = document.getElementById("next-title");
+const channelList = document.getElementById("channel-list");
+const listCount = document.getElementById("list-count");
+const sidePanel = document.getElementById("side-panel");
+const toggleBtn = document.getElementById("toggle-panel");
+const clockEl = document.getElementById("clock");
+
+function updateClock() {
+  const now = new Date();
+  clockEl.textContent = now.toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" });
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+function updateRating(rating) {
+  if (!rating) rating = "16+";
+  // normalize "+12" style
+  rating = rating.replace(/^\+/, "") + (rating.includes("+") ? "" : "+");
+  if (!rating.includes("+")) rating = rating + "+";
+  ratingEl.textContent = rating;
+  const is18 = rating.includes("18");
+  const is16 = rating.includes("16");
+  ratingEl.style.background = is18 ? "rgba(220,20,60,0.95)" :
+                              is16 ? "rgba(255,140,0,0.95)" : "rgba(255,215,0,0.95)";
+  ratingEl.style.color = is18 || is16 ? "#fff" : "#111";
+}
+
+function addAutoplayParam(url) {
+  if (url.includes("archive.org")) {
+    return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
+  }
+  if (url.includes("vk.com")) {
+    return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
+  }
+  return url;
+}
+
+function startProgress(duration) {
+  progressBar.style.width = "0%";
+  clearInterval(progressInterval);
+  const start = Date.now();
+  progressInterval = setInterval(() => {
+    const elapsed = (Date.now() - start) / 1000;
+    let percent = (elapsed / duration) * 100;
+    if (percent > 100) percent = 100;
+    progressBar.style.width = percent + "%";
+  }, 300);
+}
+
+function buildChannelList() {
+  channelList.innerHTML = "";
+  listCount.textContent = fullPlaylist.length + " tétel";
+  fullPlaylist.forEach((item, idx) => {
+    const div = document.createElement("div");
+    div.className = "ch-item" + (item.title === "Reklám" ? " is-ad" : "");
+    div.dataset.index = idx;
+    const num = String(Math.floor(idx / 2) + 1).padStart(2, "0");
+    div.innerHTML = `
+      <div class="ch-num">${item.title === "Reklám" ? "AD" : num}</div>
+      <div class="ch-meta">
+        <div class="ch-title">${item.title}</div>
+        <div class="ch-rating">${item.rating || ""}</div>
+      </div>
+    `;
+    div.addEventListener("click", () => jumpTo(idx));
+    channelList.appendChild(div);
+  });
+}
+
+function highlightActive() {
+  document.querySelectorAll(".ch-item").forEach(el => {
+    el.classList.toggle("active", parseInt(el.dataset.index) === currentIndex);
+  });
+  const active = document.querySelector(".ch-item.active");
+  if (active) active.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function jumpTo(idx) {
+  clearTimeout(playTimeout);
+  clearInterval(progressInterval);
+  currentIndex = idx;
+  playNext(true);
+  sidePanel.classList.remove("open");
+}
+
+function playNext(fromJump = false) {
+  const video = fullPlaylist[currentIndex];
+  if (!video) {
+    currentIndex = 0;
+    playNext();
+    return;
+  }
+
+  const src = addAutoplayParam(video.url);
+  player.src = src;
+
+  const isAd = video.title === "Reklám";
+  const chNum = String(Math.floor(currentIndex / 2) + 1).padStart(2, "0");
+
+  status.textContent = (isAd ? "📺 " : "🎬 ") + video.title;
+  chTitle.textContent = video.title;
+  chNumber.textContent = isAd ? "REKLÁM" : "CH " + chNum;
+  updateRating(video.rating);
+
+  const next = fullPlaylist[(currentIndex + 1) % fullPlaylist.length];
+  nextTitle.textContent = next ? next.title : "—";
+
+  startProgress(video.duration);
+  highlightActive();
+
+  playTimeout = setTimeout(() => {
+    currentIndex = (currentIndex + 1) % fullPlaylist.length;
+    playNext();
+  }, (video.duration + 3) * 1000);
+}
+
+// Toggle side panel
+toggleBtn.addEventListener("click", () => {
+  sidePanel.classList.toggle("open");
+  resetIdle();
+});
+
+// Keyboard
+document.addEventListener("keydown", (e) => {
+  if (e.key === "m" || e.key === "M") {
+    sidePanel.classList.toggle("open");
+  }
+  if (e.key === "ArrowRight" || e.key === "n") {
+    clearTimeout(playTimeout);
+    clearInterval(progressInterval);
+    currentIndex = (currentIndex + 1) % fullPlaylist.length;
+    playNext(true);
+  }
+  if (e.key === "ArrowLeft" || e.key === "p") {
+    clearTimeout(playTimeout);
+    clearInterval(progressInterval);
+    currentIndex = (currentIndex - 1 + fullPlaylist.length) % fullPlaylist.length;
+    playNext(true);
+  }
+  if (e.key === "Escape") {
+    sidePanel.classList.remove("open");
+  }
+  resetIdle();
+});
+
+// Idle hide UI
+function resetIdle() {
+  document.body.classList.remove("idle");
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (!sidePanel.classList.contains("open")) {
+      document.body.classList.add("idle");
+    }
+  }, 5000);
+}
+document.addEventListener("mousemove", resetIdle);
+document.addEventListener("click", resetIdle);
+resetIdle();
+
+// Init
+buildChannelList();
+playNext();
+
+document.addEventListener("click", () => {
+  try { player.contentWindow && player.contentWindow.focus(); } catch(e) {}
+}, { once: true });
+</script>
+</body>
+</html>
