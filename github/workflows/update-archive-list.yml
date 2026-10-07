@@ -1,0 +1,93 @@
+name: Update Archive.org Movie List
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # minden nap reggel 6:00 UTC-kor (magyar idő szerint 8:00)
+  workflow_dispatch:       # manuálisan is elindítható a Actions fülön
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract archive.org links
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const https = require('https');
+
+          function fetch(url) {
+            return new Promise((resolve, reject) => {
+              https.get(url, res => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve(data));
+              }).on('error', reject);
+            });
+          }
+
+          (async () => {
+            try {
+              const html = await fetch('https://erik200101272008.github.io/SkysNet/fofooldal.html');
+              
+              // Keresés a movies tömb után
+              const match = html.match(/const movies\s*=\s*(\[[\s\S]*?\]);/);
+              if (!match) {
+                console.error('Nem található a movies tömb!');
+                process.exit(1);
+              }
+
+              const movies = eval(match[1]);
+              const archive = movies
+                .filter(m => m.link && m.link.includes('archive.org'))
+                .map(m => ({ title: m.title, link: m.link }));
+
+              console.log(`Talált archive.org linkek: ${archive.length}`);
+
+              // JSON
+              fs.writeFileSync('archive_links.json', JSON.stringify(archive, null, 2));
+
+              // TXT
+              let txt = '';
+              archive.forEach(item => {
+                txt += `${item.title}\n${item.link}\n\n`;
+              });
+              fs.writeFileSync('archive_links.txt', txt);
+
+              // M3U
+              let m3u = '#EXTM3U\n';
+              archive.forEach(item => {
+                m3u += `#EXTINF:-1,${item.title}\n${item.link}\n`;
+              });
+              fs.writeFileSync('archive_movies.m3u', m3u);
+
+              console.log('Fájlok generálva.');
+            } catch (err) {
+              console.error(err);
+              process.exit(1);
+            }
+          })();
+          EOF
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add archive_links.json archive_links.txt archive_movies.m3u
+          
+          if git diff --staged --quiet; then
+            echo "Nincs változás"
+          else
+            git commit -m "Auto-update: archive.org lista frissítve ($(date -u +%Y-%m-%d))"
+            git push
+          fi
