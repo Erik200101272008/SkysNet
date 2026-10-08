@@ -2,8 +2,8 @@ name: Update Archive.org Movie List
 
 on:
   schedule:
-    - cron: '0 6 * * *'   # minden nap reggel 6:00 UTC-kor (magyar idő szerint 8:00)
-  workflow_dispatch:       # manuálisan is elindítható a Actions fülön
+    - cron: '0 6 * * *'   # minden nap reggel 8:00 (magyar idő)
+  workflow_dispatch:       # manuálisan is indítható
 
 jobs:
   update:
@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Extract archive.org links
+      - name: Extract archive.org links + generate files
         run: |
           node << 'EOF'
           const fs = require('fs');
@@ -40,7 +40,6 @@ jobs:
             try {
               const html = await fetch('https://erik200101272008.github.io/SkysNet/fofooldal.html');
               
-              // Keresés a movies tömb után
               const match = html.match(/const movies\s*=\s*(\[[\s\S]*?\]);/);
               if (!match) {
                 console.error('Nem található a movies tömb!');
@@ -64,10 +63,10 @@ jobs:
               });
               fs.writeFileSync('archive_links.txt', txt);
 
-              // M3U
-              let m3u = '#EXTM3U\n';
+              // M3U (tiszta)
+              let m3u = '#EXTM3U\n#PLAYLIST:Archive.org Filmek - SkysNet\n\n';
               archive.forEach(item => {
-                m3u += `#EXTINF:-1,${item.title}\n${item.link}\n`;
+                m3u += `#EXTINF:-1 group-title="Archive.org Filmek",${item.title}\n${item.link}\n`;
               });
               fs.writeFileSync('archive_movies.m3u', m3u);
 
