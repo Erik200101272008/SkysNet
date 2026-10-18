@@ -53,7 +53,7 @@ const playlist = [
   
   { url: "https://archive.org/embed/ted-1x-4_202605", duration:2227, title: "Ted 1x4", rating: "+18"},
   { url: "https://archive.org/embed/a-sotetseg-titkai", duration:4869, title: "A sötétség titkai", rating: "+16" },
-  { url: "https://archive.org/embed/a-bebiszitter", dutation:5121, title: "A bébiszitter", rating: "+18" },
+  { url: "https://archive.org/embed/a-bebiszitter", duration:5121, title: "A bébiszitter", rating: "+18" },
   { url: "https://archive.org/embed/a-bebiszitter-2", duration:6146, title: "A bébiszitter: A kárhozottak királynője", rating: "+18" },
   { url: "https://archive.org/embed/fear-street-1994", duration:6437, title: "Fear Street 1994", rating: "+18" },
   { url: "https://archive.org/embed/fear-street-1978", duration:6657, title: "Fear Street 1978", rating: "+18" },
@@ -65,7 +65,7 @@ const playlist = [
   { url: "https://archive.org/embed/penge-szentharomsag", duration:7341, title: "Penge 3", rating: "+18" },
   { url: "https://archive.org/embed/szadra-ne-vedd", duration:6602, title: "Szádra ne vedd", rating: "+18" },
   { url: "https://archive.org/embed/vegso-allomaas-1", duration:5882, title: "Végső állomás", rating: "+18" },
-  { url: "https://archive.org/embed/vegso-allomas-2", duration:5411, title: "Végső állomás 2", rating "+18" },
+  { url: "https://archive.org/embed/vegso-allomas-2", duration:5411, title: "Végső állomás 2", rating: "+18" },
   { url: "https://archive.org/embed/vegso-allomas-3", duration:5570, title: "Végső állomás 3", rating: "+18" },
   { url: "https://archive.org/embed/abigail_202605", duration:6571, title: "Abigail", rating: "+18" },
   { url: "https://avcaption.com/watch/92608309e5ff487d889e766246689593", duration:5732, title: "Rémálom az Elm utcában", rating: "+18" },
@@ -103,64 +103,6 @@ const playlist = [
   { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239433&hd=2&autoplay=1", duration:7828, title: "Harry Potter és a Halál ereklyéi 2.rész", rating: "+12" },
   { url: "https://archive.org/embed/Pokolfajzat", duration:7318, title: "Pokolfajzat", rating: "+16" },
   { url: "https://avcaption.com/watch/435309906fff955fdc9b42f1f29e80de", duration:5887, title: "Gothika", rating: "+18", },
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 ];
 
 // Reklám (minden film után)
@@ -208,7 +150,7 @@ function addAutoplayParam(url) {
   if (url.includes("archive.org")) {
     return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
   }
-  if (url.includes("vk.com")) {
+  if (url.includes("vk.com") || url.includes("vk.ru")) {
     return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
   }
   return url;
