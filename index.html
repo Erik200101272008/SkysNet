@@ -16,6 +16,95 @@
             overflow: hidden;
             position: relative;
         }
+
+        /* Denevérek háttérben */
+        .bat {
+            position: absolute;
+            font-size: 28px;
+            color: #222;
+            z-index: 1;
+            opacity: 0.85;
+            pointer-events: none;
+            filter: drop-shadow(0 0 2px #000);
+        }
+        .bat::before {
+            content: "🦇";
+        }
+
+        .bat1 {
+            top: 12%;
+            left: -60px;
+            animation: flyBat1 9s linear infinite;
+            font-size: 32px;
+        }
+        .bat2 {
+            top: 28%;
+            left: -80px;
+            animation: flyBat2 12s linear infinite 1.5s;
+            font-size: 22px;
+        }
+        .bat3 {
+            top: 55%;
+            left: -50px;
+            animation: flyBat3 8s linear infinite 0.8s;
+            font-size: 26px;
+        }
+        .bat4 {
+            top: 70%;
+            left: -70px;
+            animation: flyBat4 14s linear infinite 3s;
+            font-size: 20px;
+        }
+        .bat5 {
+            top: 18%;
+            left: -90px;
+            animation: flyBat5 11s linear infinite 4s;
+            font-size: 30px;
+        }
+        .bat6 {
+            top: 42%;
+            left: -40px;
+            animation: flyBat6 10s linear infinite 2.2s;
+            font-size: 24px;
+        }
+
+        @keyframes flyBat1 {
+            0% { transform: translateX(0) translateY(0) scaleX(1); }
+            25% { transform: translateX(30vw) translateY(-40px) scaleX(1); }
+            50% { transform: translateX(55vw) translateY(20px) scaleX(-1); }
+            75% { transform: translateX(80vw) translateY(-30px) scaleX(-1); }
+            100% { transform: translateX(110vw) translateY(10px) scaleX(1); }
+        }
+        @keyframes flyBat2 {
+            0% { transform: translateX(0) translateY(0) scaleX(1); }
+            30% { transform: translateX(35vw) translateY(50px) scaleX(1); }
+            60% { transform: translateX(65vw) translateY(-20px) scaleX(-1); }
+            100% { transform: translateX(115vw) translateY(30px) scaleX(-1); }
+        }
+        @keyframes flyBat3 {
+            0% { transform: translateX(0) translateY(0) scaleX(1); }
+            40% { transform: translateX(40vw) translateY(-60px) scaleX(1); }
+            70% { transform: translateX(70vw) translateY(15px) scaleX(-1); }
+            100% { transform: translateX(120vw) translateY(-25px) scaleX(-1); }
+        }
+        @keyframes flyBat4 {
+            0% { transform: translateX(0) translateY(0) scaleX(1); }
+            50% { transform: translateX(50vw) translateY(40px) scaleX(-1); }
+            100% { transform: translateX(110vw) translateY(-15px) scaleX(1); }
+        }
+        @keyframes flyBat5 {
+            0% { transform: translateX(0) translateY(0) scaleX(1); }
+            35% { transform: translateX(25vw) translateY(30px) scaleX(1); }
+            65% { transform: translateX(60vw) translateY(-45px) scaleX(-1); }
+            100% { transform: translateX(115vw) translateY(5px) scaleX(-1); }
+        }
+        @keyframes flyBat6 {
+            0% { transform: translateX(0) translateY(0) scaleX(1); }
+            45% { transform: translateX(45vw) translateY(-35px) scaleX(1); }
+            80% { transform: translateX(75vw) translateY(25px) scaleX(-1); }
+            100% { transform: translateX(110vw) translateY(-10px) scaleX(-1); }
+        }
+
         .logo-container {
             position: relative;
             width: 400px;
@@ -29,8 +118,79 @@
             height: auto;
             opacity: 0;
             transform: scale(0.8);
-            animation: fadeIn 2s ease-in-out forwards;
+            animation: fadeIn 2s ease-in-out forwards, fireGlow 1.2s ease-in-out infinite 2s;
         }
+
+        /* Tűz animáció a tökben – overlay hatás */
+        .fire-overlay {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 50px;
+            z-index: 12;
+            pointer-events: none;
+            opacity: 0;
+            animation: fireAppear 0.5s ease-out 1.8s forwards;
+        }
+
+        .flame {
+            position: absolute;
+            bottom: 0;
+            border-radius: 50% 50% 20% 20%;
+            transform-origin: center bottom;
+        }
+
+        .flame1 {
+            left: 15px;
+            width: 30px;
+            height: 40px;
+            background: radial-gradient(ellipse at bottom, #ffeb3b 0%, #ff9800 40%, #f44336 70%, transparent 100%);
+            box-shadow: 0 0 15px 5px rgba(255, 152, 0, 0.6);
+            animation: flicker1 0.15s ease-in-out infinite alternate;
+        }
+        .flame2 {
+            left: 8px;
+            width: 22px;
+            height: 32px;
+            background: radial-gradient(ellipse at bottom, #fff59d 0%, #ffc107 50%, #ff5722 80%, transparent 100%);
+            box-shadow: 0 0 10px 3px rgba(255, 193, 7, 0.5);
+            animation: flicker2 0.12s ease-in-out infinite alternate;
+            animation-delay: 0.05s;
+        }
+        .flame3 {
+            left: 25px;
+            width: 18px;
+            height: 28px;
+            background: radial-gradient(ellipse at bottom, #fff 0%, #ffeb3b 40%, #ff9800 70%, transparent 100%);
+            box-shadow: 0 0 8px 2px rgba(255, 235, 59, 0.7);
+            animation: flicker3 0.18s ease-in-out infinite alternate;
+            animation-delay: 0.1s;
+        }
+
+        @keyframes flicker1 {
+            0% { transform: scaleY(1) scaleX(1) rotate(-2deg); opacity: 0.9; }
+            100% { transform: scaleY(1.15) scaleX(0.9) rotate(3deg); opacity: 1; }
+        }
+        @keyframes flicker2 {
+            0% { transform: scaleY(1) scaleX(1) rotate(2deg); opacity: 0.85; }
+            100% { transform: scaleY(1.2) scaleX(0.85) rotate(-4deg); opacity: 1; }
+        }
+        @keyframes flicker3 {
+            0% { transform: scaleY(0.95) scaleX(1.05) rotate(-1deg); opacity: 0.8; }
+            100% { transform: scaleY(1.25) scaleX(0.8) rotate(2deg); opacity: 1; }
+        }
+
+        @keyframes fireAppear {
+            to { opacity: 0.95; }
+        }
+
+        @keyframes fireGlow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(255, 100, 0, 0.4)); }
+            50% { filter: brightness(1.15) drop-shadow(0 0 18px rgba(255, 80, 0, 0.7)); }
+        }
+
         /* A "NET" rész villogó hatása */
         .net-highlight {
             position: absolute;
@@ -41,7 +201,9 @@
             background: linear-gradient(90deg, transparent 50%, rgba(255, 0, 0, 0.5) 100%);
             opacity: 0;
             animation: highlight 1.5s ease-in-out 2s forwards;
+            z-index: 11;
         }
+
         /* Fade-in animáció a logóhoz */
         @keyframes fadeIn {
             0% {
@@ -53,6 +215,7 @@
                 transform: scale(1);
             }
         }
+
         /* Villogó highlight a "NET" részen */
         @keyframes highlight {
             0% {
@@ -70,9 +233,23 @@
     </style>
 </head>
 <body>
+    <!-- Denevérek a háttérben -->
+    <div class="bat bat1"></div>
+    <div class="bat bat2"></div>
+    <div class="bat bat3"></div>
+    <div class="bat bat4"></div>
+    <div class="bat bat5"></div>
+    <div class="bat bat6"></div>
+
     <div class="logo-container">
-        <img src="skysnet.png" alt="SkyNet Logo" class="logo">
+        <img src="halloween.jpg" alt="SkyNet Logo" class="logo">
         <div class="net-highlight"></div>
+        <!-- Tűz a tökben -->
+        <div class="fire-overlay">
+            <div class="flame flame1"></div>
+            <div class="flame flame2"></div>
+            <div class="flame flame3"></div>
+        </div>
     </div>
 
     <script>
@@ -84,5 +261,3 @@
     </script>
 </body>
 </html>
-
-
