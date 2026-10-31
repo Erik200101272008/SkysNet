@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Magyar IPTV Lejátszó + EPG</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
 <style>
   :root {
     --bg: #0f0f13;
@@ -205,6 +206,28 @@
     max-height: 55vh;
     background: #000;
   }
+  .live-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: rgba(231, 76, 60, 0.92);
+    cursor: default;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .live-btn.behind {
+    background: rgba(60, 60, 70, 0.92);
+    cursor: pointer;
+  }
+  .live-btn.behind:hover { background: rgba(90, 90, 105, 0.95); }
+  .status.warn { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
   .now-playing {
     padding: 14px 20px;
     background: var(--surface);
@@ -328,9 +351,10 @@
   <section class="player-area">
     <div class="video-wrapper">
       <video id="video" controls playsinline></video>
+      <button class="live-btn" id="liveBtn" style="display:none" title="Ugrás az élő adáshoz">● ÉLŐ</button>
       <div class="overlay-msg" id="overlay">
         <div class="big">▶️</div>
-        <p>Válassz egy csatornát vagy filmet a bal oldali listából a lejátszáshoz.<br><small style='opacity:0.7'>HLS.js + automatikus minőség</small></p>
+        <p>Válassz egy csatornát vagy filmet a bal oldali listából a lejátszáshoz.</p>
       </div>
     </div>
     <div class="now-playing" id="nowPlaying" style="display:none">
@@ -489,6 +513,14 @@ const EPG = {"AMC Europe Hungary":[{"s":"20261031091000","e":"20261031105500","t
 let currentGroup = 'Összes';
 let currentIndex = -1;
 let hls = null;
+let tsPlayer = null;          // mpegts.js példány (MPEG-TS / FLV élő adás)
+let playMode = 'none';        // 'hls' | 'ts' | 'native' | 'none'
+let playToken = 0;            // elavult callbackek kiszűrése csatornaváltáskor
+let retryCount = 0;
+let retryTimer = null;
+let tickTimer = null;
+let engineAbort = null;
+let curLive = false;
 const video = document.getElementById('video');
 const overlay = document.getElementById('overlay');
 const nowPlaying = document.getElementById('nowPlaying');
@@ -664,6 +696,212 @@ function toggleEpg() {
 }
 
 
+// ───────────── Lejátszó motor: HLS / MPEG-TS / FLV / MP4 + élő adás kezelés ─────────────
+const liveBtn = document.getElementById('liveBtn');
+
+function isLive() {
+  return curLive || (video.readyState > 0 && video.duration === Infinity);
+}
+
+function detectType(url) {
+  const p = url.split('?')[0].toLowerCase();
+  if (p.includes('.m3u8') || p.includes('playlist')) return 'hls';
+  if (/\.(ts|m2ts|mts)$/.test(p)) return 'ts';
+  if (/\.flv$/.test(p)) return 'flv';
+  if (/\.(mp4|m4v|webm|ogv|mov|mkv)$/.test(p)) return 'file';
+  return 'auto'; // ismeretlen kiterjesztés (pl. /udp/..., /stream/123) → nyers TS élő adásnak próbáljuk
+}
+
+function failMsg(url) {
+  return (location.protocol === 'https:' && url.startsWith('http:'))
+    ? 'Hiba: HTTP stream HTTPS oldalon (blokkolva)'
+    : 'Hiba a streammel';
+}
+
+function destroyEngine() {
+  clearTimeout(retryTimer);
+  clearInterval(tickTimer);
+  if (engineAbort) engineAbort.abort();
+  engineAbort = new AbortController();
+  if (hls) { hls.destroy(); hls = null; }
+  destroyTs();
+  playMode = 'none';
+  curLive = false;
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  liveBtn.style.display = 'none';
+}
+
+function destroyTs() {
+  if (!tsPlayer) return;
+  try { tsPlayer.pause(); tsPlayer.unload(); tsPlayer.detachMediaElement(); tsPlayer.destroy(); } catch (e) {}
+  tsPlayer = null;
+}
+
+function tryPlay() {
+  video.play().catch(() => setStatus('Kattints a play-re', ''));
+}
+
+function reconnect(my, url) {
+  if (my !== playToken) return;
+  if (retryCount >= 6) { setStatus(failMsg(url), 'error'); return; }
+  retryCount++;
+  setStatus('Újracsatlakozás (' + retryCount + '/6)...', 'warn');
+  const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 15000);
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(() => {
+    if (my === playToken && currentIndex >= 0) startPlayback(CHANNELS[currentIndex]);
+  }, delay);
+}
+
+function liveEdge() {
+  if (hls && hls.liveSyncPosition) return hls.liveSyncPosition;
+  const b = video.buffered;
+  return b.length ? b.end(b.length - 1) : NaN;
+}
+
+function goLive() {
+  const e = liveEdge();
+  if (isFinite(e)) video.currentTime = hls ? e : Math.max(0, e - 0.5);
+  video.play().catch(() => {});
+}
+liveBtn.addEventListener('click', goLive);
+
+// 1 mp-es ticker: ÉLŐ gomb állapota + befagyás-figyelő (4 mp-enként)
+function startTicker(my, url) {
+  let lastT = -1, stalls = 0, n = 0;
+  tickTimer = setInterval(() => {
+    if (my !== playToken) return;
+    const live = isLive();
+    liveBtn.style.display = live ? '' : 'none';
+    if (live) {
+      const e = liveEdge();
+      const behind = isFinite(e) && (e - video.currentTime) > 8;
+      liveBtn.classList.toggle('behind', behind);
+      liveBtn.textContent = behind ? '⏩ Élő adásra' : '● ÉLŐ';
+    }
+    if (++n % 4 !== 0 || !live) return;
+    if (!video.paused && !video.ended && Math.abs(video.currentTime - lastT) < 0.05) {
+      if (++stalls >= 3) { stalls = 0; reconnect(my, url); }
+    } else {
+      stalls = 0;
+    }
+    lastT = video.currentTime;
+  }, 1000);
+}
+
+function playHls(url, my) {
+  playMode = 'hls';
+  hls = new Hls({
+    enableWorker: true,
+    lowLatencyMode: false,
+    maxBufferLength: 30,
+    backBufferLength: 60,
+    liveSyncDurationCount: 3,
+    liveMaxLatencyDurationCount: 10,
+    maxLiveSyncPlaybackRate: 1.08,
+    manifestLoadingMaxRetry: 4,
+    manifestLoadingRetryDelay: 1000,
+    levelLoadingMaxRetry: 4,
+    fragLoadingMaxRetry: 6,
+    fragLoadingRetryDelay: 1000,
+  });
+  let mediaRecoveries = 0;
+  hls.loadSource(url);
+  hls.attachMedia(video);
+  hls.on(Hls.Events.LEVEL_LOADED, (e, d) => { curLive = !!(d.details && d.details.live); });
+  hls.on(Hls.Events.MANIFEST_PARSED, () => tryPlay());
+  hls.on(Hls.Events.ERROR, (e, d) => {
+    if (my !== playToken || !d.fatal) return;
+    console.error('HLS error', d);
+    if (d.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 2) {
+      mediaRecoveries++;
+      if (mediaRecoveries === 2) hls.swapAudioCodec();
+      hls.recoverMediaError();
+      return;
+    }
+    reconnect(my, url);
+  });
+}
+
+function playMpegts(url, kind, my, fallbackNative) {
+  if (!window.mpegts || !mpegts.isSupported()) {
+    if (fallbackNative) return playNative(url, my);
+    setStatus('A böngésző nem támogatja az MPEG-TS lejátszást', 'error');
+    return;
+  }
+  playMode = 'ts';
+  curLive = true;
+  let gotMedia = false;
+  tsPlayer = mpegts.createPlayer(
+    { type: kind === 'flv' ? 'flv' : 'mpegts', isLive: true, url: url },
+    {
+      enableWorker: true,
+      liveBufferLatencyChasing: true,
+      liveBufferLatencyMaxLatency: 6,
+      liveBufferLatencyMinRemain: 1.5,
+      autoCleanupSourceBuffer: true,
+      autoCleanupMaxBackwardDuration: 60,
+      autoCleanupMinBackwardDuration: 30,
+    }
+  );
+  tsPlayer.attachMediaElement(video);
+  tsPlayer.load();
+  tsPlayer.on(mpegts.Events.MEDIA_INFO, () => { gotMedia = true; });
+  tsPlayer.on(mpegts.Events.ERROR, (type, detail) => {
+    if (my !== playToken) return;
+    console.error('mpegts error', type, detail);
+    if (fallbackNative && !gotMedia) { destroyTs(); curLive = false; playNative(url, my); return; }
+    reconnect(my, url);
+  });
+  tsPlayer.on(mpegts.Events.LOADING_COMPLETE, () => { if (my === playToken) reconnect(my, url); });
+  tryPlay();
+}
+
+function playNative(url, my) {
+  playMode = 'native';
+  video.src = url;
+  video.addEventListener('loadedmetadata', () => { if (my === playToken) tryPlay(); },
+                         { once: true, signal: engineAbort.signal });
+}
+
+function startPlayback(ch) {
+  destroyEngine();
+  const my = ++playToken;
+  const url = ch.u;
+  const type = detectType(url);
+
+  if (type === 'hls') {
+    if (window.Hls && Hls.isSupported()) playHls(url, my);
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) playNative(url, my); // Safari natív HLS
+    else setStatus('A böngésző nem támogatja a HLS-t', 'error');
+  } else if (type === 'ts' || type === 'flv') {
+    playMpegts(url, type, my, true);
+  } else if (type === 'auto') {
+    playMpegts(url, 'ts', my, true);
+  } else {
+    playNative(url, my);
+  }
+  startTicker(my, url);
+}
+
+// Állapotjelzés a videó eseményeiből (egyszer regisztrálva)
+video.addEventListener('playing', () => {
+  if (currentIndex < 0) return;
+  retryCount = 0;
+  setStatus(isLive() ? 'Élő' : 'Lejátszás', 'live');
+});
+video.addEventListener('waiting', () => {
+  if (currentIndex >= 0 && !video.paused && playMode !== 'none') setStatus('Pufferelés...', '');
+});
+video.addEventListener('error', () => {
+  if (playMode !== 'native' || !video.getAttribute('src')) return;
+  const url = video.getAttribute('src');
+  if (isLive()) reconnect(playToken, url);
+  else setStatus(failMsg(url), 'error');
+});
+
 function playChannel(idx) {
   if (idx < 0 || idx >= CHANNELS.length) return;
   currentIndex = idx;
@@ -694,75 +932,8 @@ function playChannel(idx) {
     panel.style.display = 'none';
   }
   
-  // destroy previous
-  if (hls) {
-    hls.destroy();
-    hls = null;
-  }
-  video.removeAttribute('src');
-  video.load();
-  
-  const url = ch.u;
-  const isHls = url.includes('.m3u8') || url.includes('playlist');
-  
-  if (isHls && Hls.isSupported()) {
-    hls = new Hls({
-      enableWorker: true,
-      lowLatencyMode: false,
-      maxBufferLength: 45,
-      maxMaxBufferLength: 90,
-      startLevel: -1,          // auto quality
-      capLevelToPlayerSize: true,
-      abrEwmaDefaultEstimate: 500000,
-      manifestLoadingTimeOut: 15000,
-      manifestLoadingMaxRetry: 4,
-      levelLoadingTimeOut: 15000,
-      levelLoadingMaxRetry: 4,
-      fragLoadingTimeOut: 20000,
-      fragLoadingMaxRetry: 6,
-    });
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      setStatus('Élő', 'live');
-      video.play().catch(() => setStatus('Kattints a play-re', ''));
-    });
-    hls.on(Hls.Events.ERROR, (e, data) => {
-      console.warn('HLS error', data.type, data.details, data.fatal);
-      if (data.fatal) {
-        switch (data.type) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            setStatus('Hálózat hiba – újrapróbálás…', 'error');
-            hls.startLoad();
-            break;
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            setStatus('Média hiba – helyreállítás…', 'error');
-            hls.recoverMediaError();
-            break;
-          default:
-            setStatus('Hiba a streammel', 'error');
-            hls.destroy();
-            break;
-        }
-      }
-    });
-  } else if (video.canPlayType('application/vnd.apple.mpegurl') && isHls) {
-    // Safari native HLS
-    video.src = url;
-    video.addEventListener('loadedmetadata', () => {
-      setStatus('Élő', 'live');
-      video.play().catch(() => {});
-    }, { once: true });
-    video.addEventListener('error', () => setStatus('Hiba a streammel', 'error'), { once: true });
-  } else {
-    // progressive / mp4 / webm
-    video.src = url;
-    video.addEventListener('loadeddata', () => {
-      setStatus('Lejátszás', 'live');
-      video.play().catch(() => {});
-    }, { once: true });
-    video.addEventListener('error', () => setStatus('Hiba a streammel', 'error'), { once: true });
-  }
+  retryCount = 0;
+  startPlayback(ch);
   
   renderChannels(); // update active state
   // scroll active into view
@@ -796,4 +967,3 @@ renderChannels();
 </script>
 </body>
 </html>
-
