@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Magyar IPTV Lejátszó + EPG</title>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
 <style>
   :root {
     --bg: #0f0f13;
@@ -330,7 +330,7 @@
       <video id="video" controls playsinline></video>
       <div class="overlay-msg" id="overlay">
         <div class="big">▶️</div>
-        <p>Válassz egy csatornát vagy filmet a bal oldali listából a lejátszáshoz.</p>
+        <p>Válassz egy csatornát vagy filmet a bal oldali listából a lejátszáshoz.<br><small style='opacity:0.7'>HLS.js + automatikus minőség</small></p>
       </div>
     </div>
     <div class="now-playing" id="nowPlaying" style="display:none">
@@ -709,7 +709,17 @@ function playChannel(idx) {
     hls = new Hls({
       enableWorker: true,
       lowLatencyMode: false,
-      maxBufferLength: 30,
+      maxBufferLength: 45,
+      maxMaxBufferLength: 90,
+      startLevel: -1,          // auto quality
+      capLevelToPlayerSize: true,
+      abrEwmaDefaultEstimate: 500000,
+      manifestLoadingTimeOut: 15000,
+      manifestLoadingMaxRetry: 4,
+      levelLoadingTimeOut: 15000,
+      levelLoadingMaxRetry: 4,
+      fragLoadingTimeOut: 20000,
+      fragLoadingMaxRetry: 6,
     });
     hls.loadSource(url);
     hls.attachMedia(video);
@@ -718,9 +728,22 @@ function playChannel(idx) {
       video.play().catch(() => setStatus('Kattints a play-re', ''));
     });
     hls.on(Hls.Events.ERROR, (e, data) => {
+      console.warn('HLS error', data.type, data.details, data.fatal);
       if (data.fatal) {
-        setStatus('Hiba a streammel', 'error');
-        console.error('HLS error', data);
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            setStatus('Hálózat hiba – újrapróbálás…', 'error');
+            hls.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            setStatus('Média hiba – helyreállítás…', 'error');
+            hls.recoverMediaError();
+            break;
+          default:
+            setStatus('Hiba a streammel', 'error');
+            hls.destroy();
+            break;
+        }
       }
     });
   } else if (video.canPlayType('application/vnd.apple.mpegurl') && isHls) {
