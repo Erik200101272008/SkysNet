@@ -726,11 +726,24 @@ function showOverlay(title, desc, buttons) {
     actions.style.display = 'flex';
     actions.innerHTML = '';
     buttons.forEach(b => {
-      const btn = document.createElement('button');
-      btn.className = 'btn' + (b.cls ? ' ' + b.cls : '');
-      btn.textContent = b.label;
-      btn.onclick = b.onClick;
-      actions.appendChild(btn);
+      let el;
+      if (b.href) {
+        // Real <a href> — top-level / new-tab navigation avoids mixed content block
+        el = document.createElement('a');
+        el.href = b.href;
+        if (b.target) el.target = b.target;
+        el.rel = 'noopener noreferrer';
+        el.className = 'btn' + (b.cls ? ' ' + b.cls : '');
+        el.textContent = b.label;
+        el.style.textDecoration = 'none';
+        el.style.display = 'inline-block';
+      } else {
+        el = document.createElement('button');
+        el.className = 'btn' + (b.cls ? ' ' + b.cls : '');
+        el.textContent = b.label;
+        el.onclick = b.onClick;
+      }
+      actions.appendChild(el);
     });
   } else {
     actions.style.display = 'none';
@@ -777,30 +790,35 @@ function playChannel(idx, forceMixed) {
   const isHttpStream = url.startsWith('http:');
   const isHls = url.includes('.m3u8') || url.includes('playlist') || url.includes('/live/');
 
-  // Mixed content: soft warning first, allow retry after user enables insecure content
+  // Mixed content: prefer real <a href> navigation (no mixed content block),
+  // plus optional in-page play after user allows insecure content.
   if (isHttpsPage && isHttpStream && !forceMixed) {
     showOverlay(
       'HTTP stream HTTPS oldalon',
-      'Ez a csatorna HTTP-n megy. A böngésző alapból blokkolja (mixed content).\n\nHa már engedélyezted a nem biztonságos tartalmat a címsor ikonján, nyomd meg a gombot. Ha nem, előbb engedd engedélyezni, frissíts, majd próbáld újra.',
+      'Ez a csatorna HTTP-n megy, ezért a böngésző az oldalon belül blokkolja.\n\n' +
+      'Megoldás: nyisd meg a streamet közvetlenül (új lap) — ez nem mixed content, mert a böngésző elhagyja a HTTPS oldalt.\n\n' +
+      'Ha inkább itt szeretnéd nézni: engedd a „Nem biztonságos tartalmat” a címsor ikonján, majd „Próbáld az oldalon”.',
       [
-        { label: 'Próbáld meg lejátszani', cls: 'warning', onClick: () => { hideOverlay(); playChannel(idx, true); } },
-        { label: 'Hogyan engedélyezem?', cls: 'secondary', onClick: () => {
+        { label: 'Megnyitás új lapon (href)', cls: 'warning', href: url, target: '_blank' },
+        { label: 'Próbáld az oldalon', cls: 'secondary', onClick: () => { hideOverlay(); playChannel(idx, true); } },
+        { label: 'Hogyan engedélyezem itt?', cls: 'secondary', onClick: () => {
           showOverlay(
-            'Mixed content engedélyezése',
+            'Mixed content engedélyezése (oldalon belüli lejátszáshoz)',
             `<div class="steps"><ol>
-              <li><b>Chrome / Edge:</b> Kattints a címsor bal oldalán a lakat vagy pajzs ikonra → „Nem biztonságos tartalom” / „Insecure content” → <b>Engedélyezés</b> → frissítsd az oldalt (F5).</li>
-              <li><b>Firefox:</b> A címsorban a pajzs ikon, vagy about:config → <code>security.mixed_content.block_active_content</code> = <b>false</b> (csak ideiglenesen!).</li>
-              <li><b>Legbiztonságosabb:</b> Nyisd meg ezt a HTML fájlt helyileg (húzd a böngészőbe) vagy szolgáld HTTP-n.</li>
+              <li><b>Chrome / Edge:</b> Címsor bal oldali lakat/pajzs → „Nem biztonságos tartalom” → <b>Engedélyezés</b> → F5.</li>
+              <li><b>Firefox:</b> pajzs ikon, vagy about:config → <code>security.mixed_content.block_active_content</code> = false.</li>
+              <li><b>Ajánlott:</b> használd a „Megnyitás új lapon” gombot, vagy nyisd meg a playert helyileg / HTTP-n.</li>
             </ol></div>`,
             [
-              { label: 'Vissza és próbálom', cls: 'warning', onClick: () => { hideOverlay(); playChannel(idx, true); } },
+              { label: 'Megnyitás új lapon', cls: 'warning', href: url, target: '_blank' },
+              { label: 'Próbáld az oldalon', cls: 'secondary', onClick: () => { hideOverlay(); playChannel(idx, true); } },
               { label: 'Bezár', cls: 'secondary', onClick: hideOverlay }
             ]
           );
         }}
       ]
     );
-    setStatus('HTTP – engedély szükséges', 'mixed');
+    setStatus('HTTP – nyisd új lapon', 'mixed');
     renderChannels();
     return;
   }
@@ -812,12 +830,17 @@ function playChannel(idx, forceMixed) {
     showOverlay(
       isMixed ? 'Mixed Content / Stream hiba' : 'Hiba a stream betöltésekor',
       isMixed
-        ? 'A böngésző valószínűleg blokkolta a HTTP streamet.\n\nChrome / Edge: címsor lakat/pajzs → Nem biztonságos tartalom → Engedélyezés → F5 → Próbáld újra.\n\nAlternatíva: nyisd meg a fájlt helyileg (file://) vagy HTTP szerveren.'
+        ? 'A böngésző blokkolta a HTTP streamet az oldalon belül.\n\nNyisd meg közvetlenül új lapon (href), vagy engedélyezd a nem biztonságos tartalmat, majd próbáld újra.'
         : (detail || 'A forrás nem elérhető, vagy a formátum nem támogatott.'),
-      [
-        { label: 'Próbáld meg újra', cls: 'warning', onClick: () => { hideOverlay(); playChannel(idx, true); } },
-        { label: 'Stream URL megnyitása', cls: 'secondary', onClick: () => window.open(url, '_blank') }
-      ]
+      isMixed
+        ? [
+            { label: 'Megnyitás új lapon (href)', cls: 'warning', href: url, target: '_blank' },
+            { label: 'Próbáld újra az oldalon', cls: 'secondary', onClick: () => { hideOverlay(); playChannel(idx, true); } }
+          ]
+        : [
+            { label: 'Próbáld meg újra', cls: 'warning', onClick: () => { hideOverlay(); playChannel(idx, true); } },
+            { label: 'Stream URL megnyitása', cls: 'secondary', href: url, target: '_blank' }
+          ]
     );
     setStatus(isMixed ? 'Mixed content' : 'Hiba', isMixed ? 'mixed' : 'error');
   };
@@ -891,4 +914,3 @@ renderChannels();
 </script>
 </body>
 </html>
-
