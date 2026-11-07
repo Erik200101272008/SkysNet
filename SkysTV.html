@@ -2,53 +2,84 @@
 <html lang="hu">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <link rel="shortcut icon" type="image/png" href="SkysTV.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/png" href="skysnet.png">
   <title>SkysTV • 24/7</title>
   <style>
-    body { margin:0; background:#000; overflow:hidden; font-family:Arial, sans-serif; color:#fff; }
-    #container { position:relative; width:100vw; height:100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #000; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; color: #fff; }
+    #container { position: relative; width: 100vw; height: 100vh; }
+    #player { width: 100%; height: 100%; border: none; background: #000; }
 
-    #player { width:100%; height:100%; border:none; background:#000; }
+    #top-bar {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+      pointer-events: none;
+    }
+    #top-bar a, #top-bar button { pointer-events: auto; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; padding: 8px 14px; border-radius: 8px; text-decoration: none;
+      font-size: 0.9rem; font-weight: 500; transition: background 0.2s;
+    }
+    .back-btn:hover { background: rgba(229,9,20,0.8); border-color: transparent; }
+    #logo-overlay img { height: 56px; width: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8)); opacity: 0.95; }
 
     #overlay-bottom {
-      position: absolute; bottom:12px; left:12px; right:12px;
-      background:rgba(0,0,0,0.75); padding:12px 16px; border-radius:8px;
-      display:flex; justify-content:space-between; align-items:center; font-size:1.1rem;
-      z-index:10; pointer-events:none; box-shadow:0 4px 15px rgba(0,0,0,0.6);
+      position: absolute; bottom: 12px; left: 12px; right: 12px;
+      background: rgba(0,0,0,0.8); padding: 12px 16px; border-radius: 10px;
+      display: flex; justify-content: space-between; align-items: center; font-size: 1rem;
+      z-index: 10; box-shadow: 0 4px 20px rgba(0,0,0,0.5); gap: 12px; flex-wrap: wrap;
     }
-    #progress { flex:1; margin:0 20px; height:7px; background:#444; border-radius:4px; overflow:hidden; }
-    #progress-bar { width:0%; height:100%; background:linear-gradient(90deg, #e53935, #ff9800); transition:width 0.3s linear; }
-
-    #logo-overlay {
-      position: absolute; top: 16px; left: 16px; z-index: 25; pointer-events: none;
-      opacity: 0.9; transition: opacity 0.3s;
+    #status { font-weight: 500; min-width: 120px; }
+    #progress { flex: 1; min-width: 100px; height: 6px; background: #333; border-radius: 4px; overflow: hidden; }
+    #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #e50914, #ff6b35); transition: width 0.3s linear; }
+    #rating {
+      background: rgba(255,215,0,0.9); color: #000; padding: 4px 10px;
+      border-radius: 4px; font-weight: 700; font-size: 0.9rem; min-width: 44px; text-align: center;
     }
-    #logo-overlay:hover { opacity: 1; }
-    #logo-overlay img { height: 90px; width: auto; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
+    #controls {
+      position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; z-index: 15; opacity: 0; transition: opacity 0.3s;
+    }
+    #container:hover #controls { opacity: 1; }
+    .ctrl-btn {
+      background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .ctrl-btn:hover { background: #e50914; border-color: transparent; }
   </style>
 </head>
 <body>
-
-<div id="logo-overlay">
-  <img src="skystvorigin2.0.png" alt="SkysTV">
-</div>
-
 <div id="container">
+  <div id="top-bar">
+    <a href="fofooldal.html" class="back-btn">← Vissza a SkysNet-re</a>
+    <div id="logo-overlay">
+      <img src="skysnet.png" alt="SkysTV" onerror="this.style.display='none'">
+    </div>
+  </div>
+
   <iframe id="player" src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+
+  <div id="controls">
+    <button class="ctrl-btn" onclick="prevItem()" title="Előző">⏮</button>
+    <button class="ctrl-btn" onclick="togglePlay()" title="Szünet/Lejátszás" id="playBtn">⏸</button>
+    <button class="ctrl-btn" onclick="nextItem()" title="Következő">⏭</button>
+  </div>
 
   <div id="overlay-bottom">
     <span id="status">Betöltés...</span>
-       <div id="progress"><div id="progress-bar"></div></div>
-
-   <span id="rating" style="background:rgba(255,215,0,0.9); color:#000; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:1.05rem; min-width:48px; text-align:center;">12+</span>
+    <div id="progress"><div id="progress-bar"></div></div>
+    <span id="rating">12+</span>
   </div>
 </div>
 
-
 <script>
-// ====================== TELJES PLAYLIST ======================
-// Itt írd be a rating-et minden sor végén: rating: "18+"
 const playlist = [
   
   { url: "https://archive.org/embed/ted-1x-4_202605", duration:2227, title: "Ted 1x4", rating: "+18"},
@@ -166,99 +197,50 @@ const playlist = [
   
 ];
 
-// Reklám (minden film után)
-const ad = {
-  url: "https://vk.com/video_ext.php?oid=1037217102&id=456241239&hash=709d6b0c2411c5bd",
-  duration: 6,
-  title: "Reklám",
-  rating: "12+"
-};
-
-// Véletlen sorrend létrehozása
-function shuffle(array) {
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-  }
-  return newArray;
-}
-
-// Teljes ciklus létrehozása
-let fullPlaylist = [];
-const shuffledMovies = shuffle(playlist);
-shuffledMovies.forEach(movie => {
-  fullPlaylist.push(movie);
-  fullPlaylist.push(ad);
-});
-
 let currentIndex = 0;
-let progressInterval = null;
+let timer = null;
+let elapsed = 0;
+let paused = false;
+const player = document.getElementById('player');
+const statusEl = document.getElementById('status');
+const progressBar = document.getElementById('progress-bar');
+const ratingEl = document.getElementById('rating');
 
-const player = document.getElementById("player");
-const status = document.getElementById("status");
-const ratingEl = document.getElementById("rating");
-const progressBar = document.getElementById("progress-bar");
-
-function updateRating(rating) {
-  if (!rating) rating = "16+";
-  ratingEl.textContent = rating;
-  ratingEl.style.background = rating.includes('18') ? 'rgba(220,20,60,0.95)' : 
-                             rating.includes('16') ? 'rgba(255,140,0,0.95)' : 'rgba(255,215,0,0.9)';
-}
-
-function addAutoplayParam(url) {
-  if (url.includes("archive.org")) {
-    return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
-  }
-  if (url.includes("vk.com") || url.includes("vk.ru")) {
-    return url.includes("?") ? url + "&autoplay=1" : url + "?autoplay=1";
-  }
-  return url;
-}
-
-function startProgress(duration) {
-  progressBar.style.width = "0%";
-  clearInterval(progressInterval);
-  const start = Date.now();
-  progressInterval = setInterval(() => {
-    const elapsed = (Date.now() - start) / 1000;
-    let percent = (elapsed / duration) * 100;
-    if (percent > 100) percent = 100;
-    progressBar.style.width = percent + "%";
-  }, 300);
-}
-
-function playNext() {
-  const video = fullPlaylist[currentIndex];
-  if (!video) {
-    currentIndex = 0;
-    playNext();
+function playItem(index) {
+  if (!playlist.length) {
+    statusEl.textContent = 'Nincs tartalom a lejátszási listában';
     return;
   }
-
-  let src = addAutoplayParam(video.url);
-
-  player.src = src;
-  status.textContent = `${(currentIndex % 2 === 0 ? "🎬" : "📺")} ${video.title}`;
-  
-  updateRating(video.rating);
-
-  startProgress(video.duration);
-
-  setTimeout(() => {
-    currentIndex = (currentIndex + 1) % fullPlaylist.length;
-    playNext();
-  }, (video.duration + 3) * 1000);
+  currentIndex = ((index % playlist.length) + playlist.length) % playlist.length;
+  const item = playlist[currentIndex];
+  player.src = item.url;
+  statusEl.textContent = item.title || ('Epizód ' + (currentIndex + 1));
+  ratingEl.textContent = item.rating || '12+';
+  elapsed = 0;
+  progressBar.style.width = '0%';
+  paused = false;
+  document.getElementById('playBtn').textContent = '⏸';
+  clearInterval(timer);
+  const duration = item.duration || 3600;
+  timer = setInterval(() => {
+    if (paused) return;
+    elapsed++;
+    const pct = Math.min(100, (elapsed / duration) * 100);
+    progressBar.style.width = pct + '%';
+    if (elapsed >= duration) nextItem();
+  }, 1000);
 }
 
-// Indítás
-playNext();
+function nextItem() { playItem(currentIndex + 1); }
+function prevItem() { playItem(currentIndex - 1); }
+function togglePlay() {
+  paused = !paused;
+  document.getElementById('playBtn').textContent = paused ? '▶' : '⏸';
+}
 
-// Autoplay támogatás
-document.addEventListener("click", () => {
-  if (player.paused) player.play();
-}, { once: true });
+// Start
+if (playlist.length) playItem(0);
+else statusEl.textContent = 'Üres lejátszási lista';
 </script>
 </body>
 </html>
