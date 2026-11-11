@@ -4,55 +4,237 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="shortcut icon" type="image/png" href="skysnet.png">
-  <title>SkysTV • 24/7</title>
+  <title>SkysTV • Karácsony 24/7</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #000; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; color: #fff; }
-    #container { position: relative; width: 100vw; height: 100vh; }
-    #player { width: 100%; height: 100%; border: none; background: #000; }
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    #container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+    }
+    #player {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000;
+    }
 
+    /* Top bar */
     #top-bar {
-      position: absolute; top: 0; left: 0; right: 0; z-index: 30;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
       pointer-events: none;
+      transition: opacity 0.35s;
     }
     #top-bar a, #top-bar button { pointer-events: auto; }
     .back-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
-      color: #fff; padding: 8px 14px; border-radius: 8px; text-decoration: none;
-      font-size: 0.9rem; font-weight: 500; transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: #fff;
+      padding: 9px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
     }
-    .back-btn:hover { background: rgba(229,9,20,0.8); border-color: transparent; }
-    #logo-overlay img { height: 56px; width: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8)); opacity: 0.95; }
+    .back-btn:hover {
+      background: rgba(229,9,20,0.85);
+      border-color: transparent;
+      transform: translateY(-1px);
+    }
+    #logo-overlay img {
+      height: 52px;
+      width: auto;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.85));
+      opacity: 0.95;
+    }
 
+    /* Bottom overlay */
     #overlay-bottom {
-      position: absolute; bottom: 12px; left: 12px; right: 12px;
-      background: rgba(0,0,0,0.8); padding: 12px 16px; border-radius: 10px;
-      display: flex; justify-content: space-between; align-items: center; font-size: 1rem;
-      z-index: 10; box-shadow: 0 4px 20px rgba(0,0,0,0.5); gap: 12px; flex-wrap: wrap;
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(8px);
+      padding: 12px 18px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 30;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.55);
+      transition: opacity 0.35s;
     }
-    #status { font-weight: 500; min-width: 120px; }
-    #progress { flex: 1; min-width: 100px; height: 6px; background: #333; border-radius: 4px; overflow: hidden; }
-    #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #e50914, #ff6b35); transition: width 0.3s linear; }
+    #status {
+      font-weight: 600;
+      font-size: 0.95rem;
+      min-width: 0;
+      flex: 1 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #time-display {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.75);
+      font-variant-numeric: tabular-nums;
+      min-width: 92px;
+      text-align: right;
+    }
+    #progress {
+      flex: 1.4 1 140px;
+      height: 6px;
+      background: #2a2a2a;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: default;
+    }
+    #progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #e50914, #ff6b35);
+      border-radius: 4px;
+      transition: width 0.35s linear;
+    }
     #rating {
-      background: rgba(255,215,0,0.9); color: #000; padding: 4px 10px;
-      border-radius: 4px; font-weight: 700; font-size: 0.9rem; min-width: 44px; text-align: center;
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      min-width: 48px;
+      text-align: center;
+      letter-spacing: 0.02em;
+      transition: background 0.2s, color 0.2s;
     }
+    #rating.rating-18 {
+      background: #e50914;
+      color: #fff;
+    }
+    #rating.rating-yellow {
+      background: rgba(255, 215, 0, 0.95);
+      color: #111;
+    }
+
+    /* Controls */
     #controls {
-      position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; z-index: 15; opacity: 0; transition: opacity 0.3s;
+      position: absolute;
+      bottom: 88px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 35;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
     }
-    #container:hover #controls { opacity: 1; }
+    #container:hover #controls,
+    #controls.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
     .ctrl-btn {
-      background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.25);
-      color: #fff; width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; font-size: 1rem;
-      transition: background 0.2s;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,255,255,0.28);
+      color: #fff;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
     }
-    .ctrl-btn:hover { background: #e50914; border-color: transparent; }
+    .ctrl-btn:hover {
+      background: #e50914;
+      border-color: transparent;
+      transform: scale(1.06);
+    }
+    .ctrl-btn:active { transform: scale(0.96); }
+
+    /* Loading indicator */
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.55);
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #loading.show { opacity: 1; }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: #e50914;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Help tooltip */
+    #help {
+      position: absolute;
+      top: 70px;
+      right: 18px;
+      background: rgba(0,0,0,0.8);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.8);
+      z-index: 25;
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+      line-height: 1.45;
+    }
+    #help.show { opacity: 1; }
+
+    /* Hide UI after inactivity */
+    body.idle #top-bar,
+    body.idle #overlay-bottom,
+    body.idle #controls {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.idle #controls { opacity: 0 !important; }
+
+    @media (max-width: 600px) {
+      #overlay-bottom {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 14px;
+      }
+      #status { font-size: 0.88rem; }
+      #time-display { min-width: 80px; font-size: 0.8rem; }
+      .ctrl-btn { width: 44px; height: 44px; }
+      #logo-overlay img { height: 42px; }
+    }
   </style>
 </head>
 <body>
@@ -60,187 +242,227 @@
   <div id="top-bar">
     <a href="fofooldal.html" class="back-btn">← Vissza a SkysNet-re</a>
     <div id="logo-overlay">
-      <img src="skysnet.png" alt="SkysTV" onerror="this.style.display='none'">
+      <img src="téliskysnet.png" alt="SkysTV" onerror="this.style.display='none'">
     </div>
   </div>
 
-  <iframe id="player" src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+  <div id="loading"><div class="spinner"></div></div>
+
+  <iframe id="player"
+          src=""
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade">
+  </iframe>
 
   <div id="controls">
-    <button class="ctrl-btn" onclick="prevItem()" title="Előző">⏮</button>
-    <button class="ctrl-btn" onclick="togglePlay()" title="Szünet/Lejátszás" id="playBtn">⏸</button>
-    <button class="ctrl-btn" onclick="nextItem()" title="Következő">⏭</button>
+    <button class="ctrl-btn" onclick="prevItem()" title="Előző (←)">⏮</button>
+    <button class="ctrl-btn" onclick="togglePlay()" title="Szünet / Lejátszás (Space)" id="playBtn">⏸</button>
+    <button class="ctrl-btn" onclick="nextItem()" title="Következő (→)">⏭</button>
   </div>
 
   <div id="overlay-bottom">
     <span id="status">Betöltés...</span>
     <div id="progress"><div id="progress-bar"></div></div>
+    <span id="time-display">0:00 / 0:00</span>
     <span id="rating">12+</span>
   </div>
-</div>
+
+  
 
 <script>
+// ====================== PLAYLIST ======================
 const playlist = [
-  
-  { url: "https://archive.org/embed/ted-1x-4_202605", duration:2227, title: "Ted 1x4", rating: "+18"},
-  { url: "https://archive.org/embed/a-sotetseg-titkai", duration:4869, title: "A sötétség titkai", rating: "+16" },
-  { url: "https://archive.org/embed/a-bebiszitter", duration:5121, title: "A bébiszitter", rating: "+18" },
-  { url: "https://archive.org/embed/a-bebiszitter-2", duration:6146, title: "A bébiszitter: A kárhozottak királynője", rating: "+18" },
-  { url: "https://archive.org/embed/fear-street-1994", duration:6437, title: "Fear Street 1994", rating: "+18" },
-  { url: "https://archive.org/embed/fear-street-1978", duration:6657, title: "Fear Street 1978", rating: "+18" },
-  { url: "https://archive.org/embed/fear-street-1666", duration:6866, title: "Fear Street 1666", rating: "+18" },
-  { url: "https://archive.org/embed/nappali-muszak", duration:6800, title: "Nappali műszak", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239746&hd=2&autoplay=1", duration:8258, title: "Bünösök", rating: "+18" },
-  { url: "https://archive.org/embed/Penge", duration:7216, title: "Penge", rating: "+18" },
-  { url: "https://archive.org/embed/penge-2", duration:7013, title: "Penge 2", rating: "+18" }, 
-  { url: "https://archive.org/embed/penge-szentharomsag", duration:7341, title: "Penge 3", rating: "+18" },
-  { url: "https://archive.org/embed/szadra-ne-vedd", duration:6602, title: "Szádra ne vedd", rating: "+18" },
-  { url: "https://archive.org/embed/vegso-allomaas-1", duration:5882, title: "Végső állomás", rating: "+18" },
-  { url: "https://archive.org/embed/vegso-allomas-2", duration:5411, title: "Végső állomás 2", rating: "+18" },
-  { url: "https://archive.org/embed/vegso-allomas-3", duration:5570, title: "Végső állomás 3", rating: "+18" },
-  { url: "https://archive.org/embed/abigail_202605", duration:6571, title: "Abigail", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239254&hd=1&autoplay=1", duration:5732, title: "Rémálom az Elm utcában", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239535&hd=2&autoplay=1", duration:6671, title: "Sikoly", rating: "+18" },
-  { url: "https://archive.org/embed/farkasember_202605", duration:6165, title: "Farkasember(2025)", rating: "+18" },
-  { url: "https://archive.org/embed/nosferatu_202605", duration:7959, title: "Nosferatu", rating: "+18" },
-  { url: "https://archive.org/embed/a-mumia_202605", duration:7493, title: "A múmia", rating: "+16" },
-  { url: "https://archive.org/embed/a-mumia-visszater", duration:7778, title: "A múmia visszatér", rating: "+16" },
-  { url: "https://archive.org/embed/a-papa-ordoguzoje_202605", duration:6210, title: "A pápa ördögűzője", rating: "+18" },
-  { url: "https://archive.org/embed/ordoguzes_202605", duration:5734, title: "Ördögűzés", rating: "+18" },
-  { url: "https://archive.org/embed/a-kaptar", duration:6031, title: "A kaptár", rating: "+18" }, 
-  { url: "https://archive.org/embed/a-kaptar-2-apokalipszis", duration:5628, title: "A kaptár 2: Apokalipszis", rating: "+18" },
-  { url: "https://archive.org/embed/a-kaptar-3", duration:5659, title: "A kaptár 3: Teljes pusztulás", rating: "+18" },
-  { url: "https://archive.org/embed/a-kaptar-4-tulvilag", duration:5812, title: "A kaptár: Túlvilág", rating: "+18" },
-  { url: "https://archive.org/embed/a-kaptar-5-megtorlas", duration:5737, title: "A kaptár 5: Megtorlás", rating: "+18" },
-  { url: "https://archive.org/embed/a-kaptar-6-utolso-fejezet", duration:6393, title: "A kaptár 6: Utolsó fejezet", rating: "+18" },
-  { url: "https://archive.org/embed/doom_20260515", duration:6764, title: "Doom", rating: "+18" },
-  { url: "https://archive.org/embed/carrie_202605", duration:6056, title: "Carrie", rating: "+18" },
-  { url: "https://archive.org/embed/tuzgyujto", duration:5660, title: "Tűzgyújtó", rating: "+18" },
-  { url: "https://archive.org/embed/feher-ejszakak_202605", duration:8825, title: "Fehér éjszakák", rating: "+18" },
-  { url: "https://archive.org/embed/underworld_202605", duration:6972, title: "Underworld", rating: "+18" },
-  { url: "https://archive.org/embed/underworld-evolution_202605", duration:6384, title: "Underworld: Evolúció", rating: "+18" },
-  { url: "https://archive.org/embed/underworld-a-verfarkasok-lazadasa", duration:5548, title: "Underworld: A vérfarkasok lázadása", rating: "+18" },
-  { url: "https://archive.org/embed/underworld-az-ebredes", duration:5314, title: "Underworld: Az ébredés ", rating: "+18" },
-  { url: "https://archive.org/embed/underworld-verozon", duration:5492, title: "Underworld: Vérözön", rating: "+18" },
-  { url: "https://archive.org/embed/alien-romulus_202606", duration:7185, title: "Alien: Romulus", rating: "+18" },
-  { url: "https://archive.org/embed/alkonyattol-pirkadatig", duration:6470, title: "Alkonyattól pirkadatig", rating: "+18" },
-  { url: "https://archive.org/embed/boszorkanyvadaszok_202606", duration:5876, title: "Boszorkányvadászok", rating: "+16" },
-  { url: "https://archive.org/embed/az-ordog-ugyvedje", duration:8635, title: "Az ördög ügyvédje", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239426&hd=2&autoplay=1", duration:8320, title: "Harry Potter és a bölcsek köve", rating: "+12" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239427&hd=2&autoplay=1", duration:9658, title: "Harry Potter és a titkok kamrája", rating: "+12" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239428&hd=2&autoplay=1", duration:8152, title: "Harry Potter és az Azkabani fogoly", rating: "+12" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239430&hd=2&autoplay=1", duration:8296, title: "Harry Potter és a főnix rendje", rating: "+12" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239432&hd=2&autoplay=1", duration:8766, title: "Harry Potter és a Halál ereklyéi 1.rész", rating: "+12"},
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239433&hd=2&autoplay=1", duration:7828, title: "Harry Potter és a Halál ereklyéi 2.rész", rating: "+12" },
-  { url: "https://archive.org/embed/Pokolfajzat", duration:7318, title: "Pokolfajzat", rating: "+16" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241135&autoplay=1", duration:5914, title: "A csúcs", rating: "+18" },
-  { url: "https://archive.org/embed/a-pap", duration:5247, title: "A pap: Háború a vámpírok ellen", rating: "+18" },
-  { url: "https://archive.org/embed/watch-viasztestek-2005-mp-4-voe-content-delivery-network-cdn-vid", duration:6486, title: "Viasztestek", rating: "+18" },
-  { url: "https://archive.org/embed/menekulj", duration:5049, title: "Menekülj!", rating: "+18" },
-  { url: "https://archive.org/embed/interju-a-vampirral-byse", duration:7329, title: "Interjú a vámrírral", rating: "+16" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240213&hd=1&autoplay=1", duration:6590, title: "Victor Frankeinstein", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240214&hd=1&autoplay=1", duration:6302, title: "Abraham Lincoln, a vámpírvadász", rating: "+16" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240274&hd=1&autoplay=1", duration:5264, title: "Zombieland", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240275&hd=1&autoplay=1", duration:5942, title: "Zombieland: A második lövés", rating: "+18" },
-  { ur: "https://vk.com/video_ext.php?oid=1037217102&id=456240696&hd=1&autoplay=1", duration:7898, title: "Van Helsing", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240697&hd=1&autoplay=1", duration:5484, title: "Az átok", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240450&hd=1&autoplay=1", duration:4992, title: "Scooby-Doo: A nagy csapat", rating: "+12" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240451&hd=1&autoplay=1", duration:5340, title: "Scooby-Doo: Szörnyek póráz nélkül", rating: "+12" },
-  { url: "https://archive.org/embed/halalod-appja", duration:5440, title: "Halálod appja", rating: "+18" },
-  { url: "https://archive.org/embed/boldog-halalnapot_202609", duration:5771, title: "Boldog halálnapot", rating: "+18" },
-  { url: "https://archive.org/embed/boldog-halalnapot-2_202609", duration:5996, title: "Boldog halálnapot 2", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240757&hd=2&autoplay=1", duration:5458, title: "Halloween", rating: "+18" },
-  { url: "https://archive.org/embed/venom_20260507", duration:6728, title: "Venom", rating: "+16" },
-  { url: "https://archive.org/embed/venom-2_202605", duration:5838, title: "Venom 2: Vérontó", rating: "+16" },
-  { url: "https://archive.org/embed/venom-3-az-utolso-menet", duration:6535, title: "Venom 3: Az utolsó menet", rating: "+16" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239717&hd=1&autoplay=1", duration:6444, title: "Démonok között", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239718&hd=1&autoplay=1", duration:8034, title: "Démonok között 2", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239719&hd=1&autoplay=1", duration:6712, title: "Démonok között 3", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456240690&hd=2&autoplay=1", duration:8152, title: "Démonok között: Az utolsó rítusok", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239536&hd=2&autoplay=1", duration:7220, title: "Sikoly 2", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239537&hd=1&autoplay=1", duration:7016, title: "Sikoly 3", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239538&hd=1&autoplay=1", duration:6640, title: "Sikoly 4", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239540&hd=1&autoplay=1", duration:6578, title: "Sikoly 5", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239541&hd=2&autoplay=1", duration:7352, title: "Sikoly 6", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239245&hd=1&autoplay=1", duration:6126, title: "Freaky", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239887&hd=1&autoplay=1", duration:5596, title: "A gyászoló asszony átka", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456239715&hd=1&autoplay=1", duration:5364, title: "A rettegés háza", rating: "+18" },
-  { url: "https://archive.org/embed/farkas-hd-1994", duration:7520, title: "Farkas (1994)", rating: "+16" },
-  { url: "https://archive.org/embed/family-guy-happy-hell-o-ween", duration:1319, title: "Family Guy: Happy Hell-o-ween", rating: "+18"},
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240096&hd=1&autoplay=1", duration:6936, title: "Mosolyogj", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240097&hd=2&autoplay=1", duration:7760, title: "Mosolyogj 2", rating: "+18" },
-  { url: "https://archive.org/embed/halalsip", duration:6014, title: "Halálsíp", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456241135&autoplay=1", duration:5914, title: "Csúcs", rating: "+18" },
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240971&autoplay=1", duration:5334, title: "Szeplőtlen", rating: "+18" }, 
-  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240747&hd=1&autoplay=1", duration:5992, title: "A lány és a farkas", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456240757&hd=2&autoplay=1", duration:5458, title: "Halloween: A rémület éjszakája", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456240758&hd=1&autoplay=1", duration:6348, title: "Halloween", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456240759&hd=1&autoplay=1", duration:6308, title: "Gyilkos Halloween", rating: "+18" },
-  { url: "https://vk.ru/video_ext.php?oid=1037217102&id=456240760&hd=2&autoplay=1", duration:6654, title: "A Halloween véget ér", rating: "+18" },
-  { url: "https://archive.org/embed/a-baranyok-hallgatnak", duration:7111, title: "A bárányok hallgatnak", rating: "+18" },
-  { url: "https://archive.org/embed/tokeletes-katona-4", duration:6818, title: "Tökéletes katona 4: A leszámolás napja", rating: "+18" },
-  { url: "https://archive.org/embed/ordoguzo", duration:7042, title: "Az ördögűző", rating: "+18" },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239243&hd=1&autoplay=1", duration: 5982, title: "Megjött apuci 2", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239063&hd=1&autoplay=1", duration: 7234, title: "Utánátunk a tűzözön", rating: "+16" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239103&hd=1&autoplay=1", duration: 6260, title: "Négy tesó", rating: "+16" },
+  { url: "https://archive.org/embed/mar-megint-pentek", duration: 4849, title: "Már megint péntek", rating: "+16" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240859&hd=1&autoplay=1", duration: 6304, title: "A Grincs", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240864&hd=1&autoplay=1", duration: 5026, title: "Karácsony 12 kiskutyája", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456239870&hd=1&autoplay=1", duration: 1614, title: "Shrekből az angyal", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240876&hd=1&autoplay=1", duration: 5372, title: "Hull a pelyhes", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240881&hd=1&autoplay=1", duration: 6934, title: "Télbratyó", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240878&hd=1&autoplay=1", duration: 5830, title: "Télapu", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240879&hd=1&autoplay=1", duration: 6264, title: "Télapu 2: Veszélyben a karácsony", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240880&hd=1&autoplay=1", duration: 5292, title: "Télapu 3: A szánbitorló", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240906&hd=1&autoplay=1", duration: 5314, title: "Négy karácsony", rating: "+12" },
+  { url: "https://archive.org/embed/terrifier-3_202611", duration: 7495, title: "Terrifier 3: A Bohócrém karácsonya", rating: "+18" },
+  { url: "https://archive.org/embed/Verapo", duration: 6691, title: "Vérapó", rating: "+18" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240911&hd=1&autoplay=1", duration: 6648, title: "Nagykarácsony", rating: "+12" },
+  { url: "https://archive.org/embed/koztunk-elo-angyalok_202611", duration: 7069, title: "Köztünk élő angyalok", rating: "+12" },
+  { url: "https://archive.org/embed/ted-1x-6_202605", duration: 2630, title: "Ted 1x6", rating: "+18" },
+  { url: "https://archive.org/embed/csak-baratok", duration: 5656, title: "Csak barátok", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240908&hd=1&autoplay=1", duration: 6176, title: "Reszkessetek betörők", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240909&hd=1&autoplay=1", duration: 7202, title: "Reszkessetek betörők 2", rating: "+12" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240910&hd=1&autoplay=1", duration: 5040, title: "Reszkessetek betörők 4", rating: "+12" },
+  { url: "https://archive.org/embed/mult-karacsony", duration: 6169, title: "Múlt karácsony", rating: "+12" },
+  { url: "https://archive.org/embed/family-guy-3x-16", duration: 1297, title: "Family Guy 3x16", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-9x-7", duration: 2517, title: "Family Guy 9x7", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-11x-8", duration: 1299, title: "Family Guy 11x8", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-12x-8", duration: 1299, title: "Family Guy 12x8", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-13x-6", duration: 1291, title: "Family Guy 13x6", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-15x-9", duration: 1297, title: "Family Guy 15x9", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-16x-9", duration: 1295, title: "Family Guy 16x9", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-19x-9", duration: 1298, title: "Family Guy 19x9", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-20x-10", duration: 1308, title: "Family Guy 20x10", rating: "+18" },
+  { url: "https://archive.org/embed/family-guy-22x-9", duration: 1298, title: "Family Guy 22x9", rating: "+18" },
+  { url: "https://vk.com/video_ext.php?oid=1037217102&id=456240673&hd=1&autoplay=1", duration: 2532, title: "Smallville 5x9", rating: "+12" },
+  { url: "https://archive.org/embed/a-hullaho-akcio_202605", duration:7475, title: "A hullahó-akció", rating: "+12" },
 ];
 
 let currentIndex = 0;
 let timer = null;
 let elapsed = 0;
 let paused = false;
+let idleTimer = null;
+
 const player = document.getElementById('player');
 const statusEl = document.getElementById('status');
 const progressBar = document.getElementById('progress-bar');
 const ratingEl = document.getElementById('rating');
+const timeEl = document.getElementById('time-display');
+const loadingEl = document.getElementById('loading');
+const helpEl = document.getElementById('help');
+const controlsEl = document.getElementById('controls');
+
+function formatTime(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function setRatingStyle(rating) {
+  const r = (rating || '12+').toString().toLowerCase().replace(/\s/g, '');
+  ratingEl.classList.remove('rating-18', 'rating-yellow');
+  if (r.includes('18')) {
+    ratingEl.classList.add('rating-18');
+  } else {
+    ratingEl.classList.add('rating-yellow');
+  }
+}
+
+function showLoading(show) {
+  loadingEl.classList.toggle('show', !!show);
+}
 
 function playItem(index) {
   if (!playlist.length) {
     statusEl.textContent = 'Nincs tartalom a lejátszási listában';
     return;
   }
+
   currentIndex = ((index % playlist.length) + playlist.length) % playlist.length;
   const item = playlist[currentIndex];
+
+  showLoading(true);
   player.src = item.url;
+
   statusEl.textContent = item.title || ('Epizód ' + (currentIndex + 1));
   ratingEl.textContent = item.rating || '12+';
+  setRatingStyle(item.rating);
+
   elapsed = 0;
   progressBar.style.width = '0%';
   paused = false;
   document.getElementById('playBtn').textContent = '⏸';
+
   clearInterval(timer);
   const duration = item.duration || 3600;
+
+  timeEl.textContent = `0:00 / ${formatTime(duration)}`;
+
+  // Kis késleltetés a loading eltüntetésére (iframe betöltés)
+  setTimeout(() => showLoading(false), 1200);
+
   timer = setInterval(() => {
     if (paused) return;
     elapsed++;
     const pct = Math.min(100, (elapsed / duration) * 100);
     progressBar.style.width = pct + '%';
+    timeEl.textContent = `${formatTime(elapsed)} / ${formatTime(duration)}`;
     if (elapsed >= duration) nextItem();
   }, 1000);
+
+  resetIdle();
 }
 
 function nextItem() { playItem(currentIndex + 1); }
 function prevItem() { playItem(currentIndex - 1); }
+
 function togglePlay() {
   paused = !paused;
   document.getElementById('playBtn').textContent = paused ? '▶' : '⏸';
+  resetIdle();
 }
 
-// Start
-if (playlist.length) playItem(0);
-else statusEl.textContent = 'Üres lejátszási lista';
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  } else {
+    document.exitFullscreen?.();
+  }
+}
+
+function resetIdle() {
+  document.body.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    document.body.classList.add('idle');
+  }, 4000);
+}
+
+// Billentyűzet
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  switch (e.code) {
+    case 'Space':
+      e.preventDefault();
+      togglePlay();
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      prevItem();
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      nextItem();
+      break;
+    case 'KeyF':
+      e.preventDefault();
+      toggleFullscreen();
+      break;
+  }
+  resetIdle();
+});
+
+// Egér mozgás / érintés → UI megjelenik
+['mousemove', 'mousedown', 'touchstart', 'touchmove'].forEach(evt => {
+  document.addEventListener(evt, resetIdle, { passive: true });
+});
+
+// Segítség megjelenítése pár másodpercig induláskor
+setTimeout(() => {
+  helpEl.classList.add('show');
+  setTimeout(() => helpEl.classList.remove('show'), 4500);
+}, 800);
+
+// Indítás – véletlenszerű
+if (playlist.length) {
+  const randomIndex = Math.floor(Math.random() * playlist.length);
+  playItem(randomIndex);
+} else {
+  statusEl.textContent = 'Üres lejátszási lista';
+  showLoading(false);
+}
+
+// Ha az iframe nem tölt be, ne ragadjon a loading
+player.addEventListener('load', () => {
+  setTimeout(() => showLoading(false), 400);
+});
 </script>
 </body>
 </html>
