@@ -263,7 +263,7 @@
 
     function checkPin() {
       if (enteredPin === currentProfile.pin) {
-        window.location.href = `szemszab.html?profile=${encodeURIComponent(currentProfile.name)}`;
+        window.location.href = `téli_szemszab.html?profile=${encodeURIComponent(currentProfile.name)}`;
       } else {
         document.getElementById('errorMsg').textContent = "❌ Hibás PIN kód!";
         setTimeout(() => {
