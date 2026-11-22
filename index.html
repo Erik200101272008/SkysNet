@@ -12,9 +12,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #000;
+            background: radial-gradient(ellipse at 50% 120%, #0b1a33 0%, #050b18 55%, #000 100%);
             overflow: hidden;
             position: relative;
+        }
+        /* Hóesés (háttér) */
+        #snow {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
         }
         .logo-container {
             position: relative;
@@ -42,47 +51,192 @@
             opacity: 0;
             animation: highlight 1.5s ease-in-out 2s forwards;
         }
-        /* Fade-in animáció a logóhoz */
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+
+        /* Mikulás a szánjával (a logó előtt) */
+        .santa-fly {
+            position: fixed;
+            left: 0;
+            top: calc(50% - 60px);
+            width: min(520px, 85vw);
+            z-index: 20;
+            pointer-events: none;
+            transform: translateX(-110%);
+            animation: flyAcross 5.2s linear 1.2s forwards;
         }
-        /* Villogó highlight a "NET" részen */
+        .santa-bob {
+            animation: bob 1.3s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.35));
+        }
+        .santa-bob svg { width: 100%; height: auto; display: block; overflow: visible; }
+        .deer-1 { animation: gallop 0.45s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+        .deer-2 { animation: gallop 0.45s ease-in-out -0.15s infinite alternate; transform-box: fill-box; transform-origin: center; }
+        .deer-3 { animation: gallop 0.45s ease-in-out -0.3s infinite alternate; transform-box: fill-box; transform-origin: center; }
+        .nose { animation: noseGlow 0.8s ease-in-out infinite alternate; }
+
+        @keyframes fadeIn {
+            0%   { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
         @keyframes highlight {
-            0% {
-                opacity: 0;
-                transform: translateX(-100%);
-            }
-            50% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(100%);
-            }
+            0%   { opacity: 0; transform: translateX(-100%); }
+            50%  { opacity: 1; }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+        @keyframes flyAcross {
+            0%   { transform: translateX(-110%); }
+            100% { transform: translateX(100vw); }
+        }
+        @keyframes bob {
+            0%   { transform: translateY(18px) rotate(-2deg); }
+            100% { transform: translateY(-34px) rotate(2deg); }
+        }
+        @keyframes gallop {
+            0%   { transform: translateY(2px) rotate(-3deg); }
+            100% { transform: translateY(-3px) rotate(3deg); }
+        }
+        @keyframes noseGlow {
+            0%   { opacity: 0.6; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
+    <canvas id="snow"></canvas>
+
     <div class="logo-container">
-        <img src="skysnet.png" alt="SkyNet Logo" class="logo">
+        <img src="téliskysnet.png" alt="SkyNet Logo" class="logo">
         <div class="net-highlight"></div>
     </div>
 
+    <div class="santa-fly" aria-hidden="true">
+        <div class="santa-bob">
+            <svg viewBox="0 0 480 100" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <symbol id="deer" viewBox="0 0 100 70" overflow="visible">
+                        <!-- lábak (repülő póz) -->
+                        <g stroke="#6b4423" stroke-width="4" stroke-linecap="round" fill="none">
+                            <path d="M62 44 L82 52"/>
+                            <path d="M54 45 L72 58"/>
+                            <path d="M30 44 L10 52"/>
+                            <path d="M38 45 L20 58"/>
+                        </g>
+                        <!-- test -->
+                        <ellipse cx="46" cy="36" rx="28" ry="13" fill="#8b5a2b"/>
+                        <ellipse cx="46" cy="42" rx="22" ry="7" fill="#c9a06b" opacity=".6"/>
+                        <!-- nyak és fej -->
+                        <path d="M64 32 L78 14 L88 20 L74 40 Z" fill="#8b5a2b"/>
+                        <ellipse cx="86" cy="17" rx="9" ry="6" fill="#8b5a2b" transform="rotate(25 86 17)"/>
+                        <circle cx="86" cy="14" r="1.4" fill="#111"/>
+                        <!-- agancs -->
+                        <g stroke="#e3d2b0" stroke-width="2" stroke-linecap="round" fill="none">
+                            <path d="M80 10 L74 -4 M77 4 L70 2 M75 0 L78 -8"/>
+                            <path d="M84 9 L82 -3 M83 3 L89 -1"/>
+                        </g>
+                        <!-- farok -->
+                        <path d="M19 31 L11 27" stroke="#e8d9bd" stroke-width="4" stroke-linecap="round"/>
+                    </symbol>
+                </defs>
+
+                <!-- kantár -->
+                <path d="M92 54 L186 52 L286 52 L386 52" stroke="#d9d9d9" stroke-width="1.6" fill="none"/>
+
+                <!-- szán -->
+                <g>
+                    <!-- zsák -->
+                    <ellipse cx="34" cy="48" rx="18" ry="15" fill="#8d6e3f"/>
+                    <path d="M30 34 Q34 28 38 34" stroke="#d9b36a" stroke-width="3" fill="none"/>
+                    <circle cx="22" cy="44" r="4" fill="#2ecc71"/><circle cx="46" cy="52" r="3.5" fill="#3498db"/>
+                    <!-- Mikulás -->
+                    <ellipse cx="78" cy="44" rx="17" ry="18" fill="#d62828"/>
+                    <circle cx="78" cy="22" r="9" fill="#f4c7a1"/>
+                    <path d="M69 26 Q78 40 87 26 Q78 30 69 26Z" fill="#fff"/>
+                    <path d="M68 19 L80 -2 Q88 4 87 16 Z" fill="#d62828"/>
+                    <rect x="67" y="16" width="22" height="5" rx="2.5" fill="#fff"/>
+                    <circle cx="82" cy="-2" r="4.5" fill="#fff"/>
+                    <circle cx="82" cy="22" r="1.2" fill="#111"/>
+                    <path d="M86 38 L102 50" stroke="#d62828" stroke-width="6" stroke-linecap="round"/>
+                    <circle cx="103" cy="51" r="3.5" fill="#222"/>
+                    <!-- szán teste -->
+                    <path d="M14 52 L128 52 Q124 80 102 80 L38 80 Q18 80 14 52 Z" fill="#b71c1c" stroke="#f1c40f" stroke-width="2.5"/>
+                    <path d="M14 52 Q2 48 8 36" stroke="#f1c40f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                    <!-- talpak -->
+                    <path d="M8 93 H124 Q140 93 136 80" stroke="#f1c40f" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <path d="M36 93 V80 M104 93 V80" stroke="#f1c40f" stroke-width="3"/>
+                </g>
+
+                <!-- rénszarvasok -->
+                <use class="deer-3" href="#deer" x="155" y="15" width="100" height="70"/>
+                <use class="deer-2" href="#deer" x="255" y="15" width="100" height="70"/>
+                <use class="deer-1" href="#deer" x="355" y="15" width="100" height="70"/>
+
+                <!-- Rudolf világító orra -->
+                <circle class="nose" cx="458" cy="35" r="9" fill="#ff1a1a" opacity=".35"/>
+                <circle class="nose" cx="458" cy="35" r="3.6" fill="#ff3b3b"/>
+            </svg>
+        </div>
+    </div>
+
     <script>
-        // Az animáció teljes hossza kb. 3.5 másodperc (2s fadeIn + 1.5s highlight késleltetéssel)
-        // Egy kis ráhagyással 4 másodperc után irányít át
-        setTimeout(function() {
-            window.location.href = "fofooldal.html";
-        }, 4000);
+        // ---- Hóesés ----
+        (function () {
+            var canvas = document.getElementById('snow');
+            var ctx = canvas.getContext('2d');
+            var w, h, flakes = [];
+
+            function resize() {
+                var dpr = window.devicePixelRatio || 1;
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                var count = Math.min(260, Math.round(w * h / 7000));
+                while (flakes.length < count) flakes.push(makeFlake(true));
+                flakes.length = count;
+            }
+
+            function makeFlake(randomY) {
+                var r = Math.random() * 2.6 + 0.6;
+                return {
+                    x: Math.random() * w,
+                    y: randomY ? Math.random() * h : -10,
+                    r: r,
+                    speed: r * 0.35 + 0.35,
+                    phase: Math.random() * Math.PI * 2,
+                    sway: Math.random() * 0.6 + 0.2
+                };
+            }
+
+            function tick(t) {
+                ctx.clearRect(0, 0, w, h);
+                for (var i = 0; i < flakes.length; i++) {
+                    var f = flakes[i];
+                    f.y += f.speed;
+                    f.x += Math.sin(t / 1000 + f.phase) * f.sway + 0.15;
+                    if (f.y > h + 10 || f.x > w + 10) {
+                        flakes[i] = makeFlake(false);
+                        flakes[i].x = Math.random() * w;
+                        continue;
+                    }
+                    if (f.x < -10) f.x = w + 10;
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,' + (0.35 + f.r / 4.5) + ')';
+                    ctx.fill();
+                }
+                requestAnimationFrame(tick);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            requestAnimationFrame(tick);
+        })();
+
+        // Az animáció: 2s fadeIn + Mikulás átrepülése (1.2s késleltetés + 5.2s) ≈ 6.4s
+        // Kis ráhagyással 7 másodperc után irányít át
+        setTimeout(function () {
+            window.location.href = "téli_fofooldal.html";
+        }, 7000);
     </script>
 </body>
 </html>
-
-
